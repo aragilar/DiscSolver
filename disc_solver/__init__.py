@@ -4,7 +4,7 @@
 
 from math import pi, cos, sin, sqrt
 
-G = 1
+G = 1 # FIX
 
 def cot(angle):
     if angle == pi:
@@ -236,7 +236,7 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
         derivs[3] = (
                 v_r**2 / (2 * v_theta) +
                 v_theta +
-                v_phi**2 / v_theta -
+                v_phi**2 / v_theta +
                 (2 * B_power * sound_speed**2) / v_theta + 
                 (G * central_mass) / v_theta +
                 (
@@ -247,12 +247,14 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
             )
 
         derivs[4] = (
-                cot(angle) * v_phi +
+                cot(angle) * v_phi -
                 (v_phi * v_r) / (2 * v_theta) +
                 (
                     B_theta * B_phi_prime +
                     (1-B_power) * B_r * B_phi -
                     cot(angle) * B_theta * B_phi
+                ) / (
+                    4 * pi * v_theta * rho
                 )
             )
 
