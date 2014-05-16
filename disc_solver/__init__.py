@@ -1,8 +1,15 @@
-"""
-"""
 # -*- coding: utf-8 -*-
+"""
+"""
 
 from math import pi, cos, sin, sqrt
+
+import numpy as np
+from scikits.odes import ode
+
+from ode_wrapper import validate_cvode_flags
+
+INTEGRATOR = "cvode"
 
 G = 1 # FIX
 
@@ -240,11 +247,22 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
                 derivs[1], B_power
             )
 
-        derivs[8] = dderiv_B_r(
-                B_r, B_phi, B_theta, ohm_diff, hall_diff, abi_diff, angle, v_r,
-                v_theta, derivs[3], derivs[5], derivs[0], derivs[2],
-                derivs[1], derivs[7], B_power
-            )
-
         return 0
     return rhs_equation
+
+def solution(
+        angles, initial_conditions, B_power, sound_speed, central_mass,
+        ohm_diff, abi_diff, hall_diff, relative_tolerance=1e-10,
+        absolute_tolerance=1e-14
+):
+    solver = ode(INTEGRATOR,
+            ode_system(
+                B_power, sound_speed, central_mass, ohm_diff, abi_diff,
+                hall_diff
+            ),
+            rtol=relative_tolerance, atol=absolute_tolerance
+    )
+    return validate_cvode_flags(*solver.solve(
+            angles, initial_conditions
+        ))
+
