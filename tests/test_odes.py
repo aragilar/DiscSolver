@@ -6,7 +6,7 @@ import unittest
 
 from disc_solver import ode_system, cot, G
 
-ODE_NUMBER = 9
+ODE_NUMBER = 8
 
 class ODE_Test(unittest.TestCase):
     def setUp(self):
@@ -47,7 +47,6 @@ class ODE_Test(unittest.TestCase):
         self.deriv_v_theta = derivs[5]
         self.deriv_rho = derivs[6]
         self.dderiv_B_phi = derivs[7]
-        self.dderiv_B_r = derivs[8]
 
 
         B_mag = sqrt(self.B_r**2 + self.B_phi**2 + self.B_theta **2)
@@ -55,20 +54,22 @@ class ODE_Test(unittest.TestCase):
             self.B_r/B_mag, self.B_phi/B_mag, self.B_theta/B_mag)
 
     def test_continuity(self):
-        self.assertAlmostEqual(0,
-            (5/2 - 2 * self.B_power) * self.v_r + self.deriv_v_theta +
+        eqn = ((5/2 - 2 * self.B_power) * self.v_r + self.deriv_v_theta +
             (self.v_theta / self.rho) * (self.deriv_rho + self.rho *
                 cot(self.angle)
         ))
+        print(eqn)
+        self.assertAlmostEqual(0, eqn)
 
     def test_solenoid(self):
-        self.assertAlmostEqual(self.deriv_B_theta,
+        eqn = self.deriv_B_theta - (
             (self.B_power - 2) * self.B_r - self.B_theta * cot(self.angle)
         )
+        print(eqn)
+        self.assertAlmostEqual(0, eqn)
 
     def test_radial_momentum(self):
-        self.assertAlmostEqual(0,
-            self.v_theta * self.deriv_v_r - 1/2 * self.v_r**2 -
+        eqn = (self.v_theta * self.deriv_v_r - 1/2 * self.v_r**2 -
             self.v_theta**2 - self.v_phi**2 - G * self.central_mass -
             self.sound_speed**2 * 2 * self.B_power - 1/(4 * pi * self.rho) * (
                 self.B_theta * self.deriv_B_r + (self.B_power - 1) * (
@@ -76,19 +77,21 @@ class ODE_Test(unittest.TestCase):
                 )
             )
         )
+        print(eqn)
+        self.assertAlmostEqual(0, eqn)
 
     def test_azimuthal_mometum(self):
-        self.assertAlmostEqual(0,
-            self.v_theta * self.deriv_v_phi + 1/2 * self.v_r * self.v_phi -
+        eqn = (self.v_theta * self.deriv_v_phi + 1/2 * self.v_r * self.v_phi -
             cot(self.angle) * self.v_theta * self.v_phi - 
             1 / (4 * pi * self.rho) * (self.B_theta * self.deriv_B_phi +
                 (1 - self.B_power) * self.B_r * self.B_phi - 
                 cot(self.angle) * self.B_theta * self.B_phi
         ))
+        print(eqn)
+        self.assertAlmostEqual(0, eqn)
 
     def test_polar_momentum(self):
-        self.assertAlmostEqual(0,
-            self.v_r * self.v_theta / 2 + self.v_theta * self.deriv_v_theta -
+        eqn = (self.v_r * self.v_theta / 2 + self.v_theta * self.deriv_v_theta -
             cot(self.angle) ** self.v_phi ** 2 + 
             self.sound_speed **2 * self.deriv_rho / self.rho +
             1 / (4 * pi * self.rho) * (
@@ -96,23 +99,20 @@ class ODE_Test(unittest.TestCase):
                 self.B_r * self.deriv_B_r + self.B_phi * self.deriv_B_phi +
                 self.B_phi ** 2 * cot(self.angle)
         ))
+        print(eqn)
+        self.assertAlmostEqual(0, eqn)
 
     def test_polar_induction(self):
-        self.assertAlmostEqual(0,
-            self.v_r * self.B_theta - self.v_theta * self.B_r +
+        eqn = (self.v_r * self.B_theta - self.v_theta * self.B_r +
             (self.B_theta * (1 - self.B_power) + self.deriv_B_r) *
             (self.ohm_diff + self.abi_diff * (1 - self.norm_B_phi**2)) +
-            self.deriv_B_phi * (
+            (self.B_phi * cot(self.angle) + self.deriv_B_phi) * (
                 self.hall_diff * self.norm_B_theta -
                 self.abi_diff * self.norm_B_r * self.norm_B_phi
-            ) + self.B_phi * (
-                self.hall_diff * (
-                    self.norm_B_theta * cot(self.angle) -
-                    self.norm_B_r * (1 - self.B_power)
-                ) + self.abi_diff * self.norm_B_phi * (
-                    self.norm_B_theta * (1 - self.B_power) -
-                    self.norm_B_r * cot(self.angle)
-                )
-            )
-        )
+            ) - self.B_phi * (1 - self.B_power) * (
+                self.hall_diff * self.norm_B_r -
+                self.abi_diff * self.norm_B_theta * self.norm_B_phi
+        ))
+        print(eqn)
+        self.assertAlmostEqual(0, eqn)
 
