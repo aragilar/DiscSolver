@@ -121,11 +121,11 @@ def dderiv_B_phi(
                     (1 - B_power)* (1 - norm_B_theta**2) - 
                     cot(angle) * norm_B_r * norm_B_theta
                 ) + v_r - 2 / (2 * B_power - 1) * deriv_v_theta +
-                ohm_diff * cos(angle)**-2 -
+                ohm_diff * sin(angle)**-2 -
                 hall_diff * deriv_norm_B_phi * (1 - B_power) +
                 abi_diff * (
                     2 * cot(angle) * norm_B_r * deriv_norm_B_r -
-                    cos(angle)**-2 * norm_B_r **2 +
+                    sin(angle)**-2 * norm_B_r **2 +
                     (1 - B_power)* (
                         norm_B_r * deriv_norm_B_theta +
                         norm_B_theta * deriv_norm_B_r
@@ -143,7 +143,7 @@ def dderiv_B_phi(
                 ) * (
                     hall_diff * (
                         deriv_norm_B_theta * cot(angle) -
-                        cos(angle) **-2 * norm_B_theta -
+                        sin(angle) **-2 * norm_B_theta -
                         deriv_norm_B_r * (1-B_power)
                     ) + abi_diff * (
                         deriv_norm_B_phi * (
@@ -151,7 +151,7 @@ def dderiv_B_phi(
                         ) + norm_B_phi * (
                             deriv_norm_B_theta * (1 - B_power) -
                             deriv_norm_B_r * cot(angle) +
-                            cos(angle)**-2 * norm_B_r
+                            sin(angle)**-2 * norm_B_r
                         )
                     )
                 )
