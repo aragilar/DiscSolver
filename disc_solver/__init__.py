@@ -173,11 +173,11 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
         B_mag = sqrt(B_r**2 + B_phi**2 + B_theta **2)
         norm_B_r, norm_B_phi, norm_B_theta = B_r/B_mag, B_phi/B_mag, B_theta/B_mag
 
-        derivs[1] = B_phi_prime
-        derivs[0] = - (
+        deriv_B_phi = B_phi_prime
+        deriv_B_r = - (
                 B_theta * (1 - B_power) +
                 (
-                    v_r * B_theta - v_theta * B_r + derivs[1] * (
+                    v_r * B_theta - v_theta * B_r + deriv_B_phi * (
                         hall_diff * norm_B_theta -
                         abi_diff * norm_B_r * norm_B_phi
                     ) + B_phi * (
@@ -193,22 +193,22 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
                     ohm_diff + abi_diff * (1 - norm_B_phi**2)
                 )
             )
-        derivs[2] = (B_power - 2) * B_r - B_theta * cot(angle)
+        deriv_B_theta = (B_power - 2) * B_r - B_theta * cot(angle)
 
-        derivs[3] = (
+        deriv_v_r = (
                 v_r**2 / (2 * v_theta) +
                 v_theta +
                 v_phi**2 / v_theta +
                 (2 * B_power * sound_speed**2) / v_theta + 
                 (G * central_mass) / v_theta +
                 (
-                    B_theta * derivs[0] + (B_power - 1)*(B_theta**2 + B_phi**2)
+                    B_theta * deriv_B_r + (B_power - 1)*(B_theta**2 + B_phi**2)
                 ) / (
                     4 * pi * v_theta * rho
                 )
             )
 
-        derivs[4] = (
+        deriv_v_phi = (
                 cot(angle) * v_phi -
                 (v_phi * v_r) / (2 * v_theta) +
                 (
@@ -220,14 +220,14 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
                 )
             )
 
-        derivs[5] = v_theta / (sound_speed**2 - v_theta**2) * (
+        deriv_v_theta = v_theta / (sound_speed**2 - v_theta**2) * (
                 (v_r * v_theta) / 2 -
                 cot(angle) * v_phi **2 -
                 sound_speed**2 * (
                     (5/2 - 2*B_power)* v_r / v_theta + cot(angle)
                 ) + (
                     (B_power - 1) *B_theta * B_r +
-                    B_r * derivs[0] +
+                    B_r * deriv_B_r +
                     B_phi * B_phi_prime +
                     B_phi ** 2 * cot(angle)
                 ) / (
@@ -235,17 +235,26 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
                 )
             )
 
-        derivs[6] = - rho * (
+        deriv_rho = - rho * (
                 (
-                    (5/2 - 2 * B_power) * v_r + derivs[5]
+                    (5/2 - 2 * B_power) * v_r + deriv_v_theta
                 ) / v_theta + cot(angle)
             )
 
-        derivs[7] = dderiv_B_phi(
+        dderiv_B_phi = dderiv_B_phi(
                 B_r, B_phi, B_theta, ohm_diff, hall_diff, abi_diff, angle, v_r,
-                v_theta, v_phi, derivs[3], derivs[5], derivs[4], derivs[0], derivs[2],
-                derivs[1], B_power
+                v_theta, v_phi, deriv_v_r, deriv_v_theta, deriv_v_phi,
+                deriv_B_r, deriv_B_theta, deriv_B_phi, B_power
             )
+
+        derivs[0] = deriv_B_r
+        derivs[1] = deriv_B_phi
+        derivs[2] = deriv_B_theta
+        derivs[3] = deriv_v_r
+        derivs[4] = deriv_v_phi
+        derivs[5] = deriv_v_theta
+        derivs[6] = deriv_rho
+        derivs[7] = dderiv_B_phi
 
         return 0
     return rhs_equation
