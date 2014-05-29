@@ -116,3 +116,8 @@ class ODE_Test(unittest.TestCase):
         print(eqn)
         self.assertAlmostEqual(0, eqn)
 
+    def test_azimuthal_induction(self):
+        eqn = 1 # FAIL
+        print(eqn)
+        self.assertAlmostEqual(0,eqn)
+
