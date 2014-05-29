@@ -277,3 +277,49 @@ def solution(
             angles, initial_conditions
         ))
 
+def main():
+    logging.basicConfig(filename="ode.log", level=logging.DEBUG, mode='w')
+    angles = np.linspace(90, 45, 10000) / 180 * pi
+
+    B_phi_prime = 0 # symmetry across disc
+    v_theta = 0 # symmetry across disc
+    B_r = 0 # symmetry across disc
+    B_phi = 0 # symmetry across disc
+
+    #rho needs computing
+    rho = 1.5e-9 # g/cm^3
+    #v_phi needs computing
+    v_phi = 30 # km/s
+    #B_theta need computing
+    B_theta = 1 # G
+
+    #v_r is free (but small)?
+    v_r = 0
+
+    # from wardle 2007 for 1 AU
+    # assume B ~ 1 G
+    sound_speed = 0.99 # km/s
+    central_mass = 2e33 # g
+    ohm_diff = 5e15 # cm^2/s
+    hall_diff = 5e16 # cm^2/s
+    abi_diff = 1e14 # cm^2/s
+
+    B_power = 5/3
+
+    init_con = np.zeros(8)
+
+    init_con[0] = B_r
+    init_con[1] = B_phi
+    init_con[2] = B_theta
+    init_con[3] = v_r
+    init_con[4] = v_phi
+    init_con[5] = v_theta
+    init_con[6] = rho
+    init_con[7] = B_phi_prime
+    print(solution(
+        angles, init_con, B_power, sound_speed, central_mass, ohm_diff,
+        abi_diff, hall_diff, max_steps=10000
+    ))
+
+if __name__ == '__main__':
+    main()
