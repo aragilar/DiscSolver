@@ -35,7 +35,7 @@ def B_unit_derivs(B_r, B_phi, B_theta, deriv_B_r, deriv_B_phi, deriv_B_theta):
                 (norm_B_theta, deriv_B_theta)
         )]
 
-def dderiv_B_phi(
+def dderiv_B_phi_soln(
     B_r, B_phi, B_theta, ohm_diff, hall_diff, abi_diff, angle, v_r, v_theta,
     v_phi, deriv_v_r, deriv_v_theta, deriv_v_phi, deriv_B_r, deriv_B_theta,
     deriv_B_phi, B_power
@@ -241,7 +241,7 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
                 ) / v_theta + cot(angle)
             )
 
-        dderiv_B_phi = dderiv_B_phi(
+        dderiv_B_phi = dderiv_B_phi_soln(
                 B_r, B_phi, B_theta, ohm_diff, hall_diff, abi_diff, angle, v_r,
                 v_theta, v_phi, deriv_v_r, deriv_v_theta, deriv_v_phi,
                 deriv_B_r, deriv_B_theta, deriv_B_phi, B_power
