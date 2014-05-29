@@ -3,6 +3,7 @@
 """
 
 from math import pi, cos, sin, sqrt
+import logging
 
 import numpy as np
 from scikits.odes import ode
@@ -12,6 +13,10 @@ from ode_wrapper import validate_cvode_flags
 INTEGRATOR = "cvode"
 
 G = 1 # FIX
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+
 
 def cot(angle):
     if angle == pi:
@@ -256,6 +261,9 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
         derivs[6] = deriv_rho
         derivs[7] = dderiv_B_phi
 
+        log.debug("angle: " + str(angle) + ", " + str(angle/pi*180))
+        log.debug("params: " + str(params))
+        log.debug("derivs: " + str(derivs))
         return 0
     return rhs_equation
 
