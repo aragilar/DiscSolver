@@ -261,15 +261,17 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
 
 def solution(
         angles, initial_conditions, B_power, sound_speed, central_mass,
-        ohm_diff, abi_diff, hall_diff, relative_tolerance=1e-10,
-        absolute_tolerance=1e-14
+        ohm_diff, abi_diff, hall_diff, relative_tolerance=1e-6,
+        absolute_tolerance=1e-10,
+        max_steps=500,
 ):
     solver = ode(INTEGRATOR,
             ode_system(
                 B_power, sound_speed, central_mass, ohm_diff, abi_diff,
                 hall_diff
             ),
-            rtol=relative_tolerance, atol=absolute_tolerance
+            rtol=relative_tolerance, atol=absolute_tolerance,
+            max_steps=max_steps,
     )
     return validate_cvode_flags(*solver.solve(
             angles, initial_conditions
