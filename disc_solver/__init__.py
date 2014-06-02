@@ -7,6 +7,10 @@ import logging
 
 import numpy as np
 from scikits.odes import ode
+import matplotlib as mpl
+mpl.use("Qt4Agg")
+mpl.rcParams["backend.qt4"] = "PySide"
+import matplotlib.pyplot as plt
 
 from ode_wrapper import validate_cvode_flags
 
@@ -319,17 +323,31 @@ def solution(
 
 def main():
     logging.basicConfig(filename="ode.log", level=logging.DEBUG, mode='w')
-    angles = np.linspace(90, 45, 10000) / 180 * pi
+    angles = np.linspace(90, 10, 10000) / 180 * pi
+
+    param_names = [
+        "B_r",
+        "B_phi",
+        "B_theta",
+        "v_r",
+        "v_phi",
+        "v_theta",
+        "rho",
+        "B_phi_prime",
+    ]
 
     B_phi_prime = 0 # symmetry across disc
-    v_theta = 0 # symmetry across disc
+    #v_theta = 0 # symmetry across disc
+    v_theta = 0.2
     B_r = 0 # symmetry across disc
     B_phi = 0 # symmetry across disc
 
     #rho needs computing
-    rho = 1.5e-9 # g/cm^3
+    #rho = 1.5e-9 # g/cm^3
+    rho = 1
     #v_phi needs computing
-    v_phi = 30 # km/s
+    #v_phi = 30 # km/s
+    v_phi = 1
     #B_theta need computing
     B_theta = 1 # G
 
@@ -338,28 +356,54 @@ def main():
 
     # from wardle 2007 for 1 AU
     # assume B ~ 1 G
-    sound_speed = 0.99 # km/s
-    central_mass = 2e33 # g
-    ohm_diff = 5e15 # cm^2/s
-    hall_diff = 5e16 # cm^2/s
-    abi_diff = 1e14 # cm^2/s
+    #sound_speed = 0.99 # km/s
+    #central_mass = 2e33 # g
+    #ohm_diff = 5e15 # cm^2/s
+    #hall_diff = 5e16 # cm^2/s
+    #abi_diff = 1e14 # cm^2/s
+    sound_speed = 0.1
+    central_mass = 1
+    ohm_diff = 1
+    hall_diff = 10
+    abi_diff = 0.1
 
-    B_power = 5/3
+    B_power = 1
+
+    #v_norm = v_phi
+    #rho_norm = rho
+    #B_norm = B_theta
+    #diff_norm = ohm_diff
+    v_norm = 1
+    rho_norm = 1
+    B_norm = 1
+    diff_norm = 1
 
     init_con = np.zeros(8)
 
-    init_con[0] = B_r
-    init_con[1] = B_phi
-    init_con[2] = B_theta
-    init_con[3] = v_r
-    init_con[4] = v_phi
-    init_con[5] = v_theta
-    init_con[6] = rho
-    init_con[7] = B_phi_prime
-    print(solution(
-        angles, init_con, B_power, sound_speed, central_mass, ohm_diff,
+    init_con[0] = B_r / B_norm
+    init_con[1] = B_phi / B_norm
+    init_con[2] = B_theta / B_norm
+    init_con[3] = v_r / v_norm
+    init_con[4] = v_phi / v_norm
+    init_con[5] = v_theta / v_norm
+    init_con[6] = rho / rho_norm
+    init_con[7] = B_phi_prime / B_norm
+    soln = solution(
+        angles, init_con, B_power, sound_speed / v_norm, central_mass, ohm_diff,
         abi_diff, hall_diff, max_steps=10000
-    ))
+    )
+    
+    cmap = plt.get_cmap("Dark2")
+
+    fig, ax = plt.subplots()
+    ax.set_yscale("log")
+    ax.set_color_cycle(cmap(np.linspace(0,1, num=len(param_names))))
+    ax.plot(angles, soln)
+    ax.legend(param_names, loc=3)
+    fig.savefig("plot.png")
+    plt.show()
+
+    #return angles, soln
 
 if __name__ == '__main__':
     main()
