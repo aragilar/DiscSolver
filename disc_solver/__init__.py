@@ -17,6 +17,38 @@ G = 1 # FIX
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
+def is_supersonic_slow(v, B, rho, sound_speed):
+    v_sq = np.sum(v**2, axis=1)
+    B_sq = np.sum(B**2, axis=1)
+    cos_sq_psi = np.sum((v.T/v_sq).T * (B.T/B_sq).T, axis=1) ** 2
+    v_a_sq = B_sq /(4*pi*rho)
+    v_sq_slow = 1/2 * (
+        v_a_sq + sound_speed**2 - np.sqrt(
+            (v_a_sq + sound_speed**2)**2 -
+            4 * v_a_sq * sound_speed**2 * cos_sq_psi
+        )
+    )
+    return v_sq > v_sq_slow
+
+def is_supersonic_alfven(v, B, rho):
+    v_sq = np.sum(v**2, axis=1)
+    B_sq = np.sum(B**2, axis=1)
+    cos_sq_psi = np.sum((v.T/v_sq).T * (B.T/B_sq).T, axis=1) ** 2
+    v_a_sq = B_sq /(4*pi*rho) * cos_sq_psi
+    return v_sq > v_a_sq
+
+def is_supersonic_fast(v, B, rho, sound_speed):
+    v_sq = np.sum(v**2, axis=1)
+    B_sq = np.sum(B**2, axis=1)
+    cos_sq_psi = np.sum((v.T/v_sq).T * (B.T/B_sq).T, axis=1) ** 2
+    v_a_sq = B_sq /(4*pi*rho)
+    v_sq_fast = 1/2 * (
+        v_a_sq + sound_speed**2 + np.sqrt(
+            (v_a_sq + sound_speed**2)**2 -
+            4 * v_a_sq * sound_speed**2 * cos_sq_psi
+        )
+    )
+    return v_sq > v_sq_fast
 
 def cot(angle):
     if angle == pi:
