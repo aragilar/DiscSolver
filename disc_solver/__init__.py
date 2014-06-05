@@ -244,8 +244,8 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
                 v_r**2 / (2 * v_theta) +
                 v_theta +
                 v_phi**2 / v_theta +
-                (2 * B_power * sound_speed**2) / v_theta + 
-                (G * central_mass) / v_theta +
+                (2 * B_power * sound_speed**2) / v_theta -
+                central_mass / v_theta +
                 (
                     B_theta * deriv_B_r + (B_power - 1)*(B_theta**2 + B_phi**2)
                 ) / (
@@ -371,7 +371,7 @@ def main():
             (v_phi * hall_diff) / 2
         ) / (ohm_diff + abi_diff)
     C_v_r = (
-        v_phi**2 + 2 * B_power * sound_speed **2 +
+        v_phi**2 + 2 * B_power * sound_speed **2 -
         G * central_mass / radius +
         (B_power - 1) * B_theta**2 / (4 * pi * rho)
     )
@@ -403,12 +403,11 @@ def main():
     abi_diff = abi_diff / diff_norm
     hall_diff = hall_diff / diff_norm
 
-
     soln = solution(
         angles, init_con, B_power, sound_speed, central_mass, ohm_diff,
         abi_diff, hall_diff, max_steps=10000
     )
-    
+
     cmap = plt.get_cmap("Dark2")
 
     fig, ax = plt.subplots()
