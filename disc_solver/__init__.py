@@ -4,6 +4,7 @@
 
 from math import pi, cos, sin, sqrt
 import logging
+from functools import wraps
 
 import numpy as np
 from scikits.odes import ode
@@ -21,10 +22,29 @@ G = 1 # FIX
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
-def is_supersonic_slow(v, B, rho, sound_speed):
-    v_sq = np.sum(v**2, axis=1)
-    B_sq = np.sum(B**2, axis=1)
-    cos_sq_psi = np.sum((v.T/v_sq).T * (B.T/B_sq).T, axis=1) ** 2
+def take_multiple_dims(*multi_dim_pos):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args):
+            have_multi_dims = {
+                pos: bool(getattr(args[pos], "ndim", 0))
+                for pos in multi_dim_pos
+            }
+            return func(*args, have_multi_dims)
+        return wrapper
+    return decorator
+
+
+@take_multiple_dims(0,1)
+def is_supersonic_slow(v, B, rho, sound_speed, have_multi_dims):
+    v_axis = 1 if have_multi_dims[0] else 0
+    B_axis = 1 if have_multi_dims[1] else 0
+
+    v_sq = np.sum(v**2, axis=v_axis)
+    B_sq = np.sum(B**2, axis=B_axis)
+    cos_sq_psi = np.sum(
+            (v.T/v_sq).T * (B.T/B_sq).T, axis=max(v_axis, B_axis)
+        ) ** 2
     v_a_sq = B_sq /(4*pi*rho)
     v_sq_slow = 1/2 * (
         v_a_sq + sound_speed**2 - np.sqrt(
@@ -34,17 +54,29 @@ def is_supersonic_slow(v, B, rho, sound_speed):
     )
     return v_sq > v_sq_slow
 
-def is_supersonic_alfven(v, B, rho):
-    v_sq = np.sum(v**2, axis=1)
-    B_sq = np.sum(B**2, axis=1)
-    cos_sq_psi = np.sum((v.T/v_sq).T * (B.T/B_sq).T, axis=1) ** 2
+@take_multiple_dims(0,1)
+def is_supersonic_alfven(v, B, rho, have_multi_dims):
+    v_axis = 1 if have_multi_dims[0] else 0
+    B_axis = 1 if have_multi_dims[1] else 0
+
+    v_sq = np.sum(v**2, axis=v_axis)
+    B_sq = np.sum(B**2, axis=B_axis)
+    cos_sq_psi = np.sum(
+            (v.T/v_sq).T * (B.T/B_sq).T, axis=max(v_axis, B_axis)
+        ) ** 2
     v_a_sq = B_sq /(4*pi*rho) * cos_sq_psi
     return v_sq > v_a_sq
 
-def is_supersonic_fast(v, B, rho, sound_speed):
-    v_sq = np.sum(v**2, axis=1)
-    B_sq = np.sum(B**2, axis=1)
-    cos_sq_psi = np.sum((v.T/v_sq).T * (B.T/B_sq).T, axis=1) ** 2
+@take_multiple_dims(0,1)
+def is_supersonic_fast(v, B, rho, sound_speed, have_multi_dims):
+    v_axis = 1 if have_multi_dims[0] else 0
+    B_axis = 1 if have_multi_dims[1] else 0
+
+    v_sq = np.sum(v**2, axis=v_axis)
+    B_sq = np.sum(B**2, axis=B_axis)
+    cos_sq_psi = np.sum(
+            (v.T/v_sq).T * (B.T/B_sq).T, axis=max(v_axis, B_axis)
+        ) ** 2
     v_a_sq = B_sq /(4*pi*rho)
     v_sq_fast = 1/2 * (
         v_a_sq + sound_speed**2 + np.sqrt(
