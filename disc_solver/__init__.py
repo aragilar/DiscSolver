@@ -17,7 +17,11 @@ from ode_wrapper import validate_cvode_flags
 
 INTEGRATOR = "cvode"
 
-G = 1 # FIX
+# physical constants
+G = 6.6742e-8 # (cm^3 ∕ (g*s^2))
+AU = 1.4957871e13 # cm
+M_SUN = 2e33 # g
+KM = 1e5 # cm
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -272,8 +276,8 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
                 v_r**2 / (2 * v_theta) +
                 v_theta +
                 v_phi**2 / v_theta +
-                (2 * B_power * sound_speed**2) / v_theta + 
-                (G * central_mass) / v_theta +
+                (2 * B_power * sound_speed**2) / v_theta -
+                central_mass / v_theta +
                 (
                     B_theta * deriv_B_r + (B_power - 1)*(B_theta**2 + B_phi**2)
                 ) / (
@@ -368,47 +372,51 @@ def main():
         "B_phi_prime",
     ]
 
-    B_phi_prime = 0 # symmetry across disc
-    #v_theta = 0 # symmetry across disc
-    v_theta = 0.2
-    B_r = 0 # symmetry across disc
-    B_phi = 0 # symmetry across disc
-
     #rho needs computing
-    #rho = 1.5e-9 # g/cm^3
-    rho = 1
+    rho = 1.5e-9 # g/cm^3
     #v_phi needs computing
-    #v_phi = 30 # km/s
-    v_phi = 1
+    v_phi = 28 * KM # actually in cm/s for conversions
     #B_theta need computing
     B_theta = 1 # G
-
-    #v_r is free (but small)?
-    v_r = 0
+    # pick a radii, 1AU makes it easy to calculate
+    radius = 1 * AU
 
     # from wardle 2007 for 1 AU
     # assume B ~ 1 G
-    #sound_speed = 0.99 # km/s
-    #central_mass = 2e33 # g
-    #ohm_diff = 5e15 # cm^2/s
-    #hall_diff = 5e16 # cm^2/s
-    #abi_diff = 1e14 # cm^2/s
-    sound_speed = 0.1
-    central_mass = 1
-    ohm_diff = 1
-    hall_diff = 10
-    abi_diff = 0.1
-
+    sound_speed = 0.99 * KM # actually in cm/s for conversions
+    central_mass = 1 * M_SUN
     B_power = 1
+    ohm_diff = 5e15 # cm^2/s
+    hall_diff = 5e16 # cm^2/s
+    abi_diff = 1e14 # cm^2/s
 
-    #v_norm = v_phi
-    #rho_norm = rho
-    #B_norm = B_theta
-    #diff_norm = ohm_diff
-    v_norm = 1
-    rho_norm = 1
-    B_norm = 1
-    diff_norm = 1
+    #v_theta = 0 # symmetry across disc
+    v_theta = 0.2 * KM # actually in cm/s for conversions
+    B_r = 0 # symmetry across disc
+    B_phi = 0 # symmetry across disc
+
+
+    # solution for A * v_r**2 + B * v_r + C = 0
+    A_v_r = 1/2
+    B_v_r = - (
+            B_theta **2 / (4 * pi * rho) +
+            (v_phi * hall_diff) / 2
+        ) / (ohm_diff + abi_diff)
+    C_v_r = (
+        v_phi**2 + 2 * B_power * sound_speed **2 -
+        G * central_mass / radius +
+        (B_power - 1) * B_theta**2 / (4 * pi * rho)
+    )
+    v_r = 1/2 * ( - B_v_r - sqrt(B_v_r**2 - 4 * A_v_r * C_v_r))
+
+    B_phi_prime = (v_phi * v_r * 4 * pi * rho) / (2 * B_theta)
+
+
+    v_norm = v_phi
+    B_norm = B_theta
+    diff_norm = ohm_diff
+
+    rho_norm = B_norm **2 / (4 * pi * v_norm**2)
 
     init_con = np.zeros(8)
 
@@ -420,11 +428,18 @@ def main():
     init_con[5] = v_theta / v_norm
     init_con[6] = rho / rho_norm
     init_con[7] = B_phi_prime / B_norm
+
+    central_mass = (central_mass * G / radius) / v_norm**2
+    sound_speed = sound_speed / v_norm
+    ohm_diff = ohm_diff / diff_norm
+    abi_diff = abi_diff / diff_norm
+    hall_diff = hall_diff / diff_norm
+
     soln = solution(
-        angles, init_con, B_power, sound_speed / v_norm, central_mass, ohm_diff,
+        angles, init_con, B_power, sound_speed, central_mass, ohm_diff,
         abi_diff, hall_diff, max_steps=10000
     )
-    
+
     cmap = plt.get_cmap("Dark2")
 
     fig, ax = plt.subplots()

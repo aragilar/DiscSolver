@@ -70,7 +70,7 @@ class ODE_Test(unittest.TestCase):
 
     def test_radial_momentum(self):
         eqn = (self.v_theta * self.deriv_v_r - 1/2 * self.v_r**2 -
-            self.v_theta**2 - self.v_phi**2 - G * self.central_mass -
+            self.v_theta**2 - self.v_phi**2 + self.central_mass -
             self.sound_speed**2 * 2 * self.B_power - 1/(4 * pi * self.rho) * (
                 self.B_theta * self.deriv_B_r + (self.B_power - 1) * (
                     self.B_theta**2 + self.B_phi**2
