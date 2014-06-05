@@ -3,8 +3,10 @@
 """
 
 from math import pi, cos, sin, sqrt
-import logging
 from functools import wraps
+
+import logbook
+from logbook.compat import redirected_warnings
 
 import numpy as np
 from scikits.odes import ode
@@ -23,8 +25,7 @@ AU = 1.4957871e13 # cm
 M_SUN = 2e33 # g
 KM = 1e5 # cm
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = logbook.Logger(__name__)
 
 def take_multiple_dims(*multi_dim_pos):
     def decorator(func):
@@ -333,9 +334,19 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
         derivs[6] = deriv_rho
         derivs[7] = dderiv_B_phi
 
-        log.debug("angle: " + str(angle) + ", " + str(angle/pi*180))
-        log.debug("params: " + str(params))
-        log.debug("derivs: " + str(derivs))
+        if __debug__:
+            v = np.array([v_r, 0, v_theta])
+            B = np.array([B_r, B_phi, B_theta])
+            log.info("slow supersonic: {}".format(
+                is_supersonic_slow(v, B, rho, sound_speed)))
+            log.info("alfven supersonic: {}".format(
+                is_supersonic_alfven(v, B, rho)))
+            log.info("fast supersonic: {}".format(
+                is_supersonic_fast(v, B, rho, sound_speed)))
+            log.debug("angle: " + str(angle) + ", " + str(angle/pi*180))
+            log.debug("params: " + str(params))
+            log.debug("derivs: " + str(derivs))
+
         return 0
     return rhs_equation
 
@@ -358,7 +369,6 @@ def solution(
         ))
 
 def main():
-    logging.basicConfig(filename="ode.log", level=logging.DEBUG, mode='w')
     angles = np.linspace(90, 10, 10000) / 180 * pi
 
     param_names = [
@@ -411,6 +421,11 @@ def main():
 
     B_phi_prime = (v_phi * v_r * 4 * pi * rho) / (2 * B_theta)
 
+    log.debug("A_v_r: {}".format(A_v_r))
+    log.debug("B_v_r: {}".format(B_v_r))
+    log.debug("C_v_r: {}".format(C_v_r))
+    log.info("v_r: {}".format(v_r))
+    log.info("B_phi_prime: {}".format(B_phi_prime))
 
     v_norm = v_phi
     B_norm = B_theta
@@ -453,4 +468,8 @@ def main():
     #return angles, soln
 
 if __name__ == '__main__':
-    main()
+    log_handler = logbook.FileHandler('ode.log', mode="w", level=logbook.INFO)
+    null_handler = logbook.NullHandler()
+    with redirected_warnings():
+        with null_handler.applicationbound(), log_handler.applicationbound():
+            main()
