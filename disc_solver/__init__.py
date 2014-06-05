@@ -27,10 +27,10 @@ def take_multiple_dims(*multi_dim_pos):
         @wraps(func)
         def wrapper(*args):
             have_multi_dims = {
-                pos: bool(getattr(args[pos], "ndim", 0))
+                pos: bool(getattr(args[pos], "ndim", 0) > 1)
                 for pos in multi_dim_pos
             }
-            return func(*args, have_multi_dims)
+            return func(*args, have_multi_dims=have_multi_dims)
         return wrapper
     return decorator
 
