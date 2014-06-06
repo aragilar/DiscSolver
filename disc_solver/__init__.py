@@ -460,13 +460,62 @@ def main():
         angles = e.x_vals
         soln = e.y_vals
 
-    cmap = plt.get_cmap("Dark2")
+    param_names = [
+            {
+                "name": "B_r",
+                "y_label": "Magnetic Field (Gauss)",
+                "normalisation": B_norm,
+            },
+            {
+                "name": "B_phi",
+                "y_label": "Magnetic Field (Gauss)",
+                "normalisation": B_norm,
+            },
+            {
+                "name": "B_theta",
+                "y_label": "Magnetic Field (Gauss)",
+                "normalisation": B_norm,
+            },
+            {
+                "name": "v_r",
+                "y_label": "Velocity Field (km/s)",
+                "normalisation": v_norm / KM, # km/s
+            },
+            {
+                "name": "v_phi",
+                "y_label": "Velocity Field (km/s)",
+                "normalisation": v_norm / KM, # km/s
+            },
+            {
+                "name": "v_theta",
+                "y_label": "Velocity Field (km/s)",
+                "normalisation": v_norm / KM, # km/s
+            },
+            {
+                "name": "rho",
+                "y_label": "Density ($g cm^{-3}$)",
+                "normalisation": rho_norm,
+                "scale": "log",
+            },
+            {
+                "name": "B_phi_prime",
+                "y_label": "Magnetic Field (Gauss)",
+                "normalisation": B_norm,
+            },
+    ]
 
-    fig, ax = plt.subplots()
-    ax.set_yscale("log")
-    ax.set_color_cycle(cmap(np.linspace(0,1, num=len(param_names))))
-    ax.plot(angles, soln)
-    ax.legend(param_names, loc=3)
+    fig, axes = plt.subplots(nrows=2, ncols=4, tight_layout=True)
+    axes.shape = len(param_names)
+    for i, settings in enumerate(param_names):
+        ax = axes[i]
+        ax.plot(
+                90 - (angles * 180 / pi),
+                soln[:,i] * settings["normalisation"]
+        )
+        ax.set_xlabel("angle from plane (°)")
+        ax.set_ylabel(settings["y_label"])
+        ax.set_yscale(settings.get("scale", "linear"))
+        ax.set_title(settings["name"])
     fig.savefig("plot.png")
     plt.show()
 
