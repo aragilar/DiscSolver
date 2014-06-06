@@ -370,69 +370,65 @@ def solution(
         ))
 
 def main():
-    angles = np.linspace(90, 10, 10000) / 180 * pi
 
-    param_names = [
-        "B_r",
-        "B_phi",
-        "B_theta",
-        "v_r",
-        "v_phi",
-        "v_theta",
-        "rho",
-        "B_phi_prime",
-    ]
+    start = 90
+    stop = 10
+    angles = np.linspace(start, stop, 10000) / 180 * pi
 
-    #rho needs computing
-    rho = 1.5e-9 # g/cm^3
-    #v_phi needs computing
-    v_phi = 28 * KM # actually in cm/s for conversions
-    #B_theta need computing
-    B_theta = 1 # G
+
     # pick a radii, 1AU makes it easy to calculate
     radius = 1 * AU
 
+    central_mass = 1 * M_SUN
+
+    B_power = 1
+
+    #B_theta is the equipartition field
+    B_theta = 18 # G
+
     # from wardle 2007 for 1 AU
     # assume B ~ 1 G
-    sound_speed = 0.99 * KM # actually in cm/s for conversions
-    central_mass = 1 * M_SUN
-    B_power = 1
     ohm_diff = 5e15 # cm^2/s
     hall_diff = 5e16 # cm^2/s
     abi_diff = 1e14 # cm^2/s
 
+    sound_speed = 0.99 * KM # actually in cm/s for conversions
+    #rho computed from Wardle 2007
+    rho = 1.5e-9 # g/cm^3
+
+    keplerian_velocity = sqrt(G * central_mass / radius) # cm/s
+
+    v_r = - 0.1 * keplerian_velocity
+
     #v_theta = 0 # symmetry across disc
-    v_theta = 0.2 * KM # actually in cm/s for conversions
+    v_theta = 2e2 # cm/s
     B_r = 0 # symmetry across disc
     B_phi = 0 # symmetry across disc
 
 
-    # solution for A * v_r**2 + B * v_r + C = 0
-    A_v_r = 1/2
-    B_v_r = - (
-            B_theta **2 / (4 * pi * rho) +
-            (v_phi * hall_diff) / 2
-        ) / (ohm_diff + abi_diff)
-    C_v_r = (
-        v_phi**2 + 2 * B_power * sound_speed **2 -
-        G * central_mass / radius +
-        (B_power - 1) * B_theta**2 / (4 * pi * rho)
+    # solution for A * v_phi**2 + B * v_phi + C = 0
+    A_v_phi = 1
+    B_v_phi = - (v_r * hall_diff) / (2 * (ohm_diff + abi_diff))
+    C_v_phi = (
+        v_r**2 / 2 + 2 * B_power * sound_speed **2 -
+        keplerian_velocity**2 +
+        B_theta**2 * (2 * (B_power - 1) - v_r / (ohm_diff + abi_diff)) / (4 * pi * rho)
     )
-    v_r = 1/2 * ( - B_v_r - sqrt(B_v_r**2 - 4 * A_v_r * C_v_r))
+    v_phi = 1/2 * ( - B_v_phi + sqrt(B_v_phi**2 - 4 * A_v_phi * C_v_phi))
 
     B_phi_prime = (v_phi * v_r * 4 * pi * rho) / (2 * B_theta)
 
-    log.debug("A_v_r: {}".format(A_v_r))
-    log.debug("B_v_r: {}".format(B_v_r))
-    log.debug("C_v_r: {}".format(C_v_r))
-    log.info("v_r: {}".format(v_r))
+    log.debug("A_v_phi: {}".format(A_v_phi))
+    log.debug("B_v_phi: {}".format(B_v_phi))
+    log.debug("C_v_phi: {}".format(C_v_phi))
+    log.info("v_phi: {}".format(v_r))
     log.info("B_phi_prime: {}".format(B_phi_prime))
 
     if v_r > 0:
         log.error("v_r > 0")
         exit(1)
 
-    v_norm = v_phi
+    v_norm = keplerian_velocity
     B_norm = B_theta
     diff_norm = ohm_diff
 
@@ -449,16 +445,20 @@ def main():
     init_con[6] = rho / rho_norm
     init_con[7] = B_phi_prime / B_norm
 
-    central_mass = (central_mass * G / radius) / v_norm**2
+    norm_kepler_sq = keplerian_velocity**2 / v_norm**2
     sound_speed = sound_speed / v_norm
     ohm_diff = ohm_diff / diff_norm
     abi_diff = abi_diff / diff_norm
     hall_diff = hall_diff / diff_norm
 
-    soln = solution(
-        angles, init_con, B_power, sound_speed, central_mass, ohm_diff,
-        abi_diff, hall_diff, max_steps=10000
-    )
+    try:
+        soln = solution(
+            angles, init_con, B_power, sound_speed, norm_kepler_sq, ohm_diff,
+            abi_diff, hall_diff, max_steps=10000
+        )
+    except RuntimeError as e:
+        angles = e.x_vals
+        soln = e.y_vals
 
     cmap = plt.get_cmap("Dark2")
 
