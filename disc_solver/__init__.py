@@ -7,7 +7,7 @@ from math import pi, cos, sin, sqrt
 from functools import wraps
 
 import logbook
-from logbook.compat import redirected_warnings
+from logbook.compat import redirected_warnings, redirected_logging
 
 import numpy as np
 from scikits.odes import ode
@@ -476,6 +476,6 @@ if __name__ == '__main__':
     file_handler = logbook.FileHandler('ode.log', mode="w", level=logbook.DEBUG)
     stdout_handler = logbook.StreamHandler(sys.stdout, level=logbook.INFO)
     null_handler = logbook.NullHandler()
-    with redirected_warnings():
+    with redirected_warnings(), redirected_logging():
         with null_handler.applicationbound(), file_handler.applicationbound(), stdout_handler.applicationbound():
             main()
