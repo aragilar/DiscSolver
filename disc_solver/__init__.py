@@ -2,6 +2,7 @@
 """
 """
 
+import sys
 from math import pi, cos, sin, sqrt
 from functools import wraps
 
@@ -427,6 +428,10 @@ def main():
     log.info("v_r: {}".format(v_r))
     log.info("B_phi_prime: {}".format(B_phi_prime))
 
+    if v_r > 0:
+        log.error("v_r > 0")
+        exit(1)
+
     v_norm = v_phi
     B_norm = B_theta
     diff_norm = ohm_diff
@@ -468,8 +473,9 @@ def main():
     #return angles, soln
 
 if __name__ == '__main__':
-    log_handler = logbook.FileHandler('ode.log', mode="w", level=logbook.INFO)
+    file_handler = logbook.FileHandler('ode.log', mode="w", level=logbook.DEBUG)
+    stdout_handler = logbook.StreamHandler(sys.stdout, level=logbook.INFO)
     null_handler = logbook.NullHandler()
     with redirected_warnings():
-        with null_handler.applicationbound(), log_handler.applicationbound():
+        with null_handler.applicationbound(), file_handler.applicationbound(), stdout_handler.applicationbound():
             main()
