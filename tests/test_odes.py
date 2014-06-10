@@ -4,6 +4,8 @@
 from math import pi, sqrt
 import unittest
 
+import numpy as np
+
 from disc_solver import ode_system, cot, G
 
 ODE_NUMBER = 8
@@ -11,7 +13,7 @@ ODE_NUMBER = 8
 class ODE_Test(unittest.TestCase):
     def setUp(self):
         # These are all arbitrary values, this should not affect the result
-        params = [1 for i in range(ODE_NUMBER)]
+        params = np.array([1 for i in range(ODE_NUMBER)])
         self.B_power = 2
         self.sound_speed = 2
         self.central_mass = 2
@@ -24,12 +26,12 @@ class ODE_Test(unittest.TestCase):
         self.angle = pi/2 + 0.1
 
         # Here's the action computation
-        derivs = [0 for i in range(ODE_NUMBER)]
-        rhs = ode_system(
+        derivs = np.zeros(ODE_NUMBER)
+        self.rhs = ode_system(
                 self.B_power, self.sound_speed, self.central_mass,
                 self.ohm_diff, self.abi_diff, self.hall_diff
         )
-        rhs(self.angle, params, derivs)
+        self.rhs(self.angle, params, derivs)
 
         # Assign useful names to params, derivs
         self.B_r = params[0]
@@ -52,6 +54,9 @@ class ODE_Test(unittest.TestCase):
         B_mag = sqrt(self.B_r**2 + self.B_phi**2 + self.B_theta **2)
         self.norm_B_r, self.norm_B_phi, self.norm_B_theta = (
             self.B_r/B_mag, self.B_phi/B_mag, self.B_theta/B_mag)
+
+        self.params = params
+        self.derivs = derivs
 
     def test_continuity(self):
         eqn = ((5/2 - 2 * self.B_power) * self.v_r + self.deriv_v_theta +
@@ -116,8 +121,20 @@ class ODE_Test(unittest.TestCase):
         print(eqn)
         self.assertAlmostEqual(0, eqn)
 
-    def test_azimuthal_induction(self):
-        eqn = 1 # FAIL
+    def test_azimuthal_induction_numeric(self):
+        step = - 1e-4
+        new_params = self.params + self.derivs * step
+        new_angle = self.angle + step
+        new_derivs = np.zeros(ODE_NUMBER)
+        self.rhs(new_angle, new_params, new_derivs)
+        dderiv_B_phi_hacked = ((new_derivs - self.derivs) / step)[1]
+        eqn = dderiv_B_phi_hacked - self.dderiv_B_phi
         print(eqn)
-        self.assertAlmostEqual(0,eqn)
+        self.assertAlmostEqual(0, eqn)
+
+    # This would be useful to do when I have time
+    #def test_azimuthal_induction_algebraic(self):
+    #    eqn = 1 # FAIL
+    #    print(eqn)
+    #    self.assertAlmostEqual(0,eqn)
 
