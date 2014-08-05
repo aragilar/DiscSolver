@@ -41,7 +41,7 @@ def take_multiple_dims(*multi_dim_pos):
     return decorator
 
 
-@take_multiple_dims(0,1)
+@take_multiple_dims(0, 1)
 def is_supersonic_slow(v, B, rho, sound_speed, have_multi_dims):
     v_axis = 1 if have_multi_dims[0] else 0
     B_axis = 1 if have_multi_dims[1] else 0
@@ -60,8 +60,8 @@ def is_supersonic_slow(v, B, rho, sound_speed, have_multi_dims):
     )
     return v_sq > v_sq_slow
 
-@take_multiple_dims(0,1)
-def is_supersonic_alfven(v, B, rho, have_multi_dims):
+@take_multiple_dims(0, 1)
+def is_supersonic_alfven(v, B, rho, have_multi_dims=None):
     v_axis = 1 if have_multi_dims[0] else 0
     B_axis = 1 if have_multi_dims[1] else 0
 
@@ -73,8 +73,8 @@ def is_supersonic_alfven(v, B, rho, have_multi_dims):
     v_a_sq = B_sq /(4*pi*rho) * cos_sq_psi
     return v_sq > v_a_sq
 
-@take_multiple_dims(0,1)
-def is_supersonic_fast(v, B, rho, sound_speed, have_multi_dims):
+@take_multiple_dims(0, 1)
+def is_supersonic_fast(v, B, rho, sound_speed, have_multi_dims=None):
     v_axis = 1 if have_multi_dims[0] else 0
     B_axis = 1 if have_multi_dims[1] else 0
 
@@ -197,7 +197,7 @@ def dderiv_B_phi_soln(
                 ohm_diff * (1 - B_power) -
                 hall_diff * norm_B_phi * cot(angle) +
                 abi_diff * (
-                    (1 - B_power)* (1 - norm_B_theta**2) - 
+                    (1 - B_power)* (1 - norm_B_theta**2) -
                     cot(angle) * norm_B_r * norm_B_theta
                 ) + v_r - 2 / (2 * B_power - 1) * deriv_v_theta +
                 ohm_diff * sin(angle)**-2 -
@@ -238,7 +238,9 @@ def dderiv_B_phi_soln(
         )
 
 
-def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff):
+def ode_system(
+    B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
+):
     def rhs_equation(angle, params, derivs):
         B_r = params[0]
         B_phi = params[1]
@@ -250,7 +252,9 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
         B_phi_prime = params[7]
 
         B_mag = sqrt(B_r**2 + B_phi**2 + B_theta **2)
-        norm_B_r, norm_B_phi, norm_B_theta = B_r/B_mag, B_phi/B_mag, B_theta/B_mag
+        norm_B_r, norm_B_phi, norm_B_theta = (
+            B_r/B_mag, B_phi/B_mag, B_theta/B_mag
+        )
 
         deriv_B_phi = B_phi_prime
         deriv_B_r = - (
@@ -412,9 +416,11 @@ def main():
     C_v_phi = (
         v_r**2 / 2 + 2 * B_power * sound_speed **2 -
         keplerian_velocity**2 +
-        B_theta**2 * (2 * (B_power - 1) - v_r / (ohm_diff + abi_diff)) / (4 * pi * rho)
+        B_theta**2 * (
+            2 * (B_power - 1) - v_r / (ohm_diff + abi_diff)
+        ) / (4 * pi * rho)
     )
-    v_phi = 1/2 * ( - B_v_phi + sqrt(B_v_phi**2 - 4 * A_v_phi * C_v_phi))
+    v_phi = - 1/2 * (B_v_phi - sqrt(B_v_phi**2 - 4 * A_v_phi * C_v_phi))
 
     B_phi_prime = (v_phi * v_r * 4 * pi * rho) / (2 * B_theta)
 
@@ -510,7 +516,7 @@ def main():
         ax = axes[i]
         ax.plot(
                 90 - (angles * 180 / pi),
-                soln[:,i] * settings["normalisation"]
+                soln[:, i] * settings["normalisation"]
         )
         ax.set_xlabel("angle from plane (°)")
         ax.set_ylabel(settings["y_label"])
