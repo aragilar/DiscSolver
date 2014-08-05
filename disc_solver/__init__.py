@@ -49,7 +49,7 @@ def is_supersonic_slow(v, B, rho, sound_speed, have_multi_dims):
     v_sq = np.sum(v**2, axis=v_axis)
     B_sq = np.sum(B**2, axis=B_axis)
     cos_sq_psi = np.sum(
-            (v.T/v_sq).T * (B.T/B_sq).T, axis=max(v_axis, B_axis)
+            (v.T**2/v_sq).T * (B.T**2/B_sq).T, axis=max(v_axis, B_axis)
         ) ** 2
     v_a_sq = B_sq /(4*pi*rho)
     v_sq_slow = 1/2 * (
@@ -68,7 +68,7 @@ def is_supersonic_alfven(v, B, rho, have_multi_dims):
     v_sq = np.sum(v**2, axis=v_axis)
     B_sq = np.sum(B**2, axis=B_axis)
     cos_sq_psi = np.sum(
-            (v.T/v_sq).T * (B.T/B_sq).T, axis=max(v_axis, B_axis)
+            (v.T**2/v_sq).T * (B.T**2/B_sq).T, axis=max(v_axis, B_axis)
         ) ** 2
     v_a_sq = B_sq /(4*pi*rho) * cos_sq_psi
     return v_sq > v_a_sq
@@ -81,7 +81,7 @@ def is_supersonic_fast(v, B, rho, sound_speed, have_multi_dims):
     v_sq = np.sum(v**2, axis=v_axis)
     B_sq = np.sum(B**2, axis=B_axis)
     cos_sq_psi = np.sum(
-            (v.T/v_sq).T * (B.T/B_sq).T, axis=max(v_axis, B_axis)
+            (v.T**2/v_sq).T * (B.T**2/B_sq).T, axis=max(v_axis, B_axis)
         ) ** 2
     v_a_sq = B_sq /(4*pi*rho)
     v_sq_fast = 1/2 * (
@@ -336,7 +336,7 @@ def ode_system(B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
         derivs[7] = dderiv_B_phi
 
         if __debug__:
-            v = np.array([v_r, 0, v_theta])
+            v = np.array([0, 0, v_theta])
             B = np.array([B_r, B_phi, B_theta])
             log.info("slow supersonic: {}".format(
                 is_supersonic_slow(v, B, rho, sound_speed)))
