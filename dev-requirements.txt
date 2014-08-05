@@ -1,0 +1,10 @@
+# debug tools
+nose
+bpython
+ipython[all]
+sphinx
+pylint
+flake8
+
+# actual deps
+-r requirements.txt
