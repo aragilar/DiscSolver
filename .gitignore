@@ -1,3 +1,4 @@
 *.log
 plot.png
 pylint_*.txt
+.coverage
