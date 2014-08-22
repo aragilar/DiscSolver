@@ -3,8 +3,7 @@
 """
 
 import sys
-from math import pi, cos, sin, sqrt
-from functools import wraps
+from math import pi, sin, sqrt
 
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
@@ -18,6 +17,8 @@ import matplotlib.pyplot as plt
 
 from ode_wrapper import validate_cvode_flags
 
+from .utils import cot, is_supersonic
+
 INTEGRATOR = "cvode"
 
 # physical constants
@@ -27,86 +28,6 @@ M_SUN = 2e33  # g
 KM = 1e5  # cm
 
 log = logbook.Logger(__name__)
-
-
-def take_multiple_dims(*multi_dim_pos):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args):
-            have_multi_dims = {
-                pos: bool(getattr(args[pos], "ndim", 0) > 1)
-                for pos in multi_dim_pos
-            }
-            return func(*args, have_multi_dims=have_multi_dims)
-        return wrapper
-    return decorator
-
-
-@take_multiple_dims(0, 1)
-def is_supersonic_slow(v, B, rho, sound_speed, have_multi_dims):
-    v_axis = 1 if have_multi_dims[0] else 0
-    B_axis = 1 if have_multi_dims[1] else 0
-
-    v_sq = np.sum(v**2, axis=v_axis)
-    B_sq = np.sum(B**2, axis=B_axis)
-
-    cos_sq_psi = np.sum(
-        (v.T**2/v_sq).T * (B.T**2/B_sq).T, axis=max(v_axis, B_axis)
-    ) ** 2
-
-    v_a_sq = B_sq / (4*pi*rho)
-    v_sq_slow = 1/2 * (
-        v_a_sq + sound_speed**2 - np.sqrt(
-            (v_a_sq + sound_speed**2)**2 -
-            4 * v_a_sq * sound_speed**2 * cos_sq_psi
-        )
-    )
-    return v_sq > v_sq_slow
-
-
-@take_multiple_dims(0, 1)
-def is_supersonic_alfven(v, B, rho, have_multi_dims):
-    v_axis = 1 if have_multi_dims[0] else 0
-    B_axis = 1 if have_multi_dims[1] else 0
-
-    v_sq = np.sum(v**2, axis=v_axis)
-    B_sq = np.sum(B**2, axis=B_axis)
-
-    cos_sq_psi = np.sum(
-        (v.T**2/v_sq).T * (B.T**2/B_sq).T, axis=max(v_axis, B_axis)
-    ) ** 2
-    v_a_sq = B_sq / (4*pi*rho) * cos_sq_psi
-    return v_sq > v_a_sq
-
-
-@take_multiple_dims(0, 1)
-def is_supersonic_fast(v, B, rho, sound_speed, have_multi_dims):
-    v_axis = 1 if have_multi_dims[0] else 0
-    B_axis = 1 if have_multi_dims[1] else 0
-
-    v_sq = np.sum(v**2, axis=v_axis)
-    B_sq = np.sum(B**2, axis=B_axis)
-
-    cos_sq_psi = np.sum(
-        (v.T**2/v_sq).T * (B.T**2/B_sq).T, axis=max(v_axis, B_axis)
-    ) ** 2
-
-    v_a_sq = B_sq / (4*pi*rho)
-    v_sq_fast = 1/2 * (
-        v_a_sq + sound_speed**2 + np.sqrt(
-            (v_a_sq + sound_speed**2)**2 -
-            4 * v_a_sq * sound_speed**2 * cos_sq_psi
-        )
-    )
-    return v_sq > v_sq_fast
-
-
-def cot(angle):
-    if angle == pi:
-        return float('inf')
-    elif angle == pi/2:
-        return 0
-    return cos(angle)/sin(angle)
 
 
 def B_unit_derivs(B_r, B_phi, B_theta, deriv_B_r, deriv_B_phi, deriv_B_theta):
@@ -358,11 +279,11 @@ def ode_system(
             v = np.array([0, 0, v_theta])
             B = np.array([B_r, B_phi, B_theta])
             log.info("slow supersonic: {}".format(
-                is_supersonic_slow(v, B, rho, sound_speed)))
+                is_supersonic(v, B, rho, sound_speed, "slow")))
             log.info("alfven supersonic: {}".format(
-                is_supersonic_alfven(v, B, rho)))
+                is_supersonic(v, B, rho, sound_speed, "alfven")))
             log.info("fast supersonic: {}".format(
-                is_supersonic_fast(v, B, rho, sound_speed)))
+                is_supersonic(v, B, rho, sound_speed, "fast")))
             log.debug("angle: " + str(angle) + ", " + str(angle/pi*180))
             log.debug("params: " + str(params))
             log.debug("derivs: " + str(derivs))
