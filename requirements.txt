@@ -1,9 +1,0 @@
-## actual deps
-# external perojects
-numpy
-matplotlib
-scikits.odes
-logbook
-
-# projects I created
--r requirements-pp.txt

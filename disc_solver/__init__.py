@@ -3,6 +3,7 @@
 Solver for PHD Project
 """
 
+__version__ = "0.1"
 from math import pi, sin, sqrt
 
 import logbook
