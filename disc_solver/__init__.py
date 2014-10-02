@@ -63,7 +63,9 @@ def dderiv_B_phi_soln(
     #  η_{A0}\left(1-b_{φ}^{2}\right)}$
     magic_deriv = (
         (
-            hall_diff * deriv_norm_B_theta + abi_diff * (
+            hall_diff * deriv_norm_B_theta * (
+                ohm_diff + abi_diff * (1 - norm_B_phi)
+            ) + abi_diff * (
                 norm_B_r * deriv_norm_B_phi +
                 norm_B_phi * deriv_norm_B_r
             ) * (
