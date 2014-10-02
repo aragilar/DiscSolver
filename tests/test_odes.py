@@ -64,14 +64,14 @@ class ODE_Test(unittest.TestCase):
             (self.v_theta / self.rho) * (self.deriv_rho + self.rho *
                 cot(self.angle)
         ))
-        print(eqn)
+        print("continuity", eqn)
         self.assertAlmostEqual(0, eqn)
 
     def test_solenoid(self):
         eqn = self.deriv_B_theta - (
             (self.B_power - 2) * self.B_r - self.B_theta * cot(self.angle)
         )
-        print(eqn)
+        print("solenoid", eqn)
         self.assertAlmostEqual(0, eqn)
 
     def test_radial_momentum(self):
@@ -83,7 +83,7 @@ class ODE_Test(unittest.TestCase):
                 )
             )
         )
-        print(eqn)
+        print("radial momentum", eqn)
         self.assertAlmostEqual(0, eqn)
 
     def test_azimuthal_mometum(self):
@@ -93,7 +93,7 @@ class ODE_Test(unittest.TestCase):
                 (1 - self.B_power) * self.B_r * self.B_phi - 
                 cot(self.angle) * self.B_theta * self.B_phi
         ))
-        print(eqn)
+        print("azimuthal momentum", eqn)
         self.assertAlmostEqual(0, eqn)
 
     def test_polar_momentum(self):
@@ -105,7 +105,7 @@ class ODE_Test(unittest.TestCase):
                 self.B_r * self.deriv_B_r + self.B_phi * self.deriv_B_phi +
                 self.B_phi ** 2 * cot(self.angle)
         ))
-        print(eqn)
+        print("polar momentum", eqn)
         self.assertAlmostEqual(0, eqn)
 
     def test_polar_induction(self):
@@ -119,7 +119,7 @@ class ODE_Test(unittest.TestCase):
                 self.hall_diff * self.norm_B_r -
                 self.abi_diff * self.norm_B_theta * self.norm_B_phi
         ))
-        print(eqn)
+        print("polar induction", eqn)
         self.assertAlmostEqual(0, eqn)
 
     def test_azimuthal_induction_numeric(self):
@@ -130,7 +130,7 @@ class ODE_Test(unittest.TestCase):
         self.rhs(new_angle, new_params, new_derivs)
         dderiv_B_phi_hacked = ((new_derivs - self.derivs) / step)[1]
         eqn = dderiv_B_phi_hacked - self.dderiv_B_phi
-        print(eqn)
+        print("azimuthal induction (num)", eqn)
         self.assertAlmostEqual(0, eqn)
 
     # This would be useful to do when I have time
