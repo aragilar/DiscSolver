@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """
+Solver for PHD Project
 """
 
 import sys
@@ -28,7 +29,6 @@ M_SUN = 2e33  # g
 KM = 1e5  # cm
 
 log = logbook.Logger(__name__)
-
 
 def B_unit_derivs(B_r, B_phi, B_theta, deriv_B_r, deriv_B_phi, deriv_B_theta):
     B_mag = sqrt(B_r**2 + B_phi**2 + B_theta**2)
@@ -320,7 +320,7 @@ def solution(
 def main():
 
     start = 90
-    stop = 10
+    stop = 50
     angles = np.linspace(start, stop, 10000) / 180 * pi
 
     # pick a radii, 1AU makes it easy to calculate
@@ -328,7 +328,7 @@ def main():
 
     central_mass = 1 * M_SUN
 
-    B_power = 1
+    B_power = 5/3
 
     # B_theta is the equipartition field
     B_theta = 18  # G
@@ -376,9 +376,9 @@ def main():
         log.error("v_r > 0")
         exit(1)
 
-    v_norm = keplerian_velocity
+    v_norm = sound_speed
     B_norm = B_theta
-    diff_norm = ohm_diff
+    diff_norm = v_norm * radius
 
     rho_norm = B_norm**2 / (4 * pi * v_norm**2)
 
@@ -469,7 +469,7 @@ def main():
 
 if __name__ == '__main__':
     file_handler = logbook.FileHandler('ode.log', mode="w", level=logbook.DEBUG)
-    stdout_handler = logbook.StreamHandler(sys.stdout, level=logbook.INFO)
+    stdout_handler = logbook.StreamHandler(sys.stdout, level=logbook.WARNING)
     null_handler = logbook.NullHandler()
     with redirected_warnings(), redirected_logging():
         with null_handler.applicationbound(), file_handler.applicationbound(), stdout_handler.applicationbound():
