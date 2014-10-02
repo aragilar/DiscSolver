@@ -3,11 +3,9 @@
 Solver for PHD Project
 """
 
-import sys
 from math import pi, sin, sqrt
 
 import logbook
-from logbook.compat import redirected_warnings, redirected_logging
 
 import numpy as np
 from scikits.odes import ode
@@ -320,7 +318,7 @@ def solution(
 def main():
 
     start = 90
-    stop = 50
+    stop = 85
     angles = np.linspace(start, stop, 10000) / 180 * pi
 
     # pick a radii, 1AU makes it easy to calculate
@@ -466,11 +464,3 @@ def main():
         ax.set_title(settings["name"])
     fig.savefig("plot.png")
     plt.show()
-
-if __name__ == '__main__':
-    file_handler = logbook.FileHandler('ode.log', mode="w", level=logbook.DEBUG)
-    stdout_handler = logbook.StreamHandler(sys.stdout, level=logbook.WARNING)
-    null_handler = logbook.NullHandler()
-    with redirected_warnings(), redirected_logging():
-        with null_handler.applicationbound(), file_handler.applicationbound(), stdout_handler.applicationbound():
-            main()
