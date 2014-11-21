@@ -63,18 +63,18 @@ def dderiv_B_phi_soln(
     magic_deriv = (
         (
             hall_diff * deriv_norm_B_theta * (
-                ohm_diff + abi_diff * (1 - norm_B_phi)
+                ohm_diff + abi_diff * (1 - norm_B_phi**2)
             ) + abi_diff * (
                 norm_B_r * deriv_norm_B_phi +
                 norm_B_phi * deriv_norm_B_r
             ) * (
-                ohm_diff + abi_diff * (1 - norm_B_phi)
-            ) + (
+                ohm_diff + abi_diff * (1 - norm_B_phi**2)
+            ) - (
                 abi_diff * 2 * deriv_norm_B_phi * norm_B_phi
             ) * (
                 hall_diff * norm_B_theta + abi_diff * norm_B_r * norm_B_phi
             )
-        ) / (ohm_diff + abi_diff * (1 - norm_B_phi))**2)
+        ) / (ohm_diff + abi_diff * (1 - norm_B_phi**2))**2)
 
     return (
         ohm_diff + abi_diff * (1-norm_B_r**2) + (
@@ -327,7 +327,7 @@ def main():
 
     central_mass = 1 * M_SUN
 
-    B_power = 5/3
+    B_power = 4/3
 
     # B_theta is the equipartition field
     B_theta = 18  # G
