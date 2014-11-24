@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """
+Useful functions
 """
 
 from math import pi, cos, sin
@@ -8,6 +9,9 @@ import numpy as np
 
 
 def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
+    """
+    Checks whether velocity is supersonic.
+    """
     v_axis = 1 if v.ndim > 1 else 0
     B_axis = 1 if B.ndim > 1 else 0
 
@@ -40,6 +44,9 @@ def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
 
 
 def cot(angle):
+    """
+    Computes cot
+    """
     if angle == pi:
         return float('-inf')
     elif angle == pi/2:

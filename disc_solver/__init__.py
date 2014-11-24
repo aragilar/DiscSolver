@@ -29,7 +29,11 @@ KM = 1e5  # cm
 
 log = logbook.Logger(__name__)
 
+
 def B_unit_derivs(B_r, B_phi, B_theta, deriv_B_r, deriv_B_phi, deriv_B_theta):
+    """
+    Compute the derivatives of the unit vector of B.
+    """
     B_mag = sqrt(B_r**2 + B_phi**2 + B_theta**2)
     norm_B_r, norm_B_phi, norm_B_theta = B_r/B_mag, B_phi/B_mag, B_theta/B_mag
     return [
@@ -52,6 +56,9 @@ def dderiv_B_phi_soln(
     v_phi, deriv_v_r, deriv_v_theta, deriv_v_phi, deriv_B_r, deriv_B_theta,
     deriv_B_phi, B_power
 ):
+    """
+    Compute the derivative of B_phi
+    """
     B_mag = sqrt(B_r**2 + B_phi**2 + B_theta**2)
     norm_B_r, norm_B_phi, norm_B_theta = B_r/B_mag, B_phi/B_mag, B_theta/B_mag
     deriv_norm_B_r, deriv_norm_B_phi, deriv_norm_B_theta = B_unit_derivs(
@@ -177,7 +184,13 @@ def dderiv_B_phi_soln(
 def ode_system(
     B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
 ):
+    """
+    Set up the system we are solving for.
+    """
     def rhs_equation(angle, params, derivs):
+        """
+        Compute the ODEs
+        """
         B_r = params[0]
         B_phi = params[1]
         B_theta = params[2]
@@ -299,6 +312,9 @@ def solution(
         absolute_tolerance=1e-10,
         max_steps=500,
 ):
+    """
+    Find solution
+    """
     solver = ode(
         INTEGRATOR,
         ode_system(
@@ -317,6 +333,9 @@ def solution(
 
 
 def main():
+    """
+    The main function
+    """
 
     start = 90
     stop = 85
@@ -346,7 +365,7 @@ def main():
 
     v_r = - 0.1 * keplerian_velocity
 
-    #v_theta = 0  # symmetry across disc
+    # v_theta = 0  # symmetry across disc
     v_theta = 2e2  # cm/s
     B_r = 0  # symmetry across disc
     B_phi = 0  # symmetry across disc
