@@ -33,7 +33,6 @@ setuptools.setup(
         "matplotlib",
         "scikits.odes",
         "logbook",
-        "ode-wrapper",
     ],
     author = "James Tocknell",
     author_email = "aragilar@gmail.com",

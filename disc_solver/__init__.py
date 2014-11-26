@@ -15,8 +15,6 @@ mpl.use("Qt4Agg")
 mpl.rcParams["backend.qt4"] = "PySide"
 import matplotlib.pyplot as plt
 
-from ode_wrapper import validate_cvode_flags
-
 from .utils import cot, is_supersonic
 
 INTEGRATOR = "cvode"
@@ -308,12 +306,9 @@ def solution(
         rtol=relative_tolerance,
         atol=absolute_tolerance,
         max_steps=max_steps,
+        validate_flags=True,
     )
-    return validate_cvode_flags(
-        *solver.solve(
-            angles, initial_conditions
-        )
-    )
+    return solver.solve(angles, initial_conditions)
 
 
 def main():
