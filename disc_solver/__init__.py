@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 
 from .utils import cot, is_supersonic
 from .constants import G, AU, M_SUN, KM
-from .deriv_funcs import dderiv_B_phi_soln
+from .deriv_funcs import dderiv_B_φ_soln
 
 INTEGRATOR = "cvode"
 
@@ -25,123 +25,123 @@ log = logbook.Logger(__name__)
 
 
 def ode_system(
-    B_power, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
+    β, sound_speed, central_mass, ohm_diff, abi_diff, hall_diff
 ):
     """
     Set up the system we are solving for.
     """
-    def rhs_equation(angle, params, derivs):
+    def rhs_equation(θ, params, derivs):
         """
         Compute the ODEs
         """
         B_r = params[0]
-        B_phi = params[1]
-        B_theta = params[2]
+        B_φ = params[1]
+        B_θ = params[2]
         v_r = params[3]
-        v_phi = params[4]
-        v_theta = params[5]
-        rho = params[6]
-        B_phi_prime = params[7]
+        v_φ = params[4]
+        v_θ = params[5]
+        ρ = params[6]
+        B_φ_prime = params[7]
 
-        B_mag = sqrt(B_r**2 + B_phi**2 + B_theta**2)
-        norm_B_r, norm_B_phi, norm_B_theta = (
-            B_r/B_mag, B_phi/B_mag, B_theta/B_mag
+        B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
+        norm_B_r, norm_B_φ, norm_B_θ = (
+            B_r/B_mag, B_φ/B_mag, B_θ/B_mag
         )
 
-        deriv_B_phi = B_phi_prime
+        deriv_B_φ = B_φ_prime
         deriv_B_r = - (
-            B_theta * (1 - B_power) +
+            B_θ * (1 - β) +
             (
-                v_r * B_theta - v_theta * B_r + deriv_B_phi * (
-                    hall_diff * norm_B_theta -
-                    abi_diff * norm_B_r * norm_B_phi
-                ) + B_phi * (
+                v_r * B_θ - v_θ * B_r + deriv_B_φ * (
+                    hall_diff * norm_B_θ -
+                    abi_diff * norm_B_r * norm_B_φ
+                ) + B_φ * (
                     hall_diff * (
-                        norm_B_theta * cot(angle) -
-                        norm_B_r * (1 - B_power)
-                    ) + abi_diff * norm_B_phi * (
-                        norm_B_theta * (1 - B_power) -
-                        norm_B_r * cot(angle)
+                        norm_B_θ * cot(θ) -
+                        norm_B_r * (1 - β)
+                    ) + abi_diff * norm_B_φ * (
+                        norm_B_θ * (1 - β) -
+                        norm_B_r * cot(θ)
                     )
                 )
             ) / (
-                ohm_diff + abi_diff * (1 - norm_B_phi**2)
+                ohm_diff + abi_diff * (1 - norm_B_φ**2)
             )
         )
 
-        deriv_B_theta = (B_power - 2) * B_r - B_theta * cot(angle)
+        deriv_B_θ = (β - 2) * B_r - B_θ * cot(θ)
 
         deriv_v_r = (
-            v_r**2 / (2 * v_theta) +
-            v_theta +
-            v_phi**2 / v_theta +
-            (2 * B_power * sound_speed**2) / v_theta -
-            central_mass / v_theta +
+            v_r**2 / (2 * v_θ) +
+            v_θ +
+            v_φ**2 / v_θ +
+            (2 * β * sound_speed**2) / v_θ -
+            central_mass / v_θ +
             (
-                B_theta * deriv_B_r + (B_power - 1)*(B_theta**2 + B_phi**2)
+                B_θ * deriv_B_r + (β - 1)*(B_θ**2 + B_φ**2)
             ) / (
-                4 * pi * v_theta * rho
+                4 * pi * v_θ * ρ
             )
         )
 
-        deriv_v_phi = (
-            cot(angle) * v_phi -
-            (v_phi * v_r) / (2 * v_theta) +
+        deriv_v_φ = (
+            cot(θ) * v_φ -
+            (v_φ * v_r) / (2 * v_θ) +
             (
-                B_theta * B_phi_prime +
-                (1-B_power) * B_r * B_phi -
-                cot(angle) * B_theta * B_phi
+                B_θ * B_φ_prime +
+                (1-β) * B_r * B_φ -
+                cot(θ) * B_θ * B_φ
             ) / (
-                4 * pi * v_theta * rho
+                4 * pi * v_θ * ρ
             )
         )
 
-        deriv_v_theta = v_theta / (sound_speed**2 - v_theta**2) * (
-            (v_r * v_theta) / 2 -
-            cot(angle) * v_phi**2 -
+        deriv_v_θ = v_θ / (sound_speed**2 - v_θ**2) * (
+            (v_r * v_θ) / 2 -
+            cot(θ) * v_φ**2 -
             sound_speed**2 * (
-                (5/2 - 2*B_power) * v_r / v_theta + cot(angle)
+                (5/2 - 2*β) * v_r / v_θ + cot(θ)
             ) + (
-                (B_power - 1) * B_theta * B_r +
+                (β - 1) * B_θ * B_r +
                 B_r * deriv_B_r +
-                B_phi * B_phi_prime +
-                B_phi ** 2 * cot(angle)
+                B_φ * B_φ_prime +
+                B_φ ** 2 * cot(θ)
             ) / (
-                4 * pi * rho
+                4 * pi * ρ
             )
         )
 
-        deriv_rho = - rho * (
+        deriv_ρ = - ρ * (
             (
-                (5/2 - 2 * B_power) * v_r + deriv_v_theta
-            ) / v_theta + cot(angle)
+                (5/2 - 2 * β) * v_r + deriv_v_θ
+            ) / v_θ + cot(θ)
         )
 
-        dderiv_B_phi = dderiv_B_phi_soln(
-            B_r, B_phi, B_theta, ohm_diff, hall_diff, abi_diff, angle, v_r,
-            v_theta, v_phi, deriv_v_r, deriv_v_theta, deriv_v_phi,
-            deriv_B_r, deriv_B_theta, deriv_B_phi, B_power
+        dderiv_B_φ = dderiv_B_φ_soln(
+            B_r, B_φ, B_θ, ohm_diff, hall_diff, abi_diff, θ, v_r,
+            v_θ, v_φ, deriv_v_r, deriv_v_θ, deriv_v_φ,
+            deriv_B_r, deriv_B_θ, deriv_B_φ, β
         )
 
         derivs[0] = deriv_B_r
-        derivs[1] = deriv_B_phi
-        derivs[2] = deriv_B_theta
+        derivs[1] = deriv_B_φ
+        derivs[2] = deriv_B_θ
         derivs[3] = deriv_v_r
-        derivs[4] = deriv_v_phi
-        derivs[5] = deriv_v_theta
-        derivs[6] = deriv_rho
-        derivs[7] = dderiv_B_phi
+        derivs[4] = deriv_v_φ
+        derivs[5] = deriv_v_θ
+        derivs[6] = deriv_ρ
+        derivs[7] = dderiv_B_φ
 
         if __debug__:
-            v = np.array([0, 0, v_theta])
-            B = np.array([B_r, B_phi, B_theta])
+            v = np.array([0, 0, v_θ])
+            B = np.array([B_r, B_φ, B_θ])
             log.info("slow supersonic: {}".format(
-                is_supersonic(v, B, rho, sound_speed, "slow")))
+                is_supersonic(v, B, ρ, sound_speed, "slow")))
             log.info("alfven supersonic: {}".format(
-                is_supersonic(v, B, rho, sound_speed, "alfven")))
+                is_supersonic(v, B, ρ, sound_speed, "alfven")))
             log.info("fast supersonic: {}".format(
-                is_supersonic(v, B, rho, sound_speed, "fast")))
-            log.debug("angle: " + str(angle) + ", " + str(angle/pi*180))
+                is_supersonic(v, B, ρ, sound_speed, "fast")))
+            log.debug("θ: " + str(θ) + ", " + str(θ/pi*180))
             log.debug("params: " + str(params))
             log.debug("derivs: " + str(derivs))
 
@@ -150,7 +150,7 @@ def ode_system(
 
 
 def solution(
-        angles, initial_conditions, B_power, sound_speed, central_mass,
+        angles, initial_conditions, β, sound_speed, central_mass,
         ohm_diff, abi_diff, hall_diff, relative_tolerance=1e-6,
         absolute_tolerance=1e-10,
         max_steps=500,
@@ -161,7 +161,7 @@ def solution(
     solver = ode(
         INTEGRATOR,
         ode_system(
-            B_power, sound_speed, central_mass, ohm_diff, abi_diff,
+            β, sound_speed, central_mass, ohm_diff, abi_diff,
             hall_diff
         ),
         rtol=relative_tolerance,
@@ -186,10 +186,10 @@ def main():
 
     central_mass = 1 * M_SUN
 
-    B_power = 4/3
+    β = 4/3
 
-    # B_theta is the equipartition field
-    B_theta = 18  # G
+    # B_θ is the equipartition field
+    B_θ = 18  # G
 
     # from wardle 2007 for 1 AU
     # assume B ~ 1 G
@@ -198,58 +198,58 @@ def main():
     abi_diff = 1e14  # cm^2/s
 
     sound_speed = 0.99 * KM  # actually in cm/s for conversions
-    # rho computed from Wardle 2007
-    rho = 1.5e-9  # g/cm^3
+    # ρ computed from Wardle 2007
+    ρ = 1.5e-9  # g/cm^3
 
     keplerian_velocity = sqrt(G * central_mass / radius)  # cm/s
 
     v_r = - 0.1 * keplerian_velocity
 
-    # v_theta = 0  # symmetry across disc
-    v_theta = 2e2  # cm/s
+    # v_θ = 0  # symmetry across disc
+    v_θ = 2e2  # cm/s
     B_r = 0  # symmetry across disc
-    B_phi = 0  # symmetry across disc
+    B_φ = 0  # symmetry across disc
 
-    # solution for A * v_phi**2 + B * v_phi + C = 0
-    A_v_phi = 1
-    B_v_phi = - (v_r * hall_diff) / (2 * (ohm_diff + abi_diff))
-    C_v_phi = (
-        v_r**2 / 2 + 2 * B_power * sound_speed**2 -
+    # solution for A * v_φ**2 + B * v_φ + C = 0
+    A_v_φ = 1
+    B_v_φ = - (v_r * hall_diff) / (2 * (ohm_diff + abi_diff))
+    C_v_φ = (
+        v_r**2 / 2 + 2 * β * sound_speed**2 -
         keplerian_velocity**2 +
-        B_theta**2 * (
-            2 * (B_power - 1) - v_r / (ohm_diff + abi_diff)
-        ) / (4 * pi * rho)
+        B_θ**2 * (
+            2 * (β - 1) - v_r / (ohm_diff + abi_diff)
+        ) / (4 * pi * ρ)
     )
-    v_phi = - 1/2 * (B_v_phi - sqrt(B_v_phi**2 - 4 * A_v_phi * C_v_phi))
+    v_φ = - 1/2 * (B_v_φ - sqrt(B_v_φ**2 - 4 * A_v_φ * C_v_φ))
 
-    B_phi_prime = (v_phi * v_r * 4 * pi * rho) / (2 * B_theta)
+    B_φ_prime = (v_φ * v_r * 4 * pi * ρ) / (2 * B_θ)
 
-    log.debug("A_v_phi: {}".format(A_v_phi))
-    log.debug("B_v_phi: {}".format(B_v_phi))
-    log.debug("C_v_phi: {}".format(C_v_phi))
-    log.info("v_phi: {}".format(v_r))
-    log.info("B_phi_prime: {}".format(B_phi_prime))
+    log.debug("A_v_φ: {}".format(A_v_φ))
+    log.debug("B_v_φ: {}".format(B_v_φ))
+    log.debug("C_v_φ: {}".format(C_v_φ))
+    log.info("v_φ: {}".format(v_r))
+    log.info("B_φ_prime: {}".format(B_φ_prime))
 
     if v_r > 0:
         log.error("v_r > 0")
         exit(1)
 
     v_norm = sound_speed
-    B_norm = B_theta
+    B_norm = B_θ
     diff_norm = v_norm * radius
 
-    rho_norm = B_norm**2 / (4 * pi * v_norm**2)
+    ρ_norm = B_norm**2 / (4 * pi * v_norm**2)
 
     init_con = np.zeros(8)
 
     init_con[0] = B_r / B_norm
-    init_con[1] = B_phi / B_norm
-    init_con[2] = B_theta / B_norm
+    init_con[1] = B_φ / B_norm
+    init_con[2] = B_θ / B_norm
     init_con[3] = v_r / v_norm
-    init_con[4] = v_phi / v_norm
-    init_con[5] = v_theta / v_norm
-    init_con[6] = rho / rho_norm
-    init_con[7] = B_phi_prime / B_norm
+    init_con[4] = v_φ / v_norm
+    init_con[5] = v_θ / v_norm
+    init_con[6] = ρ / ρ_norm
+    init_con[7] = B_φ_prime / B_norm
 
     norm_kepler_sq = keplerian_velocity**2 / v_norm**2
     sound_speed = sound_speed / v_norm
@@ -259,7 +259,7 @@ def main():
 
     try:
         soln = solution(
-            angles, init_con, B_power, sound_speed, norm_kepler_sq, ohm_diff,
+            angles, init_con, β, sound_speed, norm_kepler_sq, ohm_diff,
             abi_diff, hall_diff, max_steps=10000
         )
     except RuntimeError as e:
@@ -274,12 +274,12 @@ def main():
             "normalisation": B_norm,
         },
         {
-            "name": "B_phi",
+            "name": "B_φ",
             "y_label": "Magnetic Field (Gauss)",
             "normalisation": B_norm,
         },
         {
-            "name": "B_theta",
+            "name": "B_θ",
             "y_label": "Magnetic Field (Gauss)",
             "normalisation": B_norm,
         },
@@ -289,23 +289,23 @@ def main():
             "normalisation": v_norm / KM,  # km/s
         },
         {
-            "name": "v_phi",
+            "name": "v_φ",
             "y_label": "Velocity Field (km/s)",
             "normalisation": v_norm / KM,  # km/s
         },
         {
-            "name": "v_theta",
+            "name": "v_θ",
             "y_label": "Velocity Field (km/s)",
             "normalisation": v_norm / KM,  # km/s
         },
         {
-            "name": "rho",
+            "name": "ρ",
             "y_label": "Density ($g cm^{-3}$)",
-            "normalisation": rho_norm,
+            "normalisation": ρ_norm,
             "scale": "log",
         },
         {
-            "name": "B_phi_prime",
+            "name": "B_φ_prime",
             "y_label": "Magnetic Field (Gauss)",
             "normalisation": B_norm,
         },
