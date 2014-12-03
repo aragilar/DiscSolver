@@ -273,3 +273,42 @@ def dderiv_ρ_midplane(
             (β-1) * B_θ * deriv_B_r + deriv_B_r**2 + deriv_B_φ**2
         ) / (2*pi * ρ * c_s**2)
     )
+
+
+def dderiv_v_φ_midplane(
+    ρ, B_θ, v_r, v_φ, deriv_v_θ, deriv_B_r, deriv_B_φ, dderiv_B_θ, dderiv_v_r,
+    β, η_O, η_H, η_A, c_s
+):
+    """
+    Compute v_φ'' around the midplane
+    """
+    return (
+        1 + B_θ**2 / (4*pi * ρ * v_r * (β-1) * (2*β-1) * (
+            η_O + η_A + η_H**2 / (η_O + η_A)
+        ))
+    )**-1 * (
+        deriv_B_φ / (2*pi * ρ) * (
+            dderiv_B_θ - 2 * (β-1) * deriv_B_r + B_θ -
+            B_θ / (c_s**2) * (4 * v_r * (β-1) * deriv_v_θ + (
+                (β-1) * B_θ * deriv_B_r + deriv_B_r**2 + deriv_B_φ**2
+            ) / (2*pi * ρ))
+        ) - dderiv_v_r / (4 * v_r * (β-1)) * (
+            v_φ + (β-1) * B_θ * deriv_B_φ / (v_r * pi * ρ) + B_θ**2 * η_H / (
+                4*pi * ρ * (η_H**2 + (η_O + η_A)**2)
+            )
+        ) + B_θ / (2*pi * ρ * (η_O + η_A + η_H**2 / (η_O + η_A))) +
+        deriv_B_r * (
+            v_φ + (β-1) * η_H + 2 * deriv_v_θ * η_H / (η_O + η_A) + (
+                deriv_B_φ * η_A * (3 - β - v_r / (η_O + η_A)) +
+                deriv_B_r * η_H * (v_r / (η_O + η_A) - 1)
+            ) / B_θ
+        ) - 2 * dderiv_B_θ * (
+            η_H * v_r / (η_O + η_A) + 2 * v_φ / (2*β-1)
+        ) + deriv_B_φ * (
+            η_O - β * η_A + η_H**2 / (η_O + η_A) +
+            2 * deriv_v_θ / (2*β-1) + β * η_H * deriv_B_r / B_θ +
+            η_H / (B_θ * (η_O + η_A)) * (
+                (β-1) * η_A + deriv_B_φ * v_r * (1 + 2 * η_A / (η_O + η_A))
+            )
+        )
+    )
