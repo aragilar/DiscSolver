@@ -259,3 +259,17 @@ def dderiv_v_r_midplane(
         v_r * (4*β - 7) - 4 * v_φ * A -
         B_θ * (C + 2 * (β-1) * (deriv_B_φ + (β-1) * B_θ))
     )
+
+
+def dderiv_ρ_midplane(
+    ρ, B_θ, v_r, deriv_v_θ, deriv_B_r, deriv_B_φ, dderiv_v_r, β, c_s
+):
+    """
+    Compute ρ'' around the midplane
+    """
+    return - ρ * (
+        1 + 2 * (β-1) * dderiv_v_r / v_r +
+        4 * v_r * deriv_v_θ * (β-1) / (c_s**2) + (
+            (β-1) * B_θ * deriv_B_r + deriv_B_r**2 + deriv_B_φ**2
+        ) / (2*pi * ρ * c_s**2)
+    )
