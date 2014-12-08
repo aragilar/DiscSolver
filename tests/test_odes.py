@@ -24,13 +24,14 @@ class ODE_Test(unittest.TestCase):
 
         # This is slightly off the plane, this should mean we don't get
         # cancellation
-        self.angle = pi/2 + 0.1
+        self.angle = pi/2 - 0.1
 
         # Here's the action computation
         derivs = np.zeros(ODE_NUMBER)
         self.rhs = ode_system(
                 self.B_power, self.sound_speed, self.central_mass,
-                self.ohm_diff, self.abi_diff, self.hall_diff
+                self.ohm_diff, self.abi_diff, self.hall_diff, pi,
+                params
         )
         self.rhs(self.angle, params, derivs)
 
