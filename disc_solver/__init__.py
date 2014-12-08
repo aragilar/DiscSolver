@@ -4,7 +4,6 @@ Solver for PHD Project
 """
 
 __version__ = "0.1"
-from math import pi
 
 import logbook
 
@@ -27,16 +26,11 @@ def main():
     inp = get_input()
     cons = define_conditions(inp)
 
-    try:
-        soln = solution(
-            cons.angles, cons.init_con, inp.β, cons.c_s, cons.norm_kepler_sq,
-            cons.η_O, cons.η_A, cons.η_H, max_steps=inp.max_steps,
-            taylor_stop_angle=inp.taylor_stop_angle / 180 * pi
-        )
-    except RuntimeError as e:
-        # pylint: disable=no-member
-        angles = e.x_vals
-        soln = e.y_vals
+    angles, soln = solution(
+        cons.angles, cons.init_con, inp.β, cons.c_s, cons.norm_kepler_sq,
+        cons.η_O, cons.η_A, cons.η_H, max_steps=inp.max_steps,
+        taylor_stop_angle=inp.taylor_stop_angle
+    )
 
     fig = generate_plot(angles, soln, cons.B_norm, cons.v_norm, cons.ρ_norm)
     plt.show()

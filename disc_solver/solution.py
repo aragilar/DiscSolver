@@ -194,12 +194,18 @@ def solution(
     solver = ode(
         INTEGRATOR,
         ode_system(
-            β, c_s, central_mass, η_O, η_A,
-            η_H, taylor_stop_angle, initial_conditions
+            β, c_s, central_mass, η_O, η_A, η_H,
+            taylor_stop_angle / 180 * pi, initial_conditions
         ),
         rtol=relative_tolerance,
         atol=absolute_tolerance,
         max_steps=max_steps,
         validate_flags=True,
     )
-    return solver.solve(angles, initial_conditions)
+    try:
+        soln = solver.solve(angles, initial_conditions)
+    except RuntimeError as e:
+        # pylint: disable=no-member
+        angles = e.x_vals
+        soln = e.y_vals
+    return angles, soln
