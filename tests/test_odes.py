@@ -6,7 +6,8 @@ import unittest
 
 import numpy as np
 
-from disc_solver import ode_system, G
+from disc_solver.constants import G
+from disc_solver.solution import ode_system
 from disc_solver.utils import cot
 
 ODE_NUMBER = 8
