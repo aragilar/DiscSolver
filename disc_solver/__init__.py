@@ -21,6 +21,7 @@ from .deriv_funcs import (
     dderiv_B_φ_soln, dderiv_v_φ_midplane, dderiv_v_r_midplane,
     dderiv_ρ_midplane,
 )
+from .analyse import generate_plot
 
 INTEGRATOR = "cvode"
 
@@ -218,7 +219,6 @@ def main():
 
     start = 90
     stop = 85
-    angles = np.linspace(start, stop, 10000) / 180 * pi
     taylor_stop_angle = 89.99
 
     # pick a radii, 1AU makes it easy to calculate
@@ -296,6 +296,8 @@ def main():
     η_A = η_A / diff_norm
     η_H = η_H / diff_norm
 
+    angles = np.linspace(start, stop, 10000) / 180 * pi
+
     try:
         soln = solution(
             angles, init_con, β, c_s, norm_kepler_sq, η_O,
@@ -307,61 +309,6 @@ def main():
         angles = e.x_vals
         soln = e.y_vals
 
-    param_names = [
-        {
-            "name": "B_r",
-            "y_label": "Magnetic Field (Gauss)",
-            "normalisation": B_norm,
-        },
-        {
-            "name": "B_φ",
-            "y_label": "Magnetic Field (Gauss)",
-            "normalisation": B_norm,
-        },
-        {
-            "name": "B_θ",
-            "y_label": "Magnetic Field (Gauss)",
-            "normalisation": B_norm,
-        },
-        {
-            "name": "v_r",
-            "y_label": "Velocity Field (km/s)",
-            "normalisation": v_norm / KM,  # km/s
-        },
-        {
-            "name": "v_φ",
-            "y_label": "Velocity Field (km/s)",
-            "normalisation": v_norm / KM,  # km/s
-        },
-        {
-            "name": "v_θ",
-            "y_label": "Velocity Field (km/s)",
-            "normalisation": v_norm / KM,  # km/s
-        },
-        {
-            "name": "ρ",
-            "y_label": "Density ($g cm^{-3}$)",
-            "normalisation": ρ_norm,
-            "scale": "log",
-        },
-        {
-            "name": "B_φ_prime",
-            "y_label": "Magnetic Field (Gauss)",
-            "normalisation": B_norm,
-        },
-    ]
-
-    fig, axes = plt.subplots(nrows=2, ncols=4, tight_layout=True)
-    axes.shape = len(param_names)
-    for i, settings in enumerate(param_names):
-        ax = axes[i]
-        ax.plot(
-            90 - (angles * 180 / pi),
-            soln[:, i] * settings["normalisation"]
-        )
-        ax.set_xlabel("angle from plane (°)")
-        ax.set_ylabel(settings["y_label"])
-        ax.set_yscale(settings.get("scale", "linear"))
-        ax.set_title(settings["name"])
-    fig.savefig("plot.png")
+    fig = generate_plot(angles, soln, B_norm, v_norm, ρ_norm)
     plt.show()
+    fig.savefig("plot.png")
