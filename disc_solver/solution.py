@@ -101,7 +101,7 @@ def ode_system(
         deriv_B_θ = (β - 2) * B_r - B_θ * cot(θ)
 
         if θ > taylor_stop_angle:
-            deriv_v_r = (pi/2 - θ) * dderiv_v_rM
+            deriv_v_r = (θ - pi/2) * dderiv_v_rM
         else:
             deriv_v_r = (
                 v_r**2 / (2 * v_θ) +
@@ -117,7 +117,7 @@ def ode_system(
             )
 
         if θ > taylor_stop_angle:
-            deriv_v_φ = (pi/2 - θ) * dderiv_v_φM
+            deriv_v_φ = (θ - pi/2) * dderiv_v_φM
         else:
             deriv_v_φ = (
                 cot(θ) * v_φ -
@@ -142,7 +142,7 @@ def ode_system(
         )
 
         if θ > taylor_stop_angle:
-            deriv_ρ = (pi/2 - θ) * dderiv_ρ_M
+            deriv_ρ = (θ - pi/2) * dderiv_ρ_M
         else:
             deriv_ρ = - ρ * (
                 (
