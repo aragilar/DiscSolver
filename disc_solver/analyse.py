@@ -8,6 +8,7 @@ from math import pi
 import matplotlib.pyplot as plt
 
 from .constants import KM
+from .utils import better_sci_format
 
 
 def generate_plot(angles, soln, B_norm, v_norm, ρ_norm, **kwargs):
@@ -70,4 +71,5 @@ def generate_plot(angles, soln, B_norm, v_norm, ρ_norm, **kwargs):
         ax.set_ylabel(settings["y_label"])
         ax.set_yscale(settings.get("scale", "linear"))
         ax.set_title(settings["name"])
+        better_sci_format(ax.yaxis)
     return fig

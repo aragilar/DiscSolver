@@ -33,6 +33,8 @@ setuptools.setup(
         "matplotlib",
         "scikits.odes",
         "logbook",
+        "h5py",
+        "arrow",
     ],
     author = "James Tocknell",
     author_email = "aragilar@gmail.com",
@@ -55,9 +57,11 @@ setuptools.setup(
     #    'Programming Language :: Python :: 3.3',
     #    'Programming Language :: Python :: 3.4',
     #],
-    #entry_points = {
-    #    'console_scripts': [
-    #        "cm-reculture = disc_solver.reculture:main",
-    #    ],
-    #},
+    entry_points = {
+        'console_scripts': [
+            "ds-soln = disc_solver:solution_main",
+            "ds-analyse = disc_solver:analyse_main",
+            "ds-quick = disc_solver:main",
+        ],
+    },
 )

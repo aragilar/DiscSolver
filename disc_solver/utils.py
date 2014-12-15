@@ -6,6 +6,7 @@ Useful functions
 from math import pi, cos, sin
 
 import numpy as np
+from matplotlib.ticker import FuncFormatter
 
 
 def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
@@ -54,3 +55,12 @@ def cot(angle):
     elif angle == 0:
         return float('inf')
     return cos(angle)/sin(angle)
+
+
+def better_sci_format(physical_axis):
+    """
+    Use scientific notation for each tick mark for axis `physical_axis`.
+    """
+    physical_axis.set_major_formatter(
+        FuncFormatter(lambda x, pos: "{:.2e}".format(x).replace("-", "−"))
+    )

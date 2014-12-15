@@ -113,4 +113,6 @@ def get_input():
     inp.max_steps = 10000
     inp.num_angles = 10000
 
+    inp.output_file = "soln.hdf5"
+
     return inp

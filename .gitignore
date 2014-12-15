@@ -5,3 +5,4 @@ pylint_*.txt
 .tox
 dist
 *.egg-info
+soln.hdf5
