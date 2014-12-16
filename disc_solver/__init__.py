@@ -20,9 +20,9 @@ mpl.use("Qt4Agg")
 mpl.rcParams["backend.qt4"] = "PySide"
 import matplotlib.pyplot as plt
 
-from .analyse import generate_plot
-from .solution import solution
+from .analyse import generate_plot, info
 from .config import define_conditions, get_input
+from .solution import solution
 
 log = logbook.Logger(__name__)
 
@@ -60,6 +60,7 @@ def analyse_main(output_file=None, **kwargs):
         if not kwargs:
             parser.add_argument("--show", action="store_true", default=False)
             parser.add_argument("--output_fig_file")
+            parser.add_argument("--info", action="store_true", default=False)
 
         output_file = parser.parse_args().output_file
 
@@ -72,14 +73,13 @@ def analyse_main(output_file=None, **kwargs):
             cons = define_conditions(inp)
             angles = np.array(grp["angles"])
             soln = np.array(grp["solution"])
-            fig = generate_plot(
-                angles, soln, cons.B_norm, cons.v_norm, cons.ρ_norm
-            )
-
+            fig = generate_plot(angles, soln, inp, cons)
             if kwargs.get("show"):
                 plt.show()
             if kwargs.get("output_fig_file"):
                 fig.savefig(kwargs.get("output_fig_file"))
+            if kwargs.get("info"):
+                info(inp, cons)
 
 
 def main():

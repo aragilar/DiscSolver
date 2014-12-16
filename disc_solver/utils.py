@@ -9,9 +9,23 @@ import numpy as np
 from matplotlib.ticker import FuncFormatter
 
 
+MHD_WAVE_INDEX = {"slow": 0, "alfven": 1, "fast": 2}
+
+
 def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
     """
     Checks whether velocity is supersonic.
+    """
+    speeds = mhd_wave_speeds(v, B, rho, sound_speed)
+
+    v_axis = 1 if v.ndim > 1 else 0
+    v_sq = np.sum(v**2, axis=v_axis)
+    return v_sq > speeds[MHD_WAVE_INDEX[mhd_wave_type]]
+
+
+def mhd_wave_speeds(v, B, rho, sound_speed):
+    """
+    Computes MHD wave speeds (slow, alfven, fast)
     """
     v_axis = 1 if v.ndim > 1 else 0
     B_axis = 1 if B.ndim > 1 else 0
@@ -24,24 +38,20 @@ def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
     ) ** 2
 
     v_a_sq = B_sq / (4*pi*rho)
-    if mhd_wave_type == "slow":
-        mhd_wave_speed = 1/2 * (
-            v_a_sq + sound_speed**2 - np.sqrt(
-                (v_a_sq + sound_speed**2)**2 -
-                4 * v_a_sq * sound_speed**2 * cos_sq_psi
-            )
+    slow = 1/2 * (
+        v_a_sq + sound_speed**2 - np.sqrt(
+            (v_a_sq + sound_speed**2)**2 -
+            4 * v_a_sq * sound_speed**2 * cos_sq_psi
         )
-    elif mhd_wave_type == "alfven":
-        mhd_wave_speed = v_a_sq * cos_sq_psi
-    elif mhd_wave_type == "fast":
-        mhd_wave_speed = 1/2 * (
-            v_a_sq + sound_speed**2 + np.sqrt(
-                (v_a_sq + sound_speed**2)**2 -
-                4 * v_a_sq * sound_speed**2 * cos_sq_psi
-            )
+    )
+    alfven = v_a_sq * cos_sq_psi
+    fast = 1/2 * (
+        v_a_sq + sound_speed**2 + np.sqrt(
+            (v_a_sq + sound_speed**2)**2 -
+            4 * v_a_sq * sound_speed**2 * cos_sq_psi
         )
-
-    return v_sq > mhd_wave_speed
+    )
+    return slow, alfven, fast
 
 
 def cot(angle):
