@@ -3,7 +3,7 @@
 Stuff to analyse solutions
 """
 
-from math import pi
+from math import pi, sqrt
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,7 +19,9 @@ def generate_plot(angles, soln, inp, cons, **kwargs):
     B_norm, v_norm, ρ_norm = cons.B_norm, cons.v_norm, cons.ρ_norm
     zero_soln = np.zeros(len(soln))
     v = np.array([zero_soln, zero_soln, soln[:, 5]])
-    wave_speeds = mhd_wave_speeds(v.T, soln[:, 0:3], soln[:, 6], inp.c_s)
+    wave_speeds = np.sqrt(mhd_wave_speeds(
+        v.T, soln[:, 0:3], soln[:, 6], inp.c_s
+    ))
 
     param_names = [
         {
@@ -121,4 +123,4 @@ def info(inp, cons):
     for name, value in vars(cons).items():
         print(" {: <20}: {}".format(name, value))
     print("other info: ")
-    print("v_a/c_s at midplane:", inp.B_θ**2 / inp.ρ / inp.c_s)
+    print("v_a/c_s at midplane:", sqrt(inp.B_θ**2 / (4*pi*inp.ρ)) / inp.c_s)

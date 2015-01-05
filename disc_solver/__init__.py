@@ -9,8 +9,9 @@ import argparse
 import tempfile
 from types import SimpleNamespace
 
-import logbook
 import arrow
+import logbook
+from logbook.compat import redirected_warnings, redirected_logging
 
 import numpy as np
 import h5py
@@ -27,11 +28,11 @@ from .solution import solution
 log = logbook.Logger(__name__)
 
 
-def solution_main(output_file=None):
+def solution_main(output_file=None, get_config_file=True):
     """
     Main function to generate solution
     """
-    inp = get_input()
+    inp, = get_input(get_file=get_config_file)
     if output_file:
         inp.output_file = output_file
     cons = define_conditions(inp)
@@ -58,37 +59,44 @@ def analyse_main(output_file=None, **kwargs):
         parser.add_argument("output_file")
 
         if not kwargs:
-            parser.add_argument("--show", action="store_true", default=False)
-            parser.add_argument("--output_fig_file")
-            parser.add_argument("--info", action="store_true", default=False)
+            parser.add_argument(
+                "--show", "-s", action="store_true", default=False
+            )
+            parser.add_argument("--output_fig_file", "-o")
+            parser.add_argument(
+                "--info", "-i", action="store_true", default=False
+            )
 
         output_file = parser.parse_args().output_file
 
         if not kwargs:
             kwargs = vars(parser.parse_args())
 
-    with h5py.File(output_file) as f:
-        for grp in f.values():
-            inp = SimpleNamespace(**grp.attrs)  # pylint: disable=star-args
-            cons = define_conditions(inp)
-            angles = np.array(grp["angles"])
-            soln = np.array(grp["solution"])
-            fig = generate_plot(angles, soln, inp, cons)
-            if kwargs.get("show"):
-                plt.show()
-            if kwargs.get("output_fig_file"):
-                fig.savefig(kwargs.get("output_fig_file"))
-            if kwargs.get("info"):
-                info(inp, cons)
+    with redirected_warnings(), redirected_logging():
+        with h5py.File(output_file) as f:
+            for grp in f.values():
+                inp = SimpleNamespace(**grp.attrs)  # pylint: disable=star-args
+                cons = define_conditions(inp)
+                angles = np.array(grp["angles"])
+                soln = np.array(grp["solution"])
+                fig = generate_plot(angles, soln, inp, cons)
+                if kwargs.get("show"):
+                    plt.show()
+                if kwargs.get("output_fig_file"):
+                    fig.savefig(kwargs.get("output_fig_file"))
+                if kwargs.get("info"):
+                    info(inp, cons)
 
 
 def main():
     """
     The main function
     """
-    with tempfile.NamedTemporaryFile() as output_file:
-        solution_main(output_file=output_file.name)
-        analyse_main(
-            output_file=output_file.name, show=True,
-            output_fig_file="plot.png"
-        )
+    null_handler = logbook.NullHandler()
+    with null_handler.applicationbound():
+        with tempfile.NamedTemporaryFile() as output_file:
+            solution_main(output_file=output_file.name, get_config_file=False)
+            analyse_main(
+                output_file=output_file.name, show=True,
+                output_fig_file="plot.png"
+            )

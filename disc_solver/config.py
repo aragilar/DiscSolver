@@ -3,6 +3,8 @@
 Define input and environment for ode system
 """
 
+import argparse
+import configparser
 from math import pi, sqrt
 from types import SimpleNamespace
 
@@ -11,8 +13,41 @@ import logbook
 import numpy as np
 
 from .constants import G, AU, M_SUN, KM
+from .utils import float_with_frac
 
 log = logbook.Logger(__name__)
+
+DEFAULT_INPUT = dict(
+    start=90,
+    stop=85,
+    taylor_stop_angle=89.99,
+
+    # pick a radii, 1AU makes it easy to calculate
+    radius=1,
+    central_mass=1,
+
+    β=4/3,
+
+    v_rin_on_v_k=0.1,
+
+    # B_θ is the equipartition field
+    B_θ=18,  # G
+
+    # from wardle 2007 for 1 AU
+    # assume B ~ 1 G
+    η_O=5e15,  # cm^2/s
+    η_H=5e16,  # cm^2/s
+    η_A=1e14,  # cm^2/s
+
+    c_s=0.99,  # actually in cm/s for conversions
+    # ρ computed from Wardle 2007
+    ρ=1.5e-9,  # g/cm^3
+
+    max_steps=10000,
+    num_angles=10000,
+
+    output_file="soln.hdf5",
+)
 
 
 def define_conditions(inp):
@@ -79,40 +114,46 @@ def define_conditions(inp):
     return cons
 
 
-def get_input():
+def get_input(get_file=True, conffile=None):
     """
     Get input values
     """
+    if get_file:
+        parser = argparse.ArgumentParser(description='Solver for DiscSolver')
+        parser.add_argument("conffile")
+        conffile = parser.parse_args().conffile
+    config = configparser.ConfigParser()
+    config.optionxform = lambda option: option
+    config["DEFAULT"] = DEFAULT_INPUT
+    if conffile:
+        config.read_file(open(conffile))
+    if config.sections():
+        return [
+            parse_config(config[section])
+            for section in config.sections()
+        ]
+    return [parse_config(config.defaults())]
+
+
+def parse_config(section):
+    """
+    Get the values from the config file for the run
+    """
     inp = SimpleNamespace()
-    inp.start = 90
-    inp.stop = 85
-    inp.taylor_stop_angle = 89.99
-
-    # pick a radii, 1AU makes it easy to calculate
-    inp.radius = 1 * AU
-
-    inp.central_mass = 1 * M_SUN
-
-    inp.β = 4/3
-
-    inp.v_rin_on_v_k = 0.1
-
-    # B_θ is the equipartition field
-    inp.B_θ = 18  # G
-
-    # from wardle 2007 for 1 AU
-    # assume B ~ 1 G
-    inp.η_O = 5e15  # cm^2/s
-    inp.η_H = 5e16  # cm^2/s
-    inp.η_A = 1e14  # cm^2/s
-
-    inp.c_s = 0.99 * KM  # actually in cm/s for conversions
-    # ρ computed from Wardle 2007
-    inp.ρ = 1.5e-9  # g/cm^3
-
-    inp.max_steps = 10000
-    inp.num_angles = 10000
-
-    inp.output_file = "soln.hdf5"
-
+    inp.start = float(section.get("start"))
+    inp.stop = float(section.get("stop"))
+    inp.taylor_stop_angle = float(section.get("taylor_stop_angle"))
+    inp.radius = float(section.get("radius")) * AU
+    inp.central_mass = float(section.get("central_mass")) * M_SUN
+    inp.β = float_with_frac(section.get("β"))
+    inp.v_rin_on_v_k = float(section.get("v_rin_on_v_k"))
+    inp.B_θ = float(section.get("B_θ"))
+    inp.η_O = float(section.get("η_O"))
+    inp.η_H = float(section.get("η_H"))
+    inp.η_A = float(section.get("η_A"))
+    inp.c_s = float(section.get("c_s")) * KM
+    inp.ρ = float(section.get("ρ"))
+    inp.max_steps = int(section.get("max_steps"))
+    inp.num_angles = int(section.get("num_angles"))
+    inp.output_file = section.get("output_file")
     return inp

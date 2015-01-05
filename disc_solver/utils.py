@@ -4,6 +4,7 @@ Useful functions
 """
 
 from math import pi, cos, sin
+from fractions import Fraction
 
 import numpy as np
 from matplotlib.ticker import FuncFormatter
@@ -74,3 +75,11 @@ def better_sci_format(physical_axis):
     physical_axis.set_major_formatter(
         FuncFormatter(lambda x, pos: "{:.2e}".format(x).replace("-", "−"))
     )
+
+
+def float_with_frac(some_object):
+    """
+    Convert fraction as a string to a float
+    """
+    # pylint: disable=abstract-class-instantiated
+    return float(Fraction(some_object))
