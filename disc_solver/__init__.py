@@ -55,22 +55,8 @@ def analyse_main(output_file=None, **kwargs):
     Main function to analyse solution
     """
     if output_file is None:
-        parser = argparse.ArgumentParser(description='Analyser for DiscSolver')
-        parser.add_argument("output_file")
-
-        if not kwargs:
-            parser.add_argument(
-                "--show", "-s", action="store_true", default=False
-            )
-            parser.add_argument("--output_fig_file", "-o")
-            parser.add_argument(
-                "--info", "-i", action="store_true", default=False
-            )
-
-        output_file = parser.parse_args().output_file
-
-        if not kwargs:
-            kwargs = vars(parser.parse_args())
+        output_file, kwargs = analyse_parser(kwargs)
+    make_plot = kwargs.get("show") or kwargs.get("output_fig_file")
 
     with redirected_warnings(), redirected_logging():
         with h5py.File(output_file) as f:
@@ -79,13 +65,37 @@ def analyse_main(output_file=None, **kwargs):
                 cons = define_conditions(inp)
                 angles = np.array(grp["angles"])
                 soln = np.array(grp["solution"])
-                fig = generate_plot(angles, soln, inp, cons)
+                if make_plot:
+                    fig = generate_plot(angles, soln, inp, cons)
                 if kwargs.get("show"):
                     plt.show()
                 if kwargs.get("output_fig_file"):
                     fig.savefig(kwargs.get("output_fig_file"))
                 if kwargs.get("info"):
                     info(inp, cons)
+
+
+def analyse_parser(kwargs):
+    """
+    CLI Parser for analyse
+    """
+    parser = argparse.ArgumentParser(description='Analyser for DiscSolver')
+    parser.add_argument("output_file")
+
+    if not kwargs:
+        parser.add_argument(
+            "--show", "-s", action="store_true", default=False
+        )
+        parser.add_argument("--output_fig_file", "-o")
+        parser.add_argument(
+            "--info", "-i", action="store_true", default=False
+        )
+
+    output_file = parser.parse_args().output_file
+
+    if not kwargs:
+        kwargs = vars(parser.parse_args())
+    return output_file, kwargs
 
 
 def main():
