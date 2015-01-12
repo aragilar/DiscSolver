@@ -6,6 +6,8 @@ Solver for PHD Project
 __version__ = "0.1"
 
 import argparse
+from pprint import pprint
+import signal
 import tempfile
 from types import SimpleNamespace
 
@@ -28,6 +30,22 @@ from .solution import solution
 log = logbook.Logger(__name__)
 
 
+def stack_info(frame):
+    """Walk up stack printing line and locals"""
+    print('f_code', frame.f_code)
+    print('f_locals:')
+    pprint(frame.f_locals)
+    print()
+    if frame.f_back:
+        stack_info(frame.f_back)
+
+
+def sig_handler(signum, frame):
+    """Custom signal handler"""
+    print(signum)
+    stack_info(frame)
+
+
 def solution_main(output_file=None, get_config_file=True):
     """
     Main function to generate solution
@@ -37,11 +55,15 @@ def solution_main(output_file=None, get_config_file=True):
         inp.output_file = output_file
     cons = define_conditions(inp)
 
-    angles, soln = solution(
-        cons.angles, cons.init_con, inp.β, cons.c_s, cons.norm_kepler_sq,
-        cons.η_O, cons.η_A, cons.η_H, max_steps=inp.max_steps,
-        taylor_stop_angle=inp.taylor_stop_angle
-    )
+    signal.signal(signal.SIGINT, sig_handler)
+
+    null_handler = logbook.NullHandler()
+    with null_handler.applicationbound():
+        angles, soln = solution(
+            cons.angles, cons.init_con, inp.β, cons.c_s, cons.norm_kepler_sq,
+            cons.η_O, cons.η_A, cons.η_H, max_steps=inp.max_steps,
+            taylor_stop_angle=inp.taylor_stop_angle
+        )
 
     with h5py.File(inp.output_file) as f:
         grp = f.create_group(str(arrow.now()))
