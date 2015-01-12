@@ -7,10 +7,9 @@ from math import pi, sqrt
 
 import logbook
 
-import numpy as np
 from scikits.odes import ode
 
-from .utils import cot, is_supersonic
+from .utils import cot
 from .deriv_funcs import (
     dderiv_B_φ_soln, dderiv_v_φ_midplane, dderiv_v_r_midplane,
     dderiv_ρ_midplane,
@@ -165,18 +164,7 @@ def ode_system(
         derivs[6] = deriv_ρ
         derivs[7] = dderiv_B_φ
 
-        if __debug__:
-            v = np.array([0, 0, v_θ])
-            B = np.array([B_r, B_φ, B_θ])
-            log.info("slow supersonic: {}".format(
-                is_supersonic(v, B, ρ, c_s, "slow")))
-            log.info("alfven supersonic: {}".format(
-                is_supersonic(v, B, ρ, c_s, "alfven")))
-            log.info("fast supersonic: {}".format(
-                is_supersonic(v, B, ρ, c_s, "fast")))
-            log.debug("θ: " + str(θ) + ", " + str(θ/pi*180))
-            log.debug("params: " + str(params))
-            log.debug("derivs: " + str(derivs))
+        log.debug("θ: {}, {}", θ, θ/pi*180)
 
         return 0
     return rhs_equation
