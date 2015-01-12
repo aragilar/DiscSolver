@@ -23,31 +23,45 @@ import matplotlib.pyplot as plt
 
 from .analyse import generate_plot, info
 from .config import define_conditions, get_input
+from .logging import logging_options, log_handler
 from .solution import solution
 
 log = logbook.Logger(__name__)
 
 
-def solution_main(output_file=None, get_config_file=True):
+def solution_main(output_file=None, ismain=True):
     """
     Main function to generate solution
     """
-    inp, = get_input(get_file=get_config_file)
-    if output_file:
-        inp.output_file = output_file
-    cons = define_conditions(inp)
+    if ismain:
+        parser = argparse.ArgumentParser(description='Solver for DiscSolver')
+        parser.add_argument("conffile")
+        logging_options(parser)
+        args = vars(parser.parse_args())
+        conffile = args["conffile"]
+    else:
+        args = {
+            "quiet": True,
+        }
+        conffile = None
+    with log_handler(args), redirected_warnings(), redirected_logging():
+        inps = get_input(conffile)
+        for inp in inps:
+            cons = define_conditions(inp)
 
-    angles, soln = solution(
-        cons.angles, cons.init_con, inp.β, cons.c_s, cons.norm_kepler_sq,
-        cons.η_O, cons.η_A, cons.η_H, max_steps=inp.max_steps,
-        taylor_stop_angle=inp.taylor_stop_angle
-    )
+            angles, soln = solution(
+                cons.angles, cons.init_con, inp.β, cons.c_s,
+                cons.norm_kepler_sq, cons.η_O, cons.η_A, cons.η_H,
+                max_steps=inp.max_steps,
+                taylor_stop_angle=inp.taylor_stop_angle
+            )
 
-    with h5py.File(inp.output_file) as f:
-        grp = f.create_group(str(arrow.now()))
-        grp['angles'] = angles
-        grp['solution'] = soln
-        grp.attrs.update(vars(inp))
+            if not output_file:
+                output_file = str(arrow.now())
+            with h5py.File(output_file) as f:
+                f['angles'] = angles
+                f['solution'] = soln
+                f.attrs.update(vars(inp))
 
 
 def analyse_main(output_file=None, **kwargs):
@@ -60,19 +74,18 @@ def analyse_main(output_file=None, **kwargs):
 
     with redirected_warnings(), redirected_logging():
         with h5py.File(output_file) as f:
-            for grp in f.values():
-                inp = SimpleNamespace(**grp.attrs)  # pylint: disable=star-args
-                cons = define_conditions(inp)
-                angles = np.array(grp["angles"])
-                soln = np.array(grp["solution"])
-                if make_plot:
-                    fig = generate_plot(angles, soln, inp, cons)
-                if kwargs.get("show"):
-                    plt.show()
-                if kwargs.get("output_fig_file"):
-                    fig.savefig(kwargs.get("output_fig_file"))
-                if kwargs.get("info"):
-                    info(inp, cons)
+            inp = SimpleNamespace(**f.attrs)  # pylint: disable=star-args
+            cons = define_conditions(inp)
+            angles = np.array(f["angles"])
+            soln = np.array(f["solution"])
+            if make_plot:
+                fig = generate_plot(angles, soln, inp, cons)
+            if kwargs.get("show"):
+                plt.show()
+            if kwargs.get("output_fig_file"):
+                fig.savefig(kwargs.get("output_fig_file"))
+            if kwargs.get("info"):
+                info(inp, cons)
 
 
 def analyse_parser(kwargs):
@@ -102,11 +115,9 @@ def main():
     """
     The main function
     """
-    null_handler = logbook.NullHandler()
-    with null_handler.applicationbound():
-        with tempfile.NamedTemporaryFile() as output_file:
-            solution_main(output_file=output_file.name, get_config_file=False)
-            analyse_main(
-                output_file=output_file.name, show=True,
-                output_fig_file="plot.png"
-            )
+    with tempfile.NamedTemporaryFile() as output_file:
+        solution_main(output_file=output_file.name, ismain=False)
+        analyse_main(
+            output_file=output_file.name, show=True,
+            output_fig_file="plot.png"
+        )

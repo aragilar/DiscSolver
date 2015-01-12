@@ -53,7 +53,6 @@ def generate_plot(angles, soln, inp, cons, **kwargs):
             "name": "v_θ",
             "y_label": "Velocity Field (km/s)",
             "normalisation": v_norm / KM,  # km/s
-            "scale": "log",
             "legend": True,
             "extras": [
                 {
