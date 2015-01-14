@@ -12,11 +12,11 @@ def logging_options(parser):
     LOG_LEVELS = ("critical", "error", "warning", "notice", "info", "debug")
     parser.add_argument("--log-file")
     parser.add_argument(
-        "--log-file-level", choice=LOG_LEVELS, default="debug"
+        "--log-file-level", choices=LOG_LEVELS, default="debug"
     )
     stderr_parser = parser.add_mutually_exclusive_group()
     stderr_parser.add_argument(
-        "--stderr-level", choice=LOG_LEVELS, default="notice"
+        "--stderr-level", choices=LOG_LEVELS, default="notice"
     )
     stderr_parser.add_argument(
         "--quiet", "-q", default=False, action="store_true",

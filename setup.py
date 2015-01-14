@@ -27,7 +27,7 @@ def find_version(*file_paths):
 setuptools.setup(
     name="disc_solver",
     version=find_version("disc_solver", "__init__.py"),
-    packages = ["disc_solver"],
+    packages = ["disc_solver", "disc_solver.analyse"],
     install_requires = [
         "numpy",
         "matplotlib",

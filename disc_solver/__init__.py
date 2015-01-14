@@ -16,12 +16,8 @@ from logbook.compat import redirected_warnings, redirected_logging
 import numpy as np
 import h5py
 
-import matplotlib as mpl
-mpl.use("Qt4Agg")
-mpl.rcParams["backend.qt4"] = "PySide"
-import matplotlib.pyplot as plt
-
-from .analyse import generate_plot, info
+from .analyse import plot_options
+from .analyse import commands as analyse_commands
 from .config import define_conditions, get_input
 from .logging import logging_options, log_handler
 from .solution import solution
@@ -44,6 +40,7 @@ def solution_main(output_file=None, ismain=True):
             "quiet": True,
         }
         conffile = None
+    gen_file_name = True if output_file is None else False
     with log_handler(args), redirected_warnings(), redirected_logging():
         inps = get_input(conffile)
         for inp in inps:
@@ -56,8 +53,8 @@ def solution_main(output_file=None, ismain=True):
                 taylor_stop_angle=inp.taylor_stop_angle
             )
 
-            if not output_file:
-                output_file = str(arrow.now())
+            if gen_file_name:
+                output_file = inp.label + str(arrow.now()) + ".hdf5"
             with h5py.File(output_file) as f:
                 f['angles'] = angles
                 f['solution'] = soln
@@ -69,46 +66,56 @@ def analyse_main(output_file=None, **kwargs):
     Main function to analyse solution
     """
     if output_file is None:
-        output_file, kwargs = analyse_parser(kwargs)
-    make_plot = kwargs.get("show") or kwargs.get("output_fig_file")
+        output_file, kwargs = analyse_parser()
+    else:
+        kwargs["quiet"] = True
 
-    with redirected_warnings(), redirected_logging():
+    with log_handler(kwargs), redirected_warnings(), redirected_logging():
         with h5py.File(output_file) as f:
             inp = SimpleNamespace(**f.attrs)  # pylint: disable=star-args
             cons = define_conditions(inp)
             angles = np.array(f["angles"])
             soln = np.array(f["solution"])
-            if make_plot:
-                fig = generate_plot(angles, soln, inp, cons)
-            if kwargs.get("show"):
-                plt.show()
-            if kwargs.get("output_fig_file"):
-                fig.savefig(kwargs.get("output_fig_file"))
-            if kwargs.get("info"):
-                info(inp, cons)
+            command = getattr(analyse_commands, kwargs["command"])
+            if command:
+                command(inp, cons, angles, soln, kwargs)
+            else:
+                raise NotImplementedError(kwargs["command"])
 
 
-def analyse_parser(kwargs):
+def analyse_parser():
     """
     CLI Parser for analyse
     """
     parser = argparse.ArgumentParser(description='Analyser for DiscSolver')
     parser.add_argument("output_file")
 
-    if not kwargs:
-        parser.add_argument(
-            "--show", "-s", action="store_true", default=False
-        )
-        parser.add_argument("--output_fig_file", "-o")
-        parser.add_argument(
-            "--info", "-i", action="store_true", default=False
-        )
+    subparsers = parser.add_subparsers(dest="command")
+    subparsers.required = True
+
+    show_parser = subparsers.add_parser("show")
+    plot_options(show_parser)
+
+    plot_parser = subparsers.add_parser("plot")
+    plot_parser.add_argument("plot_filename")
+    plot_options(plot_parser)
+
+    info_parser = subparsers.add_parser("info")
+    info_parser.add_argument("--input", action="store_true", default=False)
+    info_parser.add_argument(
+        "--initial-conditions", action="store_true", default=False
+    )
+    info_parser.add_argument(
+        "--sound-ratio", action="store_true", default=False
+    )
+    info_parser.add_argument(
+        "--sonic-points", action="store_true", default=False
+    )
 
     output_file = parser.parse_args().output_file
 
-    if not kwargs:
-        kwargs = vars(parser.parse_args())
-    return output_file, kwargs
+    args = vars(parser.parse_args())
+    return output_file, args
 
 
 def main():
@@ -117,7 +124,8 @@ def main():
     """
     with tempfile.NamedTemporaryFile() as output_file:
         solution_main(output_file=output_file.name, ismain=False)
+        analyse_main(output_file=output_file.name, command="show")
         analyse_main(
-            output_file=output_file.name, show=True,
-            output_fig_file="plot.png"
+            output_file=output_file.name, command="plot",
+            plot_filename="plot.png"
         )

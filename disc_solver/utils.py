@@ -83,3 +83,15 @@ def float_with_frac(some_object):
     """
     # pylint: disable=abstract-class-instantiated
     return float(Fraction(some_object))
+
+
+def find_in_array(array, item):
+    """
+    Finds item in array or returns None
+    """
+    if array.ndim > 1:
+        raise TypeError("array must be 1D")
+    try:
+        return list(array).index(item)
+    except ValueError:
+        return None

@@ -3,13 +3,13 @@
 Stuff to analyse solutions
 """
 
-from math import pi, sqrt
+from math import pi
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .constants import KM
-from .utils import better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX
+from ..constants import KM
+from ..utils import better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX
 
 
 def generate_plot(angles, soln, inp, cons, **kwargs):
@@ -54,6 +54,7 @@ def generate_plot(angles, soln, inp, cons, **kwargs):
             "y_label": "Velocity Field (km/s)",
             "normalisation": v_norm / KM,  # km/s
             "legend": True,
+            "scale": kwargs.pop("v_θ scale", "linear"),
             "extras": [
                 {
                     "label": "slow",
@@ -111,15 +112,17 @@ def generate_plot(angles, soln, inp, cons, **kwargs):
     return fig
 
 
-def info(inp, cons):
+def plot_options(parser):
     """
-    Output info about the solution
+    Add cli arguments for defining plot
     """
-    print("input settings:")
-    for name, value in vars(inp).items():
-        print(" {: <20}: {}".format(name, value))
-    print("initial conditions:")
-    for name, value in vars(cons).items():
-        print(" {: <20}: {}".format(name, value))
-    print("other info: ")
-    print("v_a/c_s at midplane:", sqrt(inp.B_θ**2 / (4*pi*inp.ρ)) / inp.c_s)
+    parser.add_argument("--v_θ", choices=("log", "linear"))
+
+
+def get_plot_args(args):
+    """
+    Parse plot args
+    """
+    return {
+        "v_θ scale": args.get("v_θ", "linear")
+    }
