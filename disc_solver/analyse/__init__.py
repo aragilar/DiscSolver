@@ -3,7 +3,7 @@
 Stuff to analyse solutions
 """
 
-from math import pi
+from math import pi, sqrt
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,6 +22,7 @@ def generate_plot(angles, soln, inp, cons, **kwargs):
     wave_speeds = np.sqrt(mhd_wave_speeds(
         v.T, soln[:, 0:3], soln[:, 6], inp.c_s
     ))
+    linestyle = kwargs.pop("line style")
 
     param_names = [
         {
@@ -48,6 +49,7 @@ def generate_plot(angles, soln, inp, cons, **kwargs):
             "name": "v_φ",
             "y_label": "Velocity Field (km/s)",
             "normalisation": v_norm / KM,  # km/s
+            "offset": sqrt(cons.norm_kepler_sq) * v_norm / KM
         },
         {
             "name": "v_θ",
@@ -94,7 +96,10 @@ def generate_plot(angles, soln, inp, cons, **kwargs):
         ax = axes[i]
         ax.plot(
             90 - (angles * 180 / pi),
-            soln[:, i] * settings["normalisation"]
+            (
+                soln[:, i] * settings["normalisation"] -
+                settings.get("offset", 0)
+            ), linestyle,
         )
         for extra in settings.get("extras", []):
             ax.plot(
@@ -116,7 +121,8 @@ def plot_options(parser):
     """
     Add cli arguments for defining plot
     """
-    parser.add_argument("--v_θ", choices=("log", "linear"))
+    parser.add_argument("--v_θ", choices=("log", "linear"), default="linear")
+    parser.add_argument("--line-style", default="-")
 
 
 def get_plot_args(args):
@@ -124,5 +130,6 @@ def get_plot_args(args):
     Parse plot args
     """
     return {
-        "v_θ scale": args.get("v_θ", "linear")
+        "v_θ scale": args.get("v_θ", "linear"),
+        "line style": args.get("line_style", "-")
     }
