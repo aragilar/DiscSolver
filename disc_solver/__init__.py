@@ -46,7 +46,7 @@ def solution_main(output_file=None, ismain=True):
         for inp in inps:
             cons = define_conditions(inp)
 
-            angles, soln = solution(
+            angles, soln, internal_data = solution(
                 cons.angles, cons.init_con, inp.β, cons.c_s,
                 cons.norm_kepler_sq, cons.η_O, cons.η_A, cons.η_H,
                 max_steps=inp.max_steps,
@@ -59,6 +59,8 @@ def solution_main(output_file=None, ismain=True):
                 f['angles'] = angles
                 f['solution'] = soln
                 f.attrs.update(vars(inp))
+                f.create_group('internal_data')
+                f['internal_data'].update(internal_data)
 
 
 def analyse_main(output_file=None, **kwargs):

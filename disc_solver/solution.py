@@ -58,10 +58,34 @@ def ode_system(
     log.info("v_φ'': {}".format(dderiv_v_φM))
     log.info("ρ'': {}".format(dderiv_ρ_M))
 
+    internal_data = {
+        "derivs": [],
+        "angles": [],
+        "v_r normal": [],
+        "v_φ normal": [],
+        "ρ normal": [],
+        "v_r taylor": [],
+        "v_φ taylor": [],
+        "ρ taylor": [],
+    }
+    derivs_list = internal_data["derivs"]
+    angles_list = internal_data["angles"]
+    v_r_nlist = internal_data["v_r normal"]
+    v_φ_nlist = internal_data["v_φ normal"]
+    ρ_nlist = internal_data["ρ normal"]
+    v_r_taylist = internal_data["v_r taylor"]
+    v_φ_taylist = internal_data["v_φ taylor"]
+    ρ_taylist = internal_data["ρ taylor"]
+
     def rhs_equation(θ, params, derivs):
         """
         Compute the ODEs
         """
+        nonlocal derivs_list, angles_list
+        nonlocal v_r_nlist, v_r_taylist
+        nonlocal v_φ_nlist, v_φ_taylist
+        nonlocal ρ_nlist, ρ_taylist
+
         B_r = params[0]
         B_φ = params[1]
         B_θ = params[2]
@@ -99,36 +123,38 @@ def ode_system(
 
         deriv_B_θ = (β - 2) * B_r - B_θ * cot(θ)
 
-        if θ > taylor_stop_angle:
-            deriv_v_r = (θ - pi/2) * dderiv_v_rM
-        else:
-            deriv_v_r = (
-                v_r**2 / (2 * v_θ) +
-                v_θ +
-                v_φ**2 / v_θ +
-                (2 * β * c_s**2) / v_θ -
-                central_mass / v_θ +
-                (
-                    B_θ * deriv_B_r + (β - 1)*(B_θ**2 + B_φ**2)
-                ) / (
-                    4 * pi * v_θ * ρ
-                )
+        deriv_v_r_taylor = (θ - pi/2) * dderiv_v_rM
+        deriv_v_r_normal = (
+            v_r**2 / (2 * v_θ) +
+            v_θ +
+            v_φ**2 / v_θ +
+            (2 * β * c_s**2) / v_θ -
+            central_mass / v_θ +
+            (
+                B_θ * deriv_B_r + (β - 1)*(B_θ**2 + B_φ**2)
+            ) / (
+                4 * pi * v_θ * ρ
             )
+        )
+        deriv_v_r = (
+            deriv_v_r_taylor if θ > taylor_stop_angle else deriv_v_r_normal
+        )
 
-        if θ > taylor_stop_angle:
-            deriv_v_φ = (θ - pi/2) * dderiv_v_φM
-        else:
-            deriv_v_φ = (
-                cot(θ) * v_φ -
-                (v_φ * v_r) / (2 * v_θ) +
-                (
-                    B_θ * B_φ_prime +
-                    (1-β) * B_r * B_φ -
-                    cot(θ) * B_θ * B_φ
-                ) / (
-                    4 * pi * v_θ * ρ
-                )
+        deriv_v_φ_taylor = (θ - pi/2) * dderiv_v_φM
+        deriv_v_φ_normal = (
+            cot(θ) * v_φ -
+            (v_φ * v_r) / (2 * v_θ) +
+            (
+                B_θ * B_φ_prime +
+                (1-β) * B_r * B_φ -
+                cot(θ) * B_θ * B_φ
+            ) / (
+                4 * pi * v_θ * ρ
             )
+        )
+        deriv_v_φ = (
+            deriv_v_φ_taylor if θ > taylor_stop_angle else deriv_v_φ_normal
+        )
 
         deriv_v_θ = (
             2 * (β-1) * v_r * c_s**2 / (c_s**2 - v_θ**2) - v_r / 2 -
@@ -140,14 +166,13 @@ def ode_system(
             )
         )
 
-        if θ > taylor_stop_angle:
-            deriv_ρ = (θ - pi/2) * dderiv_ρ_M
-        else:
-            deriv_ρ = - ρ * (
-                (
-                    (5/2 - 2 * β) * v_r + deriv_v_θ
-                ) / v_θ + cot(θ)
-            )
+        deriv_ρ_taylor = (θ - pi/2) * dderiv_ρ_M
+        deriv_ρ_normal = - ρ * (
+            (
+                (5/2 - 2 * β) * v_r + deriv_v_θ
+            ) / v_θ + cot(θ)
+        )
+        deriv_ρ = deriv_ρ_taylor if θ > taylor_stop_angle else deriv_ρ_normal
 
         dderiv_B_φ = dderiv_B_φ_soln(
             B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r,
@@ -166,8 +191,17 @@ def ode_system(
 
         log.debug("θ: {}, {}", θ, θ/pi*180)
 
+        derivs_list.append(derivs)
+        angles_list.append(θ)
+        v_r_nlist.append(deriv_v_r_normal)
+        v_φ_nlist.append(deriv_v_φ_normal)
+        ρ_nlist.append(deriv_ρ_normal)
+        v_r_taylist.append(deriv_v_r_taylor)
+        v_φ_taylist.append(deriv_v_φ_taylor)
+        ρ_taylist.append(deriv_ρ_taylor)
+
         return 0
-    return rhs_equation
+    return rhs_equation, internal_data
 
 
 def solution(
@@ -179,12 +213,12 @@ def solution(
     """
     Find solution
     """
+    system, internal_data = ode_system(
+        β, c_s, central_mass, η_O, η_A, η_H,
+        taylor_stop_angle / 180 * pi, initial_conditions
+    )
     solver = ode(
-        INTEGRATOR,
-        ode_system(
-            β, c_s, central_mass, η_O, η_A, η_H,
-            taylor_stop_angle / 180 * pi, initial_conditions
-        ),
+        INTEGRATOR, system,
         rtol=relative_tolerance,
         atol=absolute_tolerance,
         max_steps=max_steps,
@@ -196,4 +230,4 @@ def solution(
         # pylint: disable=no-member
         angles = e.x_vals
         soln = e.y_vals
-    return angles, soln
+    return angles, soln, internal_data

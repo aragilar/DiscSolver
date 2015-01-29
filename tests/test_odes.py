@@ -4,6 +4,8 @@
 from math import pi, sqrt
 import unittest
 
+import logbook
+
 import numpy as np
 
 from disc_solver.constants import G
@@ -29,12 +31,13 @@ class ODE_Test(unittest.TestCase):
 
         # Here's the action computation
         derivs = np.zeros(ODE_NUMBER)
-        self.rhs = ode_system(
-                self.B_power, self.sound_speed, self.central_mass,
-                self.ohm_diff, self.abi_diff, self.hall_diff, pi,
-                params
-        )
-        self.rhs(self.angle, params, derivs)
+        with logbook.NullHandler().applicationbound():
+            self.rhs, internal_data = ode_system(
+                    self.B_power, self.sound_speed, self.central_mass,
+                    self.ohm_diff, self.abi_diff, self.hall_diff, pi,
+                    params
+            )
+            self.rhs(self.angle, params, derivs)
 
         # Assign useful names to params, derivs
         self.B_r = params[0]
