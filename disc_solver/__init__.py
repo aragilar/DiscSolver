@@ -78,6 +78,7 @@ def analyse_main(output_file=None, **kwargs):
             cons = define_conditions(inp)
             angles = np.array(f["angles"])
             soln = np.array(f["solution"])
+            kwargs["internal_data"] = f["internal_data"]
             command = getattr(analyse_commands, kwargs["command"])
             if command:
                 command(inp, cons, angles, soln, kwargs)
