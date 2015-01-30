@@ -7,6 +7,7 @@ from math import pi, sqrt
 
 import logbook
 
+import numpy as np
 from scikits.odes import ode
 
 from .utils import cot
@@ -191,7 +192,7 @@ def ode_system(
 
         log.debug("θ: {}, {}", θ, θ/pi*180)
 
-        derivs_list.append(derivs)
+        derivs_list.append(np.copy(derivs))
         angles_list.append(θ)
         v_r_nlist.append(deriv_v_r_normal)
         v_φ_nlist.append(deriv_v_φ_normal)

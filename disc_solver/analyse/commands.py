@@ -12,7 +12,9 @@ mpl.use("Qt4Agg")
 mpl.rcParams["backend.qt4"] = "PySide"
 import matplotlib.pyplot as plt
 
-from . import generate_plot, get_plot_args
+from . import (
+    generate_plot, get_plot_args, generate_deriv_plot, get_deriv_plot_args
+)
 from ..utils import is_supersonic, find_in_array
 
 INPUT_FORMAT = " {: <20}: {}"
@@ -81,4 +83,14 @@ def show(inp, cons, angles, soln, args):
     plot_args = get_plot_args(args)
     # pylint: disable=star-args
     generate_plot(angles, soln, inp, cons, **plot_args)
+    plt.show()
+
+
+def deriv_show(inp, cons, angles, soln, args):
+    """
+    Show derivatives
+    """
+    plot_args = get_deriv_plot_args(args)
+    # pylint: disable=star-args
+    generate_deriv_plot(angles, soln, inp, cons, **plot_args)
     plt.show()

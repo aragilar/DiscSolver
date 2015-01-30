@@ -16,11 +16,12 @@ from logbook.compat import redirected_warnings, redirected_logging
 import numpy as np
 import h5py
 
-from .analyse import plot_options
+from .analyse import plot_options, deriv_plot_options
 from .analyse import commands as analyse_commands
 from .config import define_conditions, get_input
 from .logging import logging_options, log_handler
 from .solution import solution
+from .utils import cli_to_var
 
 log = logbook.Logger(__name__)
 
@@ -79,7 +80,7 @@ def analyse_main(output_file=None, **kwargs):
             angles = np.array(f["angles"])
             soln = np.array(f["solution"])
             kwargs["internal_data"] = f["internal_data"]
-            command = getattr(analyse_commands, kwargs["command"])
+            command = getattr(analyse_commands, cli_to_var(kwargs["command"]))
             if command:
                 command(inp, cons, angles, soln, kwargs)
             else:
@@ -114,6 +115,9 @@ def analyse_parser():
     info_parser.add_argument(
         "--sonic-points", action="store_true", default=False
     )
+
+    deriv_show_parser = subparsers.add_parser("deriv-show")
+    deriv_plot_options(deriv_show_parser)
 
     output_file = parser.parse_args().output_file
 

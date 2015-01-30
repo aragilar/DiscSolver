@@ -133,3 +133,82 @@ def get_plot_args(args):
         "v_θ scale": args.get("v_θ", "linear"),
         "line style": args.get("line_style", "-")
     }
+
+
+def generate_deriv_plot(angles, soln, inp, cons, **kwargs):
+    """
+    Generate plot of derivatives
+    """
+    # pylint: disable=unused-argument
+    param_names = [
+        {
+            "name": "B_r",
+        },
+        {
+            "name": "B_φ",
+        },
+        {
+            "name": "B_θ",
+        },
+        {
+            "name": "v_r",
+        },
+        {
+            "name": "v_φ",
+        },
+        {
+            "name": "v_θ",
+        },
+        {
+            "name": "ρ",
+        },
+        {
+            "name": "B_φ_prime",
+        },
+    ]
+
+    linestyle = kwargs.pop("line style")
+    internal_data = kwargs.pop("internal_data")
+    deriv_angles = np.array(internal_data["angles"])
+    derivs = np.array(internal_data["derivs"])
+    npnot = np.logical_not
+
+    fig, axes = plt.subplots(
+        nrows=2, ncols=4, tight_layout=True, sharex=True, **kwargs
+    )
+    axes.shape = len(param_names)
+    for i, settings in enumerate(param_names):
+        ax = axes[i]
+        pos_deriv = derivs[:, i] >= 0
+        ax.plot(
+            90 - (deriv_angles[pos_deriv] * 180 / pi),
+            derivs[pos_deriv, i], linestyle,
+        )
+        ax.plot(
+            90 - (deriv_angles[npnot(pos_deriv)] * 180 / pi),
+            - derivs[npnot(pos_deriv), i], linestyle,
+        )
+        ax.set_xlabel("angle from plane (°)")
+        ax.set_yscale(settings.get("scale", "log"))
+        ax.set_title(settings["name"])
+        if settings.get("legend"):
+            ax.legend()
+        better_sci_format(ax.yaxis)
+    return fig
+
+
+def deriv_plot_options(parser):
+    """
+    Add cli arguments for defining derivative plot
+    """
+    parser.add_argument("--line-style", default=".")
+
+
+def get_deriv_plot_args(args):
+    """
+    Parse plot args
+    """
+    return {
+        "line style": args.get("line_style", "-"),
+        "internal_data": args["internal_data"]
+    }

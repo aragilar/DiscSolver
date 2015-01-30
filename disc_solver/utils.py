@@ -95,3 +95,10 @@ def find_in_array(array, item):
         return list(array).index(item)
     except ValueError:
         return None
+
+
+def cli_to_var(cmd):
+    """
+    Convert cli style argument to valid python name
+    """
+    return cmd.replace("-", "_")
