@@ -141,6 +141,11 @@ def ode_system(
         deriv_v_r = (
             deriv_v_r_taylor if θ > taylor_stop_angle else deriv_v_r_normal
         )
+        log.debug("v_r pos: {}", (
+            v_r**2 / 2 + v_φ**2 + (2 * β * c_s**2) +
+            (B_θ * deriv_B_r + (β - 1)*(B_θ**2 + B_φ**2)) / (4 * pi * ρ)
+        ))
+        log.debug("v_r neg: {}", - central_mass)
 
         deriv_v_φ_taylor = (θ - pi/2) * dderiv_v_φM
         deriv_v_φ_normal = (
@@ -157,6 +162,10 @@ def ode_system(
         deriv_v_φ = (
             deriv_v_φ_taylor if θ > taylor_stop_angle else deriv_v_φ_normal
         )
+        log.debug("v_φ A: {}", - (v_φ * v_r) / 2)
+        log.debug("v_φ B: {}", B_θ * B_φ_prime / (4 * pi * ρ))
+        log.debug("v_φ C: {}", (1-β) * B_r * B_φ / (4*pi*ρ))
+        log.debug("v_φ D: {}", - cot(θ) * B_θ * B_φ / (4*pi*ρ))
 
         deriv_v_θ = (
             2 * (β-1) * v_r * c_s**2 / (c_s**2 - v_θ**2) - v_r / 2 -
