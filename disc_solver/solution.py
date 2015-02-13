@@ -41,17 +41,18 @@ def ode_system(
 
     dderiv_B_θM = (β - 2) * deriv_B_rM + B_θM
 
+    dderiv_ρ_M = dderiv_ρ_midplane(
+        ρ_M, B_θM, v_rM, v_φM, deriv_B_rM, deriv_B_φM, β, c_s
+    )
+
     dderiv_v_rM = dderiv_v_r_midplane(
         ρ_M, B_θM, v_rM, v_φM, deriv_v_θM, deriv_B_rM, deriv_B_φM, dderiv_B_θM,
-        β, η_O, η_H, η_A, c_s
+        dderiv_ρ_M, β, η_O, η_H, η_A
     )
-    dderiv_ρ_M = dderiv_ρ_midplane(
-        ρ_M, B_θM, v_rM, deriv_v_θM, deriv_B_rM, deriv_B_φM, dderiv_v_rM,
-        β, c_s
-    )
+
     dderiv_v_φM = dderiv_v_φ_midplane(
         ρ_M, B_θM, v_rM, v_φM, deriv_v_θM, deriv_B_rM, deriv_B_φM, dderiv_B_θM,
-        dderiv_v_rM, β, η_O, η_H, η_A, c_s
+        dderiv_v_rM, dderiv_ρ_M, β, η_O, η_H, η_A
     )
 
     log.info("B_θ'': {}".format(dderiv_B_θM))
