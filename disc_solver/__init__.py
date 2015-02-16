@@ -119,6 +119,11 @@ def analyse_parser():
     deriv_show_parser = subparsers.add_parser("deriv-show")
     deriv_plot_options(deriv_show_parser)
 
+    check_taylor_parser = subparsers.add_parser("check-taylor")
+    check_taylor_parser.add_argument(
+        "--show-values", action="store_true", default=False
+    )
+
     output_file = parser.parse_args().output_file
 
     args = vars(parser.parse_args())

@@ -94,3 +94,48 @@ def deriv_show(inp, cons, angles, soln, args):
     # pylint: disable=star-args
     generate_deriv_plot(angles, soln, inp, cons, **plot_args)
     plt.show()
+
+
+def check_taylor(inp, cons, angles, soln, args):
+    """
+    Compare derivatives from taylor series to full version
+    """
+    # pylint: disable=unused-argument
+    internal_data = args["internal_data"]
+    v_r_normal = np.array(internal_data["v_r normal"])
+    v_φ_normal = np.array(internal_data["v_φ normal"])
+    ρ_normal = np.array(internal_data["ρ normal"])
+    v_r_taylor = np.array(internal_data["v_r taylor"])
+    v_φ_taylor = np.array(internal_data["v_φ taylor"])
+    ρ_taylor = np.array(internal_data["ρ taylor"])
+
+    deriv_angles = np.array(internal_data["angles"])
+    # pylint: disable=unused-variable
+    fig, axes = plt.subplots(ncols=3, tight_layout=True)
+    if args["show_values"]:
+        axes[0].plot(90 - deriv_angles * 180 / pi, v_r_normal)
+        axes[0].plot(90 - deriv_angles * 180 / pi, v_r_taylor)
+        axes[1].plot(90 - deriv_angles * 180 / pi, v_φ_normal)
+        axes[1].plot(90 - deriv_angles * 180 / pi, v_φ_taylor)
+        axes[2].plot(90 - deriv_angles * 180 / pi, ρ_normal)
+        axes[2].plot(90 - deriv_angles * 180 / pi, ρ_taylor)
+        axes[0].set_yscale("log")
+        axes[1].set_yscale("log")
+        axes[2].set_yscale("log")
+    else:
+        axes[0].plot(
+            90 - deriv_angles * 180 / pi,
+            np.abs(v_r_normal - v_r_taylor), '.'
+        )
+        axes[1].plot(
+            90 - deriv_angles * 180 / pi,
+            np.abs(v_φ_normal - v_φ_taylor), '.'
+        )
+        axes[2].plot(
+            90 - deriv_angles * 180 / pi,
+            np.abs(ρ_normal - ρ_taylor), '.'
+        )
+        axes[0].set_yscale("log")
+        axes[1].set_yscale("log")
+        axes[2].set_yscale("log")
+    plt.show()
