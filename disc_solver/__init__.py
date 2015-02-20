@@ -16,7 +16,7 @@ from logbook.compat import redirected_warnings, redirected_logging
 import numpy as np
 import h5py
 
-from .analyse import plot_options, deriv_plot_options
+from .analyse import plot_options, deriv_plot_options, params_plot_options
 from .analyse import commands as analyse_commands
 from .config import define_conditions, get_input
 from .logging import logging_options, log_handler
@@ -125,6 +125,9 @@ def analyse_parser():
     check_taylor_parser.add_argument(
         "--show-values", action="store_true", default=False
     )
+
+    params_show_parser = subparsers.add_parser("params-show")
+    params_plot_options(params_show_parser)
 
     output_file = parser.parse_args().output_file
 

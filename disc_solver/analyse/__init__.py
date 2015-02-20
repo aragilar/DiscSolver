@@ -212,3 +212,82 @@ def get_deriv_plot_args(args):
         "line style": args.get("line_style", "-"),
         "internal_data": args["internal_data"]
     }
+
+
+def generate_params_plot(angles, soln, inp, cons, **kwargs):
+    """
+    Generate plot of all values, including intermediate values
+    """
+    # pylint: disable=unused-argument
+    param_names = [
+        {
+            "name": "B_r",
+        },
+        {
+            "name": "B_φ",
+        },
+        {
+            "name": "B_θ",
+        },
+        {
+            "name": "v_r",
+        },
+        {
+            "name": "v_φ",
+        },
+        {
+            "name": "v_θ",
+        },
+        {
+            "name": "ρ",
+        },
+        {
+            "name": "B_φ_prime",
+        },
+    ]
+
+    linestyle = kwargs.pop("line style")
+    internal_data = kwargs.pop("internal_data")
+    param_angles = np.array(internal_data["angles"])
+    params = np.array(internal_data["params"])
+    npnot = np.logical_not
+
+    fig, axes = plt.subplots(
+        nrows=2, ncols=4, tight_layout=True, sharex=True, **kwargs
+    )
+    axes.shape = len(param_names)
+    for i, settings in enumerate(param_names):
+        ax = axes[i]
+        pos_params = params[:, i] >= 0
+        ax.plot(
+            90 - (param_angles[pos_params] * 180 / pi),
+            params[pos_params, i], linestyle,
+        )
+        ax.plot(
+            90 - (param_angles[npnot(pos_params)] * 180 / pi),
+            - params[npnot(pos_params), i], linestyle,
+        )
+        ax.set_xlabel("angle from plane (°)")
+        ax.set_yscale(settings.get("scale", "log"))
+        ax.set_title(settings["name"])
+        if settings.get("legend"):
+            ax.legend()
+        better_sci_format(ax.yaxis)
+    return fig
+
+
+def params_plot_options(parser):
+    """
+    Add cli arguments for defining derivative plot
+    """
+    parser.add_argument("--line-style", default=".")
+
+
+def get_params_plot_args(args):
+    """
+    Parse plot args
+    """
+    return {
+        "line style": args.get("line_style", "-"),
+        "internal_data": args["internal_data"]
+    }
