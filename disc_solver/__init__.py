@@ -94,6 +94,8 @@ def analyse_parser():
     parser = argparse.ArgumentParser(description='Analyser for DiscSolver')
     parser.add_argument("output_file")
 
+    logging_options(parser)
+
     subparsers = parser.add_subparsers(dest="command")
     subparsers.required = True
 
