@@ -54,6 +54,17 @@ def define_conditions(inp):
     cons = SimpleNamespace()
     keplerian_velocity = sqrt(G * inp.central_mass / inp.radius)  # cm/s
 
+    cons.v_norm = inp.c_s
+    cons.B_norm = inp.B_θ
+    cons.diff_norm = cons.v_norm * inp.radius
+    cons.ρ_norm = cons.B_norm**2 / (4 * pi * cons.v_norm**2)
+
+    cons.norm_kepler_sq = keplerian_velocity**2 / cons.v_norm**2
+    cons.c_s = inp.c_s / cons.v_norm
+    cons.η_O = inp.η_O / cons.diff_norm
+    cons.η_A = inp.η_A / cons.diff_norm
+    cons.η_H = inp.η_H / cons.diff_norm
+
     v_r = - inp.v_rin_on_v_k * keplerian_velocity
     if v_r > 0:
         log.error("v_r > 0, v_r = {}".format(v_r))
@@ -63,51 +74,48 @@ def define_conditions(inp):
     B_r = 0  # symmetry across disc
     B_φ = 0  # symmetry across disc
 
+    # norm for use in v_φ
+    v_r_normed = v_r / cons.v_norm
+    B_θ_normed = inp.B_θ / cons.B_norm
+    ρ_normed = inp.ρ / cons.ρ_norm
+
     # solution for A * v_φ**2 + B * v_φ + C = 0
     A_v_φ = 1
-    B_v_φ = - (v_r * inp.η_H) / (2 * (inp.η_O + inp.η_A))
+    B_v_φ = - (v_r_normed * cons.η_H) / (2 * (cons.η_O + cons.η_A))
     C_v_φ = (
-        v_r**2 / 2 + 2 * inp.β * inp.c_s**2 -
-        keplerian_velocity**2 +
-        inp.B_θ**2 * (
-            2 * (inp.β - 1) - v_r / (inp.η_O + inp.η_A)
-        ) / (4 * pi * inp.ρ)
+        v_r_normed**2 / 2 + 2 * inp.β * cons.c_s**2 -
+        cons.norm_kepler_sq + B_θ_normed**2 * (
+            2 * (inp.β - 1) - v_r_normed / (cons.η_O + cons.η_A)
+        ) / (4 * pi * ρ_normed)
     )
-    v_φ = - 1/2 * (B_v_φ - sqrt(B_v_φ**2 - 4 * A_v_φ * C_v_φ))
-
-    B_φ_prime = (v_φ * v_r * 4 * pi * inp.ρ) / (2 * inp.B_θ)
-
     log.debug("A_v_φ: {}".format(A_v_φ))
     log.debug("B_v_φ: {}".format(B_v_φ))
     log.debug("C_v_φ: {}".format(C_v_φ))
-    log.info("v_φ: {}".format(v_r))
-    log.info("B_φ_prime: {}".format(B_φ_prime))
 
-    cons.v_norm = inp.c_s
-    cons.B_norm = inp.B_θ
-    cons.diff_norm = cons.v_norm * inp.radius
-    cons.ρ_norm = cons.B_norm**2 / (4 * pi * cons.v_norm**2)
+    v_φ_normed = - 1/2 * (B_v_φ - sqrt(B_v_φ**2 - 4 * A_v_φ * C_v_φ))
+
+    B_φ_prime_normed = (
+        v_φ_normed * v_r_normed * 4 * pi * ρ_normed
+    ) / (2 * B_θ_normed)
+
+    log.info("v_φ: {}".format(v_φ_normed * cons.v_norm))
+    log.info("B_φ_prime: {}".format(B_φ_prime_normed * cons.B_norm))
 
     init_con = np.zeros(8)
 
-    init_con[0] = B_r / cons.B_norm
-    init_con[1] = B_φ / cons.B_norm
-    init_con[2] = inp.B_θ / cons.B_norm
-    init_con[3] = v_r / cons.v_norm
-    init_con[4] = v_φ / cons.v_norm
-    init_con[5] = v_θ / cons.v_norm
-    init_con[6] = inp.ρ / cons.ρ_norm
-    init_con[7] = B_φ_prime / cons.B_norm
+    init_con[0] = B_r
+    init_con[1] = B_φ
+    init_con[2] = B_θ_normed
+    init_con[3] = v_r_normed
+    init_con[4] = v_φ_normed
+    init_con[5] = v_θ
+    init_con[6] = ρ_normed
+    init_con[7] = B_φ_prime_normed
 
     cons.init_con = init_con
 
-    cons.norm_kepler_sq = keplerian_velocity**2 / cons.v_norm**2
-    cons.c_s = inp.c_s / cons.v_norm
-    cons.η_O = inp.η_O / cons.diff_norm
-    cons.η_A = inp.η_A / cons.diff_norm
-    cons.η_H = inp.η_H / cons.diff_norm
-
     cons.angles = np.linspace(inp.start, inp.stop, inp.num_angles) / 180 * pi
+
     return cons
 
 
