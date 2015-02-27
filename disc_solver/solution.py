@@ -131,17 +131,15 @@ def ode_system(
 
         deriv_v_r_taylor = (θ - pi/2) * dderiv_v_rM
         deriv_v_r_normal = (
-            v_r**2 / (2 * v_θ) +
-            v_θ +
-            v_φ**2 / v_θ +
-            (2 * β * c_s**2) / v_θ -
-            central_mass / v_θ +
+            v_r**2 / 2 +
+            v_θ**2 + v_φ**2 +
+            (2 * β * c_s**2) - central_mass +
             (
                 B_θ * deriv_B_r + (β - 1)*(B_θ**2 + B_φ**2)
             ) / (
-                4 * pi * v_θ * ρ
+                4 * pi * ρ
             )
-        )
+        ) / v_θ
         deriv_v_r = (
             deriv_v_r_taylor if θ > taylor_stop_angle else deriv_v_r_normal
         )
@@ -153,16 +151,16 @@ def ode_system(
 
         deriv_v_φ_taylor = (θ - pi/2) * dderiv_v_φM
         deriv_v_φ_normal = (
-            cot(θ) * v_φ -
-            (v_φ * v_r) / (2 * v_θ) +
+            cot(θ) * v_φ * v_θ -
+            (v_φ * v_r) / 2 +
             (
                 B_θ * B_φ_prime +
                 (1-β) * B_r * B_φ -
                 cot(θ) * B_θ * B_φ
             ) / (
-                4 * pi * v_θ * ρ
+                4 * pi * ρ
             )
-        )
+        ) / v_θ
         deriv_v_φ = (
             deriv_v_φ_taylor if θ > taylor_stop_angle else deriv_v_φ_normal
         )
