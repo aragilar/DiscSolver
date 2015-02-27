@@ -62,6 +62,7 @@ def ode_system(
 
     internal_data = {
         "derivs": [],
+        "params": [],
         "angles": [],
         "v_r normal": [],
         "v_φ normal": [],
@@ -71,6 +72,7 @@ def ode_system(
         "ρ taylor": [],
     }
     derivs_list = internal_data["derivs"]
+    params_list = internal_data["params"]
     angles_list = internal_data["angles"]
     v_r_nlist = internal_data["v_r normal"]
     v_φ_nlist = internal_data["v_φ normal"]
@@ -83,10 +85,12 @@ def ode_system(
         """
         Compute the ODEs
         """
-        nonlocal derivs_list, angles_list
+        nonlocal derivs_list, params_list, angles_list
         nonlocal v_r_nlist, v_r_taylist
         nonlocal v_φ_nlist, v_φ_taylist
         nonlocal ρ_nlist, ρ_taylist
+
+        params_list.append(np.copy(params))
 
         B_r = params[0]
         B_φ = params[1]
