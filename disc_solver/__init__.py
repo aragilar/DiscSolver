@@ -54,13 +54,17 @@ def solution_main(output_file=None, ismain=True):
                 max_steps=inp.max_steps,
                 taylor_stop_angle=inp.taylor_stop_angle
             )
-
+            current_time = str(arrow.now())
             if gen_file_name:
-                output_file = inp.label + str(arrow.now()) + ".hdf5"
+                output_file = inp.label + current_time + ".hdf5"
             with h5py.File(output_file) as f:
                 f['angles'] = angles
                 f['solution'] = soln
                 f.attrs.update(vars(inp))
+                f.attrs.update(
+                    filename=str(conffile),
+                    time=current_time,
+                )
                 f.create_group('internal_data')
                 f['internal_data'].update(internal_data)
 
