@@ -45,6 +45,7 @@ def solution_main(output_file=None, ismain=True):
     with log_handler(args), redirected_warnings(), redirected_logging():
         inps = get_input(conffile)
         for inp in inps:
+            log.notice(inp.label)
             cons = define_conditions(inp)
 
             angles, soln, internal_data = solution(
