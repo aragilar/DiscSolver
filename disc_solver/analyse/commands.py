@@ -72,7 +72,6 @@ def plot(inp, cons, angles, soln, args):
     Plot solution to file
     """
     plot_args = get_plot_args(args)
-    # pylint: disable=star-args
     fig = generate_plot(angles, soln, inp, cons, **plot_args)
     fig.savefig(args["plot_filename"])
 
@@ -82,7 +81,6 @@ def show(inp, cons, angles, soln, args):
     Show solution
     """
     plot_args = get_plot_args(args)
-    # pylint: disable=star-args
     generate_plot(angles, soln, inp, cons, **plot_args)
     plt.show()
 
@@ -92,7 +90,6 @@ def deriv_show(inp, cons, angles, soln, args):
     Show derivatives
     """
     plot_args = get_deriv_plot_args(args)
-    # pylint: disable=star-args
     generate_deriv_plot(angles, soln, inp, cons, **plot_args)
     plt.show()
 
@@ -147,6 +144,5 @@ def params_show(inp, cons, angles, soln, args):
     Show solution at every step the solver takes.
     """
     plot_args = get_params_plot_args(args)
-    # pylint: disable=star-args
     generate_params_plot(angles, soln, inp, cons, **plot_args)
     plt.show()

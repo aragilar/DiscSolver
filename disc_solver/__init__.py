@@ -75,7 +75,7 @@ def analyse_main(output_file=None, **kwargs):
 
     with log_handler(kwargs), redirected_warnings(), redirected_logging():
         with h5py.File(output_file) as f:
-            inp = SimpleNamespace(**f.attrs)  # pylint: disable=star-args
+            inp = SimpleNamespace(**f.attrs)
             cons = define_conditions(inp)
             angles = np.array(f["angles"])
             soln = np.array(f["solution"])
