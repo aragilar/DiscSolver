@@ -23,6 +23,9 @@ def generate_plot(angles, soln, inp, cons, **kwargs):
         v.T, soln[:, 0:3], soln[:, 6], inp.c_s
     ))
     linestyle = kwargs.pop("line style")
+    with_slow = kwargs.pop("with slow")
+    with_alfven = kwargs.pop("with alfven")
+    with_fast = kwargs.pop("with fast")
 
     param_names = [
         {
@@ -57,23 +60,7 @@ def generate_plot(angles, soln, inp, cons, **kwargs):
             "normalisation": v_norm / KM,  # km/s
             "legend": True,
             "scale": kwargs.pop("v_θ scale", "linear"),
-            "extras": [
-                {
-                    "label": "slow",
-                    "data": wave_speeds[MHD_WAVE_INDEX["slow"]],
-                    "normalisation": v_norm / KM,
-                },
-                {
-                    "label": "alfven",
-                    "data": wave_speeds[MHD_WAVE_INDEX["alfven"]],
-                    "normalisation": v_norm / KM,
-                },
-                {
-                    "label": "fast",
-                    "data": wave_speeds[MHD_WAVE_INDEX["fast"]],
-                    "normalisation": v_norm / KM,
-                },
-            ]
+            "extras": []
         },
         {
             "name": "ρ",
@@ -87,6 +74,25 @@ def generate_plot(angles, soln, inp, cons, **kwargs):
             "normalisation": B_norm,
         },
     ]
+
+    if with_slow:
+        param_names[5]["extras"].append({
+            "label": "slow",
+            "data": wave_speeds[MHD_WAVE_INDEX["slow"]],
+            "normalisation": v_norm / KM,
+        })
+    if with_alfven:
+        param_names[5]["extras"].append({
+            "label": "alfven",
+            "data": wave_speeds[MHD_WAVE_INDEX["alfven"]],
+            "normalisation": v_norm / KM,
+        })
+    if with_fast:
+        param_names[5]["extras"].append({
+            "label": "fast",
+            "data": wave_speeds[MHD_WAVE_INDEX["fast"]],
+            "normalisation": v_norm / KM,
+        })
 
     fig, axes = plt.subplots(
         nrows=2, ncols=4, tight_layout=True, sharex=True, **kwargs
@@ -123,6 +129,12 @@ def plot_options(parser):
     """
     parser.add_argument("--v_θ", choices=("log", "linear"), default="linear")
     parser.add_argument("--line-style", default="-")
+    parser.add_argument(
+        "--with-slow", action='store_true', default=False)
+    parser.add_argument(
+        "--with-alfven", action='store_true', default=False)
+    parser.add_argument(
+        "--with-fast", action='store_true', default=False)
 
 
 def get_plot_args(args):
@@ -131,6 +143,9 @@ def get_plot_args(args):
     """
     return {
         "v_θ scale": args.get("v_θ", "linear"),
+        "with slow": args.get("with_slow", False),
+        "with alfven": args.get("with_alfven", False),
+        "with fast": args.get("with_fast", False),
         "line style": args.get("line_style", "-")
     }
 
