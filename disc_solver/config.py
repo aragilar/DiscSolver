@@ -47,6 +47,20 @@ DEFAULT_INPUT = dict(
 )
 
 
+class CaseDependentConfigParser(configparser.ConfigParser):
+    # pylint: disable=too-many-ancestors
+    """
+    configparser.ConfigParser subclass that removes the case transform.
+    """
+    def optionxform(self, optionstr):
+        return optionstr
+
+
+def strdict(d):
+    """ stringify a dictionary"""
+    return {str(k): str(v) for k, v in d.items()}
+
+
 def define_conditions(inp):
     """
     Compute initial conditions based on input
@@ -123,9 +137,7 @@ def get_input(conffile=None):
     """
     Get input values
     """
-    config = configparser.ConfigParser()
-    config.optionxform = lambda option: option
-    config["DEFAULT"] = DEFAULT_INPUT
+    config = CaseDependentConfigParser(defaults=strdict(DEFAULT_INPUT))
     if conffile:
         config.read_file(open(conffile))
     if config.sections():
