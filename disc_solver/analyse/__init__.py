@@ -120,6 +120,7 @@ def generate_plot(angles, soln, inp, cons, **kwargs):
         if settings.get("legend"):
             ax.legend()
         better_sci_format(ax.yaxis)
+    fig.suptitle("{}:{}".format(inp.filename, inp.label))
     return fig
 
 
