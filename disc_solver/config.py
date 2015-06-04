@@ -28,6 +28,7 @@ DEFAULT_INPUT = dict(
     β=5/4,
 
     v_rin_on_v_k=0.1,
+    scale_height_vs_radius=0.01,
 
     # B_θ is the equipartition field
     B_θ=18,  # G
@@ -70,7 +71,7 @@ def define_conditions(inp):
 
     cons.v_norm = inp.c_s
     cons.B_norm = inp.B_θ
-    cons.diff_norm = cons.v_norm * inp.radius
+    cons.diff_norm = cons.v_norm * inp.radius * inp.scale_height_vs_radius
     cons.ρ_norm = cons.B_norm**2 / (4 * pi * cons.v_norm**2)
 
     cons.norm_kepler_sq = keplerian_velocity**2 / cons.v_norm**2
@@ -158,6 +159,7 @@ def parse_config(section_name, section):
     inp.stop = float(section.get("stop"))
     inp.taylor_stop_angle = float(section.get("taylor_stop_angle"))
     inp.radius = float(section.get("radius")) * AU
+    inp.scale_height_vs_radius = float(section.get("scale_height_vs_radius"))
     inp.central_mass = float(section.get("central_mass")) * M_SUN
     inp.β = float_with_frac(section.get("β"))
     inp.v_rin_on_v_k = float(section.get("v_rin_on_v_k"))
