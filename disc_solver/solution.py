@@ -238,11 +238,17 @@ def solution(
         atol=absolute_tolerance,
         max_steps=max_steps,
         validate_flags=True,
+        err_handler=ode_error_handler
     )
     try:
         soln = solver.solve(angles, initial_conditions)
     except sundials.CVODESolveFailed as e:
-        angles = e.t_vals
-        soln = e.y_vals
-        flag = e.flag
-    return angles, soln, internal_data, flag
+        log.error(e)
+        soln = e.soln
+    return soln.values.t, soln.values.y, internal_data, soln.flag
+
+
+def ode_error_handler(error_code, module, func, msg, user_data):
+    """ drop all CVODE messages """
+    # pylint: disable=unused-argument
+    pass
