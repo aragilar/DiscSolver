@@ -48,7 +48,7 @@ def solution_main(output_file=None, ismain=True):
             log.notice(inp.label)
             cons = define_conditions(inp)
 
-            angles, soln, internal_data = solution(
+            angles, soln, internal_data, flag = solution(
                 cons.angles, cons.init_con, inp.β, cons.c_s,
                 cons.norm_kepler_sq, cons.η_O, cons.η_A, cons.η_H,
                 max_steps=inp.max_steps,
@@ -64,6 +64,7 @@ def solution_main(output_file=None, ismain=True):
                 f.attrs.update(
                     filename=str(conffile),
                     time=current_time,
+                    flag=flag
                 )
                 f.create_group('internal_data')
                 f['internal_data'].update(internal_data)

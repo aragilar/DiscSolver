@@ -8,7 +8,9 @@ from math import pi, sqrt
 import logbook
 
 import numpy as np
+
 from scikits.odes import ode
+import scikits.odes.sundials as sundials
 
 from .utils import cot
 from .deriv_funcs import (
@@ -239,8 +241,8 @@ def solution(
     )
     try:
         soln = solver.solve(angles, initial_conditions)
-    except RuntimeError as e:
-        # pylint: disable=no-member
-        angles = e.x_vals
+    except sundials.CVODESolveFailed as e:
+        angles = e.t_vals
         soln = e.y_vals
-    return angles, soln, internal_data
+        flag = e.flag
+    return angles, soln, internal_data, flag
