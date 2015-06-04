@@ -198,11 +198,11 @@ def generate_deriv_plot(angles, soln, inp, cons, **kwargs):
         pos_deriv = derivs[:, i] >= 0
         ax.plot(
             90 - (deriv_angles[pos_deriv] * 180 / pi),
-            derivs[pos_deriv, i], linestyle,
+            derivs[pos_deriv, i], linestyle + "b",
         )
         ax.plot(
             90 - (deriv_angles[npnot(pos_deriv)] * 180 / pi),
-            - derivs[npnot(pos_deriv), i], linestyle,
+            - derivs[npnot(pos_deriv), i], linestyle + "g",
         )
         ax.set_xlabel("angle from plane (°)")
         ax.set_yscale(settings.get("scale", "log"))
