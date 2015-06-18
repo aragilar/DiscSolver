@@ -1,33 +1,15 @@
 import setuptools
 
-import os
-## Utility funcs from https://github.com/pypa/sampleproject/blob/master/setup.py
-here = os.path.abspath(os.path.dirname(__file__))
-# Read the version number from a source file.
-# Code taken from pip's setup.py
-def find_version(*file_paths):
-    import codecs
-    import re
-    # Open in Latin-1 so that we avoid encoding errors.
-    # Use codecs.open for Python 2 compatibility
-    with codecs.open(os.path.join(here, *file_paths), 'r', 'latin1') as f:
-        version_file = f.read()
+import versioneer
 
-    # The version line must have the form
-    # __version__ = 'ver'
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
 #import codecs
 #with codecs.open('DESCRIPTION.rst', 'r', 'utf-8') as f:
 #    long_description = f.read()
 
 setuptools.setup(
     name="disc_solver",
-    version=find_version("disc_solver", "__init__.py"),
-    packages = ["disc_solver", "disc_solver.analyse"],
+    version=versioneer.get_version(),
+    packages = ["disc_solver", "disc_solver.analyse", "disc_solver.solve"],
     install_requires = [
         "numpy",
         "matplotlib",
@@ -64,4 +46,5 @@ setuptools.setup(
             "ds-quick = disc_solver:main",
         ],
     },
+    cmdclass=versioneer.get_cmdclass(),
 )

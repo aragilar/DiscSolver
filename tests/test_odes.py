@@ -9,7 +9,7 @@ import logbook
 import numpy as np
 
 from disc_solver.constants import G
-from disc_solver.solution import ode_system
+from disc_solver.solve.solution import ode_system
 from disc_solver.utils import cot
 
 ODE_NUMBER = 8

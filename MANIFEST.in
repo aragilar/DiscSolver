@@ -1,0 +1,2 @@
+include versioneer.py
+include disc_solver/_version.py

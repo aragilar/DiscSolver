@@ -4,7 +4,8 @@ Computing derivatives
 """
 
 from math import pi, sin, sqrt
-from .utils import cot
+
+from ..utils import cot
 
 
 def B_unit_derivs(B_r, B_φ, B_θ, deriv_B_r, deriv_B_φ, deriv_B_θ):

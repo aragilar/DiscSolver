@@ -3,6 +3,6 @@
 Make main function callable from command line
 """
 
-from disc_solver import main
+from . import main
 
 main()

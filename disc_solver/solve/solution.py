@@ -12,11 +12,12 @@ import numpy as np
 from scikits.odes import ode
 import scikits.odes.sundials as sundials
 
-from .utils import cot
 from .deriv_funcs import (
     dderiv_B_φ_soln, dderiv_v_φ_midplane, dderiv_v_r_midplane,
     dderiv_ρ_midplane,
 )
+
+from ..utils import cot
 
 INTEGRATOR = "cvode"
 

@@ -12,7 +12,7 @@ mpl.use("Qt4Agg")
 mpl.rcParams["backend.qt4"] = "PySide"
 import matplotlib.pyplot as plt
 
-from . import (
+from .plot_functions import (
     generate_plot, get_plot_args, generate_deriv_plot, get_deriv_plot_args,
     generate_params_plot, get_params_plot_args,
 )

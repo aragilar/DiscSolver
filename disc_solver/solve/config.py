@@ -11,8 +11,8 @@ import logbook
 
 import numpy as np
 
-from .constants import G, AU, M_SUN, KM
-from .utils import float_with_frac
+from ..constants import G, AU, M_SUN, KM
+from ..utils import float_with_frac
 
 log = logbook.Logger(__name__)
 
