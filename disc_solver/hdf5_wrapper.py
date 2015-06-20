@@ -205,7 +205,7 @@ class SolutionFileV1(SolutionFileBase):
         """
         Data internal to the solution
         """
-        return self.InternalData({
+        return self.InternalData(**{
             key: np.copy(val)
             for key, val in self._file["internal data"].items()
         })

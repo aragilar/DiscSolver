@@ -111,7 +111,7 @@ def check_taylor(soln_file, args):
     deriv_angles = soln_file.internal_data.angles
     # pylint: disable=unused-variable
     fig, axes = plt.subplots(ncols=3, tight_layout=True)
-    if args["show_values"]:
+    if args.get("show_values", False):
         axes[0].plot(90 - deriv_angles * 180 / pi, v_r_normal)
         axes[0].plot(90 - deriv_angles * 180 / pi, v_r_taylor)
         axes[1].plot(90 - deriv_angles * 180 / pi, v_φ_normal)

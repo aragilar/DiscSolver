@@ -230,7 +230,6 @@ def get_deriv_plot_args(args):
     """
     return {
         "line style": args.get("line_style", "-"),
-        "internal_data": args["internal_data"]
     }
 
 
@@ -308,5 +307,4 @@ def get_params_plot_args(args):
     """
     return {
         "line style": args.get("line_style", "-"),
-        "internal_data": args["internal_data"]
     }
