@@ -17,9 +17,11 @@ from .deriv_funcs import (
     dderiv_ρ_midplane,
 )
 
+from ..hdf5_wrapper import NEWEST_CLASS as namespace_container
 from ..utils import cot
 
 INTEGRATOR = "cvode"
+COORDS = "spherical known broken"
 
 log = logbook.Logger(__name__)
 
@@ -63,26 +65,20 @@ def ode_system(
     log.info("v_φ'': {}".format(dderiv_v_φM))
     log.info("ρ'': {}".format(dderiv_ρ_M))
 
-    internal_data = {
-        "derivs": [],
-        "params": [],
-        "angles": [],
-        "v_r normal": [],
-        "v_φ normal": [],
-        "ρ normal": [],
-        "v_r taylor": [],
-        "v_φ taylor": [],
-        "ρ taylor": [],
-    }
-    derivs_list = internal_data["derivs"]
-    params_list = internal_data["params"]
-    angles_list = internal_data["angles"]
-    v_r_nlist = internal_data["v_r normal"]
-    v_φ_nlist = internal_data["v_φ normal"]
-    ρ_nlist = internal_data["ρ normal"]
-    v_r_taylist = internal_data["v_r taylor"]
-    v_φ_taylist = internal_data["v_φ taylor"]
-    ρ_taylist = internal_data["ρ taylor"]
+    internal_data = namespace_container.InternalData(
+        derivs=[], params=[], angles=[], v_r_normal=[], v_φ_normal=[],
+        ρ_normal=[], v_r_taylor=[], v_φ_taylor=[], ρ_taylor=[],
+    )
+
+    derivs_list = internal_data.derivs
+    params_list = internal_data.params
+    angles_list = internal_data.angles
+    v_r_nlist = internal_data.v_r_normal
+    v_φ_nlist = internal_data.v_φ_normal
+    ρ_nlist = internal_data.ρ_normal
+    v_r_taylist = internal_data.v_r_taylor
+    v_φ_taylist = internal_data.v_φ_taylor
+    ρ_taylist = internal_data.ρ_taylor
 
     def rhs_equation(θ, params, derivs):
         """
@@ -246,7 +242,13 @@ def solution(
     except sundials.CVODESolveFailed as e:
         log.error(e)
         soln = e.soln
-    return soln.values.t, soln.values.y, internal_data, soln.flag
+    return (
+        soln.values.t, soln.values.y, internal_data,
+        namespace_container.SolutionProperties(
+            flag=soln.flag,
+            coordinate_system=COORDS,
+        )
+    )
 
 
 def ode_error_handler(error_code, module, func, msg, user_data):

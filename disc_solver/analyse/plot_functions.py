@@ -12,10 +12,15 @@ from ..constants import KM
 from ..utils import better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX
 
 
-def generate_plot(angles, soln, inp, cons, **kwargs):
+def generate_plot(soln_file, **kwargs):
     """
     Generate plot, with enough freedom to be able to format fig
     """
+    soln = soln_file.solution
+    angles = soln_file.angles
+    cons = soln_file.initial_conditions
+    inp = soln_file.config_input
+
     B_norm, v_norm, ρ_norm = cons.B_norm, cons.v_norm, cons.ρ_norm
     zero_soln = np.zeros(len(soln))
     v = np.array([zero_soln, zero_soln, soln[:, 5]])
@@ -120,7 +125,7 @@ def generate_plot(angles, soln, inp, cons, **kwargs):
         if settings.get("legend"):
             ax.legend()
         better_sci_format(ax.yaxis)
-    fig.suptitle("{}:{}".format(inp.filename, inp.label))
+    fig.suptitle("{}:{}".format(soln_file.config_filename, inp.label))
     return fig
 
 
@@ -151,11 +156,10 @@ def get_plot_args(args):
     }
 
 
-def generate_deriv_plot(angles, soln, inp, cons, **kwargs):
+def generate_deriv_plot(soln_file, **kwargs):
     """
     Generate plot of derivatives
     """
-    # pylint: disable=unused-argument
     param_names = [
         {
             "name": "B_r",
@@ -184,9 +188,9 @@ def generate_deriv_plot(angles, soln, inp, cons, **kwargs):
     ]
 
     linestyle = kwargs.pop("line style")
-    internal_data = kwargs.pop("internal_data")
-    deriv_angles = np.array(internal_data["angles"])
-    derivs = np.array(internal_data["derivs"])
+    internal_data = soln_file.internal_data
+    deriv_angles = internal_data.angles
+    derivs = internal_data.derivs
     npnot = np.logical_not
 
     fig, axes = plt.subplots(
@@ -230,11 +234,10 @@ def get_deriv_plot_args(args):
     }
 
 
-def generate_params_plot(angles, soln, inp, cons, **kwargs):
+def generate_params_plot(soln_file, **kwargs):
     """
     Generate plot of all values, including intermediate values
     """
-    # pylint: disable=unused-argument
     param_names = [
         {
             "name": "B_r",
@@ -263,9 +266,9 @@ def generate_params_plot(angles, soln, inp, cons, **kwargs):
     ]
 
     linestyle = kwargs.pop("line style")
-    internal_data = kwargs.pop("internal_data")
-    param_angles = np.array(internal_data["angles"])
-    params = np.array(internal_data["params"])
+    internal_data = soln_file.internal_data
+    param_angles = internal_data.angles
+    params = internal_data.params
     npnot = np.logical_not
 
     fig, axes = plt.subplots(

@@ -23,17 +23,18 @@ INIT_FORMAT = " {: <20}: {}"
 OTHER_FORMAT = " {: <20}: {}"
 
 
-def info(inp, cons, angles, soln, args):
+def info(soln_file, args):
     """
     Output info about the solution
     """
+    inp = soln_file.config_input
     if args.get("input"):
         print("input settings:")
         for name, value in vars(inp).items():
             print(INPUT_FORMAT.format(name, value))
     if args.get("initial_conditions"):
         print("initial conditions:")
-        for name, value in vars(cons).items():
+        for name, value in vars(soln_file.initial_conditions).items():
             print(INIT_FORMAT.format(name, value))
     print("other info: ")
     if args.get("sound_ratio"):
@@ -42,6 +43,8 @@ def info(inp, cons, angles, soln, args):
             sqrt(inp.B_θ**2 / (4*pi*inp.ρ)) / inp.c_s
         ))
     if args.get("sonic_points"):
+        soln = soln_file.solution
+        angles = soln_file.angles
         zero_soln = np.zeros(len(soln))
         v = np.array([zero_soln, zero_soln, soln[:, 5]])
         slow_index = find_in_array(is_supersonic(
@@ -67,47 +70,45 @@ def info(inp, cons, angles, soln, args):
         ))
 
 
-def plot(inp, cons, angles, soln, args):
+def plot(soln_file, args):
     """
     Plot solution to file
     """
     plot_args = get_plot_args(args)
-    fig = generate_plot(angles, soln, inp, cons, **plot_args)
+    fig = generate_plot(soln_file, **plot_args)
     fig.savefig(args["plot_filename"])
 
 
-def show(inp, cons, angles, soln, args):
+def show(soln_file, args):
     """
     Show solution
     """
     plot_args = get_plot_args(args)
-    generate_plot(angles, soln, inp, cons, **plot_args)
+    generate_plot(soln_file, **plot_args)
     plt.show()
 
 
-def deriv_show(inp, cons, angles, soln, args):
+def deriv_show(soln_file, args):
     """
     Show derivatives
     """
     plot_args = get_deriv_plot_args(args)
-    generate_deriv_plot(angles, soln, inp, cons, **plot_args)
+    generate_deriv_plot(soln_file, **plot_args)
     plt.show()
 
 
-def check_taylor(inp, cons, angles, soln, args):
+def check_taylor(soln_file, args):
     """
     Compare derivatives from taylor series to full version
     """
-    # pylint: disable=unused-argument
-    internal_data = args["internal_data"]
-    v_r_normal = np.array(internal_data["v_r normal"])
-    v_φ_normal = np.array(internal_data["v_φ normal"])
-    ρ_normal = np.array(internal_data["ρ normal"])
-    v_r_taylor = np.array(internal_data["v_r taylor"])
-    v_φ_taylor = np.array(internal_data["v_φ taylor"])
-    ρ_taylor = np.array(internal_data["ρ taylor"])
+    v_r_normal = soln_file.internal_data.v_r_normal
+    v_φ_normal = soln_file.internal_data.v_φ_normal
+    ρ_normal = soln_file.internal_data.ρ_normal
+    v_r_taylor = soln_file.internal_data.v_r_taylor
+    v_φ_taylor = soln_file.internal_data.v_φ_taylor
+    ρ_taylor = soln_file.internal_data.ρ_taylor
 
-    deriv_angles = np.array(internal_data["angles"])
+    deriv_angles = soln_file.internal_data.angles
     # pylint: disable=unused-variable
     fig, axes = plt.subplots(ncols=3, tight_layout=True)
     if args["show_values"]:
@@ -139,10 +140,10 @@ def check_taylor(inp, cons, angles, soln, args):
     plt.show()
 
 
-def params_show(inp, cons, angles, soln, args):
+def params_show(soln_file, args):
     """
     Show solution at every step the solver takes.
     """
     plot_args = get_params_plot_args(args)
-    generate_params_plot(angles, soln, inp, cons, **plot_args)
+    generate_params_plot(soln_file, **plot_args)
     plt.show()

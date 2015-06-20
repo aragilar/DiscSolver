@@ -4,23 +4,17 @@ Analysis component of Disc Solver
 """
 
 import argparse
-from types import SimpleNamespace
 
 from logbook.compat import redirected_warnings, redirected_logging
 
-import numpy as np
-import h5py
-
+from . import commands
 from .plot_functions import (
     plot_options, deriv_plot_options, params_plot_options
 )
-from . import commands
 
+from ..hdf5_wrapper import soln_open
 from ..logging import logging_options, log_handler
 from ..utils import cli_to_var
-
-
-from ..solve.config import define_conditions  # ## NEEDS REMOVAL ## #
 
 
 def analyse_main(output_file=None, **kwargs):
@@ -33,15 +27,10 @@ def analyse_main(output_file=None, **kwargs):
         kwargs["quiet"] = True
 
     with log_handler(kwargs), redirected_warnings(), redirected_logging():
-        with h5py.File(output_file) as f:
-            inp = SimpleNamespace(**f.attrs)
-            cons = define_conditions(inp)
-            angles = np.array(f["angles"])
-            soln = np.array(f["solution"])
-            kwargs["internal_data"] = f["internal_data"]
+        with soln_open(output_file) as f:
             command = getattr(commands, cli_to_var(kwargs["command"]))
             if command:
-                command(inp, cons, angles, soln, kwargs)
+                command(f, kwargs)
             else:
                 raise NotImplementedError(kwargs["command"])
 

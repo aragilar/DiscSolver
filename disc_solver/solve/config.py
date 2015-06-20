@@ -5,13 +5,13 @@ Define input and environment for ode system
 
 import configparser
 from math import pi, sqrt
-from types import SimpleNamespace
 
 import logbook
 
 import numpy as np
 
 from ..constants import G, AU, M_SUN, KM
+from ..hdf5_wrapper import NEWEST_CLASS as namespace_container
 from ..utils import float_with_frac
 
 log = logbook.Logger(__name__)
@@ -66,19 +66,18 @@ def define_conditions(inp):
     """
     Compute initial conditions based on input
     """
-    cons = SimpleNamespace()
     keplerian_velocity = sqrt(G * inp.central_mass / inp.radius)  # cm/s
 
-    cons.v_norm = inp.c_s
-    cons.B_norm = inp.B_θ
-    cons.diff_norm = cons.v_norm * inp.radius * inp.scale_height_vs_radius
-    cons.ρ_norm = cons.B_norm**2 / (4 * pi * cons.v_norm**2)
+    v_norm = inp.c_s
+    B_norm = inp.B_θ
+    diff_norm = v_norm * inp.radius * inp.scale_height_vs_radius
+    ρ_norm = B_norm**2 / (4 * pi * v_norm**2)
 
-    cons.norm_kepler_sq = keplerian_velocity**2 / cons.v_norm**2
-    cons.c_s = inp.c_s / cons.v_norm
-    cons.η_O = inp.η_O / cons.diff_norm
-    cons.η_A = inp.η_A / cons.diff_norm
-    cons.η_H = inp.η_H / cons.diff_norm
+    norm_kepler_sq = keplerian_velocity**2 / v_norm**2
+    c_s = inp.c_s / v_norm
+    η_O = inp.η_O / diff_norm
+    η_A = inp.η_A / diff_norm
+    η_H = inp.η_H / diff_norm
 
     v_r = - inp.v_rin_on_v_k * keplerian_velocity
     if v_r > 0:
@@ -90,17 +89,17 @@ def define_conditions(inp):
     B_φ = 0  # symmetry across disc
 
     # norm for use in v_φ
-    v_r_normed = v_r / cons.v_norm
-    B_θ_normed = inp.B_θ / cons.B_norm
-    ρ_normed = inp.ρ / cons.ρ_norm
+    v_r_normed = v_r / v_norm
+    B_θ_normed = inp.B_θ / B_norm
+    ρ_normed = inp.ρ / ρ_norm
 
     # solution for A * v_φ**2 + B * v_φ + C = 0
     A_v_φ = 1
-    B_v_φ = - (v_r_normed * cons.η_H) / (2 * (cons.η_O + cons.η_A))
+    B_v_φ = - (v_r_normed * η_H) / (2 * (η_O + η_A))
     C_v_φ = (
-        v_r_normed**2 / 2 + 2 * inp.β * cons.c_s**2 -
-        cons.norm_kepler_sq + B_θ_normed**2 * (
-            2 * (inp.β - 1) - v_r_normed / (cons.η_O + cons.η_A)
+        v_r_normed**2 / 2 + 2 * inp.β * c_s**2 -
+        norm_kepler_sq + B_θ_normed**2 * (
+            2 * (inp.β - 1) - v_r_normed / (η_O + η_A)
         ) / (4 * pi * ρ_normed)
     )
     log.debug("A_v_φ: {}".format(A_v_φ))
@@ -113,8 +112,8 @@ def define_conditions(inp):
         v_φ_normed * v_r_normed * 4 * pi * ρ_normed
     ) / (2 * B_θ_normed)
 
-    log.info("v_φ: {}".format(v_φ_normed * cons.v_norm))
-    log.info("B_φ_prime: {}".format(B_φ_prime_normed * cons.B_norm))
+    log.info("v_φ: {}".format(v_φ_normed * v_norm))
+    log.info("B_φ_prime: {}".format(B_φ_prime_normed * B_norm))
 
     init_con = np.zeros(8)
 
@@ -127,11 +126,13 @@ def define_conditions(inp):
     init_con[6] = ρ_normed
     init_con[7] = B_φ_prime_normed
 
-    cons.init_con = init_con
+    angles = np.linspace(inp.start, inp.stop, inp.num_angles) / 180 * pi
 
-    cons.angles = np.linspace(inp.start, inp.stop, inp.num_angles) / 180 * pi
-
-    return cons
+    return namespace_container.InitialConditions(
+        v_norm=v_norm, B_norm=B_norm, diff_norm=diff_norm, ρ_norm=ρ_norm,
+        norm_kepler_sq=norm_kepler_sq, c_s=c_s, η_O=η_O, η_A=η_A, η_H=η_H,
+        init_con=init_con, angles=angles,
+    )
 
 
 def get_input(conffile=None):
@@ -153,22 +154,23 @@ def parse_config(section_name, section):
     """
     Get the values from the config file for the run
     """
-    inp = SimpleNamespace()
-    inp.label = section_name
-    inp.start = float(section.get("start"))
-    inp.stop = float(section.get("stop"))
-    inp.taylor_stop_angle = float(section.get("taylor_stop_angle"))
-    inp.radius = float(section.get("radius")) * AU
-    inp.scale_height_vs_radius = float(section.get("scale_height_vs_radius"))
-    inp.central_mass = float(section.get("central_mass")) * M_SUN
-    inp.β = float_with_frac(section.get("β"))
-    inp.v_rin_on_v_k = float(section.get("v_rin_on_v_k"))
-    inp.B_θ = float(section.get("B_θ"))
-    inp.η_O = float(section.get("η_O"))
-    inp.η_H = float(section.get("η_H"))
-    inp.η_A = float(section.get("η_A"))
-    inp.c_s = float(section.get("c_s")) * KM
-    inp.ρ = float(section.get("ρ"))
-    inp.max_steps = int(section.get("max_steps"))
-    inp.num_angles = int(section.get("num_angles"))
+    inp = namespace_container.ConfigInput(
+        label=section_name,
+        start=float(section.get("start")),
+        stop=float(section.get("stop")),
+        taylor_stop_angle=float(section.get("taylor_stop_angle")),
+        radius=float(section.get("radius")) * AU,
+        scale_height_vs_radius=float(section.get("scale_height_vs_radius")),
+        central_mass=float(section.get("central_mass")) * M_SUN,
+        β=float_with_frac(section.get("β")),
+        v_rin_on_v_k=float(section.get("v_rin_on_v_k")),
+        B_θ=float(section.get("B_θ")),
+        η_O=float(section.get("η_O")),
+        η_H=float(section.get("η_H")),
+        η_A=float(section.get("η_A")),
+        c_s=float(section.get("c_s")) * KM,
+        ρ=float(section.get("ρ")),
+        max_steps=int(section.get("max_steps")),
+        num_angles=int(section.get("num_angles")),
+    )
     return inp
