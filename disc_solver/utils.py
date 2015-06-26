@@ -68,6 +68,20 @@ def cot(angle):
     return cos(angle)/sin(angle)
 
 
+def sec(angle):
+    """
+    Computes sec
+    """
+    return 1 / cos(angle)
+
+
+def cosec(angle):
+    """
+    Computes cosec
+    """
+    return 1 / sin(angle)
+
+
 def better_sci_format(physical_axis):
     """
     Use scientific notation for each tick mark for axis `physical_axis`.

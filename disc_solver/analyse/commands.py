@@ -6,6 +6,7 @@ Analysis commands
 from math import pi, sqrt
 
 import numpy as np
+from numpy import degrees
 
 import matplotlib as mpl
 mpl.use("Qt4Agg")
@@ -58,15 +59,15 @@ def info(soln_file, args):
         ), True)
         print(OTHER_FORMAT.format(
             "slow sonic point",
-            180 * angles[slow_index] / pi if slow_index else None
+            degrees(angles[slow_index]) if slow_index else None
         ))
         print(OTHER_FORMAT.format(
             "alfven sonic point",
-            180 * angles[alfven_index] / pi if alfven_index else None
+            degrees(angles[alfven_index]) if alfven_index else None
         ))
         print(OTHER_FORMAT.format(
             "fast sonic point",
-            180 * angles[fast_index] / pi if fast_index else None
+            degrees(angles[fast_index]) if fast_index else None
         ))
 
 
@@ -112,26 +113,26 @@ def check_taylor(soln_file, args):
     # pylint: disable=unused-variable
     fig, axes = plt.subplots(ncols=3, tight_layout=True)
     if args.get("show_values", False):
-        axes[0].plot(90 - deriv_angles * 180 / pi, v_r_normal)
-        axes[0].plot(90 - deriv_angles * 180 / pi, v_r_taylor)
-        axes[1].plot(90 - deriv_angles * 180 / pi, v_φ_normal)
-        axes[1].plot(90 - deriv_angles * 180 / pi, v_φ_taylor)
-        axes[2].plot(90 - deriv_angles * 180 / pi, ρ_normal)
-        axes[2].plot(90 - deriv_angles * 180 / pi, ρ_taylor)
+        axes[0].plot(degrees(deriv_angles), v_r_normal)
+        axes[0].plot(degrees(deriv_angles), v_r_taylor)
+        axes[1].plot(degrees(deriv_angles), v_φ_normal)
+        axes[1].plot(degrees(deriv_angles), v_φ_taylor)
+        axes[2].plot(degrees(deriv_angles), ρ_normal)
+        axes[2].plot(degrees(deriv_angles), ρ_taylor)
         axes[0].set_yscale("log")
         axes[1].set_yscale("log")
         axes[2].set_yscale("log")
     else:
         axes[0].plot(
-            90 - deriv_angles * 180 / pi,
+            degrees(deriv_angles),
             np.abs(v_r_normal - v_r_taylor), '.'
         )
         axes[1].plot(
-            90 - deriv_angles * 180 / pi,
+            degrees(deriv_angles),
             np.abs(v_φ_normal - v_φ_taylor), '.'
         )
         axes[2].plot(
-            90 - deriv_angles * 180 / pi,
+            degrees(deriv_angles),
             np.abs(ρ_normal - ρ_taylor), '.'
         )
         axes[0].set_yscale("log")

@@ -3,9 +3,10 @@
 Stuff to analyse solutions
 """
 
-from math import pi, sqrt
+from math import sqrt
 
 import numpy as np
+from numpy import degrees
 import matplotlib.pyplot as plt
 
 from ..constants import KM
@@ -106,7 +107,7 @@ def generate_plot(soln_file, **kwargs):
     for i, settings in enumerate(param_names):
         ax = axes[i]
         ax.plot(
-            90 - (angles * 180 / pi),
+            degrees(angles),
             (
                 soln[:, i] * settings["normalisation"] -
                 settings.get("offset", 0)
@@ -114,7 +115,7 @@ def generate_plot(soln_file, **kwargs):
         )
         for extra in settings.get("extras", []):
             ax.plot(
-                90 - (angles * 180 / pi),
+                degrees(angles),
                 extra["data"] * extra["normalisation"],
                 label=extra.get("label")
             )
@@ -201,11 +202,11 @@ def generate_deriv_plot(soln_file, **kwargs):
         ax = axes[i]
         pos_deriv = derivs[:, i] >= 0
         ax.plot(
-            90 - (deriv_angles[pos_deriv] * 180 / pi),
+            degrees(deriv_angles[pos_deriv]),
             derivs[pos_deriv, i], linestyle + "b",
         )
         ax.plot(
-            90 - (deriv_angles[npnot(pos_deriv)] * 180 / pi),
+            degrees(deriv_angles[npnot(pos_deriv)]),
             - derivs[npnot(pos_deriv), i], linestyle + "g",
         )
         ax.set_xlabel("angle from plane (°)")
@@ -278,11 +279,11 @@ def generate_params_plot(soln_file, **kwargs):
         ax = axes[i]
         pos_params = params[:, i] >= 0
         ax.plot(
-            90 - (param_angles[pos_params] * 180 / pi),
+            degrees(param_angles[pos_params]),
             params[pos_params, i], linestyle,
         )
         ax.plot(
-            90 - (param_angles[npnot(pos_params)] * 180 / pi),
+            degrees(param_angles[npnot(pos_params)]),
             - params[npnot(pos_params), i], linestyle,
         )
         ax.set_xlabel("angle from plane (°)")

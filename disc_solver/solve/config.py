@@ -17,9 +17,9 @@ from ..utils import float_with_frac
 log = logbook.Logger(__name__)
 
 DEFAULT_INPUT = dict(
-    start=90,
-    stop=85,
-    taylor_stop_angle=89.99,
+    start=0,
+    stop=5,
+    taylor_stop_angle=0.01,
 
     # pick a radii, 1AU makes it easy to calculate
     radius=1,
@@ -126,7 +126,7 @@ def define_conditions(inp):
     init_con[6] = ρ_normed
     init_con[7] = B_φ_prime_normed
 
-    angles = np.linspace(inp.start, inp.stop, inp.num_angles) / 180 * pi
+    angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
 
     return namespace_container.InitialConditions(
         v_norm=v_norm, B_norm=B_norm, diff_norm=diff_norm, ρ_norm=ρ_norm,
