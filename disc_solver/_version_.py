@@ -36,9 +36,9 @@ def get_config():
     cfg = VersioneerConfig()
     cfg.VCS = "git"
     cfg.style = "pep440"
-    cfg.tag_prefix = "None"
+    cfg.tag_prefix = "v"
     cfg.parentdir_prefix = "None"
-    cfg.versionfile_source = "disc_solver/_version.py"
+    cfg.versionfile_source = "disc_solver/_version_.py"
     cfg.verbose = False
     return cfg
 

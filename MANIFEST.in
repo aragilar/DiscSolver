@@ -1,2 +1,1 @@
-include versioneer.py
-include disc_solver/_version.py
+include versioneer.py disc_solver/_version_.py
