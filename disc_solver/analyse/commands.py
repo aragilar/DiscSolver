@@ -28,6 +28,15 @@ def info(soln_file, args):
     """
     Output info about the solution
     """
+    print("run properties:")
+    print("label: {}".format(soln_file.config_label))
+    print("config filename: {}".format(soln_file.config_filename))
+    print("file version: {}".format(soln_file.version))
+    print("generator version: {}".format(soln_file.generator_version))
+
+    for prop, val in vars(soln_file.solution_properties).items():
+        print("{}: {!s}".format(prop, val))
+
     inp = soln_file.config_input
     if args.get("input"):
         print("input settings:")

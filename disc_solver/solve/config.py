@@ -11,9 +11,10 @@ import logbook
 import numpy as np
 
 from ..constants import G, AU, M_SUN, KM
-from ..hdf5_wrapper import NEWEST_CLASS as namespace_container
+from ..hdf5_wrapper import NEWEST_CLASS
 from ..utils import float_with_frac
 
+namespace_container = NEWEST_CLASS.named_tuples
 log = logbook.Logger(__name__)
 
 DEFAULT_INPUT = dict(
@@ -128,7 +129,7 @@ def define_conditions(inp):
 
     angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
 
-    return namespace_container.InitialConditions(
+    return namespace_container.initial_conditions(
         v_norm=v_norm, B_norm=B_norm, diff_norm=diff_norm, ρ_norm=ρ_norm,
         norm_kepler_sq=norm_kepler_sq, c_s=c_s, η_O=η_O, η_A=η_A, η_H=η_H,
         init_con=init_con, angles=angles,
@@ -154,7 +155,7 @@ def parse_config(section_name, section):
     """
     Get the values from the config file for the run
     """
-    inp = namespace_container.ConfigInput(
+    inp = namespace_container.config_input(
         label=section_name,
         start=float(section.get("start")),
         stop=float(section.get("stop")),

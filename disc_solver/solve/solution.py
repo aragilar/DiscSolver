@@ -16,10 +16,11 @@ from .deriv_funcs import (
     dderiv_B_φ_soln, taylor_series,
 )
 
-from ..hdf5_wrapper import NEWEST_CLASS as namespace_container
+from ..hdf5_wrapper import NEWEST_CLASS
 
 INTEGRATOR = "cvode"
 COORDS = "spherical midplane 0"
+namespace_container = NEWEST_CLASS.named_tuples
 
 log = logbook.Logger(__name__)
 
@@ -35,7 +36,7 @@ def ode_system(
         β, c_s, η_O, η_A, η_H, init_con
     )
 
-    internal_data = namespace_container.InternalData(
+    internal_data = namespace_container.internal_data(
         derivs=[], params=[], angles=[], v_r_normal=[], v_φ_normal=[],
         ρ_normal=[], v_r_taylor=[], v_φ_taylor=[], ρ_taylor=[],
     )
@@ -204,7 +205,7 @@ def solution(
         soln = e.soln
     return (
         soln.values.t, soln.values.y, internal_data,
-        namespace_container.SolutionProperties(
+        namespace_container.solution_properties(
             flag=soln.flag,
             coordinate_system=COORDS,
         )
