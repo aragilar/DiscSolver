@@ -113,6 +113,9 @@ def ode_system(
         deriv_v_r = (
             deriv_v_r_taylor if θ < taylor_stop_angle else deriv_v_r_normal
         )
+        if __debug__:
+            if central_mass < (v_θ * deriv_v_r_normal + central_mass):
+                log.info("not grav dominant at {}".format(degrees(θ)))
 
         deriv_v_φ_taylor = θ * dderiv_v_φM
         deriv_v_φ_normal = (
@@ -161,8 +164,8 @@ def ode_system(
         derivs[5] = deriv_v_θ
         derivs[6] = deriv_ρ
         derivs[7] = dderiv_B_φ
-
-        log.debug("θ: {}, {}", θ, degrees(θ))
+        if __debug__:
+            log.debug("θ: {}, {}", θ, degrees(θ))
 
         derivs_list.append(np.copy(derivs))
         angles_list.append(θ)
@@ -201,8 +204,12 @@ def solution(
     try:
         soln = solver.solve(angles, initial_conditions)
     except sundials.CVODESolveFailed as e:
-        log.error(e)
         soln = e.soln
+        log.error(
+            "Solver stopped at {} with flag {!s}.\n{}".format(
+                degrees(soln.errors.t), soln.flag, soln.message
+            )
+        )
     return (
         soln.values.t, soln.values.y, internal_data,
         namespace_container.solution_properties(
