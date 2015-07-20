@@ -10,7 +10,7 @@ import logbook
 
 import numpy as np
 
-from ..constants import G, AU, M_SUN, KM
+from ..constants import G, AU, M_SUN
 from ..hdf5_wrapper import NEWEST_CLASS
 from ..utils import float_with_frac
 
@@ -26,23 +26,21 @@ DEFAULT_INPUT = dict(
     radius=1,
     central_mass=1,
 
+    # from BP82
     β=5/4,
-
-    v_rin_on_v_k=0.1,
-    scale_height_vs_radius=0.01,
 
     # B_θ is the equipartition field
     B_θ=18,  # G
+    # ρ computed from Wardle 2007
+    ρ=1.5e-9,  # g/cm^3
+
+    v_rin_on_c_s=1,
 
     # from wardle 2007 for 1 AU
     # assume B ~ 1 G
     η_O=5e15,  # cm^2/s
     η_H=5e16,  # cm^2/s
     η_A=1e14,  # cm^2/s
-
-    c_s=0.99,  # actually in cm/s for conversions
-    # ρ computed from Wardle 2007
-    ρ=1.5e-9,  # g/cm^3
 
     max_steps=10000,
     num_angles=10000,
@@ -68,19 +66,9 @@ def define_conditions(inp):
     Compute initial conditions based on input
     """
     keplerian_velocity = sqrt(G * inp.central_mass / inp.radius)  # cm/s
+    c_s = sqrt(inp.B_θ**2 / (8 * pi * inp.ρ))
 
-    v_norm = inp.c_s
-    B_norm = inp.B_θ
-    diff_norm = v_norm * inp.radius * inp.scale_height_vs_radius
-    ρ_norm = B_norm**2 / (4 * pi * v_norm**2)
-
-    norm_kepler_sq = keplerian_velocity**2 / v_norm**2
-    c_s = inp.c_s / v_norm
-    η_O = inp.η_O / diff_norm
-    η_A = inp.η_A / diff_norm
-    η_H = inp.η_H / diff_norm
-
-    v_r = - inp.v_rin_on_v_k * keplerian_velocity
+    v_r = - inp.v_rin_on_c_s * c_s
     if v_r > 0:
         log.error("v_r > 0, v_r = {}".format(v_r))
         exit(1)
@@ -89,10 +77,22 @@ def define_conditions(inp):
     B_r = 0  # symmetry across disc
     B_φ = 0  # symmetry across disc
 
-    # norm for use in v_φ
+    # Define normalisations
+    v_norm = c_s
+    B_norm = inp.B_θ
+    diff_norm = v_norm * inp.radius
+    ρ_norm = B_norm**2 / v_norm**2
+
+    # Norm for use in v_φ
     v_r_normed = v_r / v_norm
     B_θ_normed = inp.B_θ / B_norm
     ρ_normed = inp.ρ / ρ_norm
+
+    norm_kepler_sq = keplerian_velocity**2 / v_norm**2
+    c_s = c_s / v_norm
+    η_O = inp.η_O / diff_norm
+    η_A = inp.η_A / diff_norm
+    η_H = inp.η_H / diff_norm
 
     # solution for A * v_φ**2 + B * v_φ + C = 0
     A_v_φ = 1
@@ -163,15 +163,13 @@ def parse_config(section_name, section):
         stop=float(section.get("stop")),
         taylor_stop_angle=float(section.get("taylor_stop_angle")),
         radius=float(section.get("radius")) * AU,
-        scale_height_vs_radius=float(section.get("scale_height_vs_radius")),
         central_mass=float(section.get("central_mass")) * M_SUN,
         β=float_with_frac(section.get("β")),
-        v_rin_on_v_k=float(section.get("v_rin_on_v_k")),
+        v_rin_on_c_s=float(section.get("v_rin_on_c_s")),
         B_θ=float(section.get("B_θ")),
         η_O=float(section.get("η_O")),
         η_H=float(section.get("η_H")),
         η_A=float(section.get("η_A")),
-        c_s=float(section.get("c_s")) * KM,
         ρ=float(section.get("ρ")),
         max_steps=int(section.get("max_steps")),
         num_angles=int(section.get("num_angles")),

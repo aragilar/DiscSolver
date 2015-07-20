@@ -38,19 +38,21 @@ def info(soln_file, args):
         print("{}: {!s}".format(prop, val))
 
     inp = soln_file.config_input
+    init_con = soln_file.initial_conditions
+    c_s = init_con.c_s * init_con.v_norm
     if args.get("input"):
         print("input settings:")
         for name, value in vars(inp).items():
             print(INPUT_FORMAT.format(name, value))
     if args.get("initial_conditions"):
         print("initial conditions:")
-        for name, value in vars(soln_file.initial_conditions).items():
+        for name, value in vars(init_con).items():
             print(INIT_FORMAT.format(name, value))
     print("other info: ")
     if args.get("sound_ratio"):
         print(OTHER_FORMAT.format(
             "v_a/c_s at midplane",
-            sqrt(inp.B_θ**2 / (4*pi*inp.ρ)) / inp.c_s
+            sqrt(inp.B_θ**2 / (4*pi*inp.ρ)) / c_s
         ))
     if args.get("sonic_points"):
         soln = soln_file.solution
@@ -58,13 +60,13 @@ def info(soln_file, args):
         zero_soln = np.zeros(len(soln))
         v = np.array([zero_soln, zero_soln, soln[:, 5]])
         slow_index = find_in_array(is_supersonic(
-            v.T, soln[:, 0:3], soln[:, 6], inp.c_s, "slow"
+            v.T, soln[:, 0:3], soln[:, 6], c_s, "slow"
         ), True)
         alfven_index = find_in_array(is_supersonic(
-            v.T, soln[:, 0:3], soln[:, 6], inp.c_s, "alfven"
+            v.T, soln[:, 0:3], soln[:, 6], c_s, "alfven"
         ), True)
         fast_index = find_in_array(is_supersonic(
-            v.T, soln[:, 0:3], soln[:, 6], inp.c_s, "fast"
+            v.T, soln[:, 0:3], soln[:, 6], c_s, "fast"
         ), True)
         print(OTHER_FORMAT.format(
             "slow sonic point",

@@ -26,7 +26,7 @@ def generate_plot(soln_file, **kwargs):
     zero_soln = np.zeros(len(soln))
     v = np.array([zero_soln, zero_soln, soln[:, 5]])
     wave_speeds = np.sqrt(mhd_wave_speeds(
-        v.T, soln[:, 0:3], soln[:, 6], inp.c_s
+        v.T, soln[:, 0:3], soln[:, 6], cons.c_s * v_norm
     ))
     linestyle = kwargs.pop("line style")
     with_slow = kwargs.pop("with slow")
