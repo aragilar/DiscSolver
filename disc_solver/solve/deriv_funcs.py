@@ -74,11 +74,11 @@ def dderiv_B_φ_soln(
         )
     ) ** -1 * (
         deriv_B_r * (
-            η_A * norm_B_θ * norm_B_φ - v_θ * (
+            η_H * norm_B_r - v_θ * (
                 η_H * norm_B_θ + η_A * norm_B_r * norm_B_φ
             ) / (
                 η_O + η_A * (1-norm_B_φ**2)
-            ) - η_H * norm_B_r
+            ) - η_A * norm_B_θ * norm_B_φ
         ) + B_r * (
             v_φ - deriv_v_θ * (
                 η_H * norm_B_θ + η_A * norm_B_r * norm_B_φ
@@ -173,11 +173,11 @@ def dderiv_v_r_midplane(
             v_r**2 * (4 * β - 5)**2
         ) / 2 + 1 / (4 * pi * ρ) * (
             dderiv_B_θ * deriv_B_r +
-            B_θ * Y3 - (
+            B_θ * Y3 + (
                 Y2 * η_H * B_θ
             ) / (
                 η_O + η_A
-            ) + (
+            ) - (
                 2 * η_H * B_θ**2 * Y5 * Y4
             ) / (
                 (2 * β - 1) * (
@@ -215,14 +215,19 @@ def Y2_func(
     return 1 / (η_O + η_A + (η_H**2) / (η_A + η_O)) * (
         dderiv_B_θ * ((η_H * v_r) / (η_O + η_A) - (2 * v_φ) / (2*β - 1)) +
         deriv_B_φ * (
-            η_O * (3 - β) + η_A * (2 - β) + (2 * v_r * (4*β - 5)) / (2*β - 1)
+            η_O * (3 - β) + η_A * (2 - β) - v_r + (2 * v_r * (4*β - 5)) /
+            (2*β - 1)
         ) + deriv_B_r * (
             v_φ - η_H * (1 - β + (v_r * (4*β - 5)) / (η_O + η_A))
         ) + (
-            2 * deriv_B_φ * deriv_B_r * η_A
-        ) / (B_θ) * (1 + (v_r) / (η_O + η_A)) + (
+            2 * deriv_B_φ * deriv_B_r * η_A * v_r
+        ) / (B_θ * (η_O + η_A)) + (
             η_H * deriv_B_φ**2
-        ) / (B_θ) * (1 - (v_r) / (η_O + η_A) * (1 + (η_A) / (η_O + η_A)))
+        ) / (B_θ) * (1 - (v_r) / (η_O + η_A) * (1 + (η_A) / (η_O + η_A))) + (
+            deriv_B_r**2 * η_H
+        ) / (B_θ**2) * (
+            1 - 2 * η_A / (η_O + η_A)
+        )
     )
 
 
@@ -230,7 +235,7 @@ def Y3_func(B_θ, v_r, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, η_O, η_A, η_H)
     """
     Compute Y3
     """
-    return 1 / (η_A + η_O) * (
+    return - 1 / (η_A + η_O) * (
         v_r * (
             dderiv_B_θ - (4 * β - 5) * deriv_B_r
         ) + (
@@ -251,7 +256,7 @@ def Y3_func(B_θ, v_r, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, η_O, η_A, η_H)
                 1 - (2 * η_A) / (η_O + η_A)
             )
         )
-    )
+    ) - B_θ * (β - 1)
 
 
 def Y4_func(ρ, B_θ, v_r, v_φ, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, Y2, Y1):
@@ -299,7 +304,7 @@ def Y6_func(ρ, B_θ, v_r, v_φ, β, η_O, η_A, η_H, Y5):
                     )
                 ) - v_φ
             ) * (
-                v_φ + (
+                v_φ - (
                     η_H * B_θ**2
                 ) / (
                     4 * pi * ρ * (2 * β - 1) * (
@@ -307,7 +312,7 @@ def Y6_func(ρ, B_θ, v_r, v_φ, β, η_O, η_A, η_H, Y5):
                     )
                 )
             ) + (B_θ**2) / (4 * pi * ρ) * (
-                1 / (η_O + η_A) +
+                1 / (η_O + η_A) -
                 η_H / (
                     (η_O + η_A)**2 + η_H**2
                 )

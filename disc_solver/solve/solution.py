@@ -77,7 +77,7 @@ def ode_system(
         )
 
         deriv_B_φ = B_φ_prime
-        deriv_B_r = - (
+        deriv_B_r = (
             B_θ * (1 - β) +
             (
                 v_θ * B_r - v_r * B_θ + deriv_B_φ * (

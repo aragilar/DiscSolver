@@ -120,7 +120,7 @@ class ODE_Test(unittest.TestCase):
         eqn = (
             self.v_θ * self.B_r -
             self.v_r * self.B_θ + (
-                self.B_θ * (1 - self.β) + self.deriv_B_r
+                self.B_θ * (1 - self.β) - self.deriv_B_r
             ) * (
                 self.η_O + self.η_A * (1 - self.norm_B_φ**2)
             ) + self.deriv_B_φ * (

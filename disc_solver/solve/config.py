@@ -96,22 +96,24 @@ def define_conditions(inp):
 
     # solution for A * v_φ**2 + B * v_φ + C = 0
     A_v_φ = 1
-    B_v_φ = - (v_r_normed * η_H) / (2 * (η_O + η_A))
+    B_v_φ = (v_r_normed * η_H) / (2 * (η_O + η_A))
     C_v_φ = (
         v_r_normed**2 / 2 + 2 * inp.β * c_s**2 -
-        norm_kepler_sq + B_θ_normed**2 * (
-            2 * (inp.β - 1) - v_r_normed / (η_O + η_A)
+        norm_kepler_sq - B_θ_normed**2 * (
+            v_r_normed / (η_O + η_A)
         ) / (4 * pi * ρ_normed)
     )
     log.debug("A_v_φ: {}".format(A_v_φ))
     log.debug("B_v_φ: {}".format(B_v_φ))
     log.debug("C_v_φ: {}".format(C_v_φ))
 
-    v_φ_normed = - 1/2 * (B_v_φ - sqrt(B_v_φ**2 - 4 * A_v_φ * C_v_φ))
+    v_φ_normed = - 1 / (2 * A_v_φ) * (
+        B_v_φ - sqrt(B_v_φ**2 - 4 * A_v_φ * C_v_φ)
+    )
 
     B_φ_prime_normed = (
-        v_φ_normed * v_r_normed * 4 * pi * ρ_normed
-    ) / (2 * B_θ_normed)
+        v_φ_normed * v_r_normed * 2 * pi * ρ_normed
+    ) / B_θ_normed
 
     log.info("v_φ: {}".format(v_φ_normed * v_norm))
     log.info("B_φ_prime: {}".format(B_φ_prime_normed * B_norm))
