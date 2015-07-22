@@ -106,8 +106,8 @@ class ODE_Test(unittest.TestCase):
 
     def test_polar_momentum(self):
         eqn = (self.v_r * self.v_θ / 2 + self.v_θ * self.deriv_v_θ +
-            tan(self.angle) ** self.v_φ ** 2 + 
-            self.c_s **2 * self.deriv_ρ / self.ρ +
+            tan(self.angle) * self.v_φ ** 2 +
+            self.c_s ** 2 * self.deriv_ρ / self.ρ +
             1 / (4 * pi * self.ρ) * (
                 (self.β - 1) * self.B_θ * self.B_r +
                 self.B_r * self.deriv_B_r + self.B_φ * self.deriv_B_φ -

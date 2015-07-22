@@ -133,14 +133,15 @@ def ode_system(
         )
 
         deriv_v_θ = (
-            2 * (β-1) * v_r * c_s**2 / (c_s**2 - v_θ**2) - v_r / 2 +
-            v_θ / (c_s**2 - v_θ**2) * (
+            v_r * (
+                v_θ**2 / 2 + c_s**2 * (2 * β - 5/2)
+            ) + v_θ * (
                 tan(θ) * (v_φ**2 + c_s**2) + (
                     (β-1) * B_θ * B_r + B_r * deriv_B_r + B_φ * B_φ_prime -
                     B_φ**2 * tan(θ)
                 ) / (4*pi * ρ)
             )
-        )
+        ) / ((c_s - v_θ) * (c_s + v_θ))
 
         deriv_ρ_taylor = θ * dderiv_ρ_M
         deriv_ρ_normal = - ρ * (
