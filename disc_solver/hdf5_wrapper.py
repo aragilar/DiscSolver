@@ -141,6 +141,62 @@ class SolutionFileV2(SolutionFileBase, version=2):
     }
 
 
+class SolutionFileV3(SolutionFileBase, version=3):
+    """
+    Version 3 of SolutionFile
+    """
+    angles = np.ndarray
+    solution = np.ndarray
+    config_filename = str
+    config_label = str
+    time = str
+
+    solution_properties = {
+        "flag": int,
+        "coordinate_system": str,
+    }
+
+    initial_conditions = {
+        "norm_kepler_sq": float,
+        "c_s": float,
+        "η_O": float,
+        "η_A": float,
+        "η_H": float,
+        "β": float,
+        "init_con": np.ndarray,
+        "angles": np.ndarray,
+    }
+
+    config_input = {
+        "start": float,
+        "stop": float,
+        "taylor_stop_angle": float,
+        "max_steps": float,
+        "num_angles": float,
+        "label": str,
+        "relative_tolerance": float,
+        "absolute_tolerance": float,
+        "β": float,
+        "v_rin_on_c_s": float,
+        "v_a_on_c_s": float,
+        "c_s_on_v_k": float,
+        "η_O": float,
+        "η_H": float,
+        "η_A": float,
+    }
+
+    internal_data = {
+        "derivs": np.ndarray,
+        "params": np.ndarray,
+        "angles": np.ndarray,
+        "v_r_normal": np.ndarray,
+        "v_φ_normal": np.ndarray,
+        "ρ_normal": np.ndarray,
+        "v_r_taylor": np.ndarray,
+        "v_φ_taylor": np.ndarray,
+        "ρ_taylor": np.ndarray,
+    }
+
 soln_open = SolutionFileBase.open
 NEWEST_CLASS = SolutionFileBase.newest()
 OLDEST_CLASS = SolutionFileBase.oldest()

@@ -3,12 +3,13 @@
 Useful functions
 """
 
-from math import pi, cos, sin
+from math import pi, cos, sin, sqrt
 from fractions import Fraction
 
 import numpy as np
 from matplotlib.ticker import FuncFormatter
 
+from .constants import G, AU, M_SUN
 
 MHD_WAVE_INDEX = {"slow": 0, "alfven": 1, "fast": 2}
 
@@ -116,3 +117,18 @@ def cli_to_var(cmd):
     Convert cli style argument to valid python name
     """
     return cmd.replace("-", "_")
+
+
+def get_normalisation(inp, radius=AU, mass=M_SUN, density=1.5e-9):
+    """
+    Get normalisation based on location and density
+    """
+    kepler_sq = G * mass / radius
+    c_s = inp.c_s_on_v_k * sqrt(kepler_sq)
+    v_a = inp.v_a_on_c_s * c_s
+    return {
+        "v_norm": c_s,
+        "B_norm": v_a * 2 * sqrt(pi * density),
+        "ρ_norm": density,
+        "η_norm": radius * c_s,
+    }

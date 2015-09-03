@@ -10,7 +10,9 @@ from numpy import degrees
 import matplotlib.pyplot as plt
 
 from ..constants import KM
-from ..utils import better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX
+from ..utils import (
+    better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX, get_normalisation
+)
 
 
 def generate_plot(soln_file, **kwargs):
@@ -22,7 +24,8 @@ def generate_plot(soln_file, **kwargs):
     cons = soln_file.initial_conditions
     inp = soln_file.config_input
 
-    B_norm, v_norm, ρ_norm = cons.B_norm, cons.v_norm, cons.ρ_norm
+    norms = get_normalisation(inp)  # need to allow config here
+    B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
     zero_soln = np.zeros(len(soln))
     v = np.array([zero_soln, zero_soln, soln[:, 5]])
     wave_speeds = np.sqrt(mhd_wave_speeds(

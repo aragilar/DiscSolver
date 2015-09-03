@@ -10,41 +10,11 @@ import logbook
 
 import numpy as np
 
-from ..constants import G, AU, M_SUN
 from ..hdf5_wrapper import NEWEST_CLASS
 from ..utils import float_with_frac
 
 namespace_container = NEWEST_CLASS.named_tuples
 log = logbook.Logger(__name__)
-
-DEFAULT_INPUT = dict(
-    start=0,
-    stop=5,
-    taylor_stop_angle=0.01,
-
-    # pick a radii, 1AU makes it easy to calculate
-    radius=1,
-    central_mass=1,
-
-    # from BP82
-    β=5/4,
-
-    # B_θ is the equipartition field
-    B_θ=18,  # G
-    # ρ computed from Wardle 2007
-    ρ=1.5e-9,  # g/cm^3
-
-    v_rin_on_c_s=1,
-
-    # from wardle 2007 for 1 AU
-    # assume B ~ 1 G
-    η_O=5e15,  # cm^2/s
-    η_H=5e16,  # cm^2/s
-    η_A=1e14,  # cm^2/s
-
-    max_steps=10000,
-    num_angles=10000,
-)
 
 
 class CaseDependentConfigParser(configparser.ConfigParser):
@@ -65,76 +35,58 @@ def define_conditions(inp):
     """
     Compute initial conditions based on input
     """
-    keplerian_velocity = sqrt(G * inp.central_mass / inp.radius)  # cm/s
-    c_s = sqrt(inp.B_θ**2 / (8 * pi * inp.ρ))
-
-    v_r = - inp.v_rin_on_c_s * c_s
-    if v_r > 0:
-        log.error("v_r > 0, v_r = {}".format(v_r))
-        exit(1)
+    ρ = 1  # ρ is always normalised by itself
+    c_s = 1  # velocities normalised by c_s, so c_s = 1
 
     v_θ = 0  # symmetry across disc
     B_r = 0  # symmetry across disc
     B_φ = 0  # symmetry across disc
 
-    # Define normalisations
-    v_norm = c_s
-    B_norm = inp.B_θ
-    diff_norm = v_norm * inp.radius
-    ρ_norm = B_norm**2 / v_norm**2
+    v_r = - inp.v_rin_on_c_s  # velocities normalised by c_s
+    B_θ = inp.v_a_on_c_s
 
-    # Norm for use in v_φ
-    v_r_normed = v_r / v_norm
-    B_θ_normed = inp.B_θ / B_norm
-    ρ_normed = inp.ρ / ρ_norm
-
-    norm_kepler_sq = keplerian_velocity**2 / v_norm**2
-    c_s = c_s / v_norm
-    η_O = inp.η_O / diff_norm
-    η_A = inp.η_A / diff_norm
-    η_H = inp.η_H / diff_norm
+    norm_kepler_sq = 1 / inp.c_s_on_v_k ** 2
+    η_O = inp.η_O
+    η_A = inp.η_A
+    η_H = inp.η_H
 
     # solution for A * v_φ**2 + B * v_φ + C = 0
     A_v_φ = 1
-    B_v_φ = (v_r_normed * η_H) / (2 * (η_O + η_A))
+    B_v_φ = (v_r * η_H) / (2 * (η_O + η_A))
     C_v_φ = (
-        v_r_normed**2 / 2 + 2 * inp.β * c_s**2 -
-        norm_kepler_sq - B_θ_normed**2 * (
-            v_r_normed / (η_O + η_A)
-        ) / (4 * pi * ρ_normed)
+        v_r**2 / 2 + 2 * inp.β * c_s**2 -
+        norm_kepler_sq - B_θ**2 * (
+            v_r / (η_O + η_A)
+        ) / (4 * pi * ρ)
     )
     log.debug("A_v_φ: {}".format(A_v_φ))
     log.debug("B_v_φ: {}".format(B_v_φ))
     log.debug("C_v_φ: {}".format(C_v_φ))
 
-    v_φ_normed = - 1 / (2 * A_v_φ) * (
+    v_φ = - 1 / (2 * A_v_φ) * (
         B_v_φ - sqrt(B_v_φ**2 - 4 * A_v_φ * C_v_φ)
     )
 
-    B_φ_prime_normed = (
-        v_φ_normed * v_r_normed * 2 * pi * ρ_normed
-    ) / B_θ_normed
-
-    log.info("v_φ: {}".format(v_φ_normed * v_norm))
-    log.info("B_φ_prime: {}".format(B_φ_prime_normed * B_norm))
+    B_φ_prime = (
+        v_φ * v_r * 2 * pi * ρ
+    ) / B_θ
 
     init_con = np.zeros(8)
 
     init_con[0] = B_r
     init_con[1] = B_φ
-    init_con[2] = B_θ_normed
-    init_con[3] = v_r_normed
-    init_con[4] = v_φ_normed
+    init_con[2] = B_θ
+    init_con[3] = v_r
+    init_con[4] = v_φ
     init_con[5] = v_θ
-    init_con[6] = ρ_normed
-    init_con[7] = B_φ_prime_normed
+    init_con[6] = ρ
+    init_con[7] = B_φ_prime
 
     angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
 
     return namespace_container.initial_conditions(
-        v_norm=v_norm, B_norm=B_norm, diff_norm=diff_norm, ρ_norm=ρ_norm,
         norm_kepler_sq=norm_kepler_sq, c_s=c_s, η_O=η_O, η_A=η_A, η_H=η_H,
-        init_con=init_con, angles=angles,
+        init_con=init_con, angles=angles, β=inp.β
     )
 
 
@@ -142,36 +94,30 @@ def get_input(conffile=None):
     """
     Get input values
     """
-    config = CaseDependentConfigParser(defaults=strdict(DEFAULT_INPUT))
+    config = CaseDependentConfigParser()
     if conffile:
         config.read_file(open(conffile))
-    if config.sections():
-        return [
-            parse_config(section, config[section])
-            for section in config.sections()
-        ]
-    return [parse_config("default", config.defaults())]
 
-
-def parse_config(section_name, section):
-    """
-    Get the values from the config file for the run
-    """
-    inp = namespace_container.config_input(
-        label=section_name,
-        start=float(section.get("start")),
-        stop=float(section.get("stop")),
-        taylor_stop_angle=float(section.get("taylor_stop_angle")),
-        radius=float(section.get("radius")) * AU,
-        central_mass=float(section.get("central_mass")) * M_SUN,
-        β=float_with_frac(section.get("β")),
-        v_rin_on_c_s=float(section.get("v_rin_on_c_s")),
-        B_θ=float(section.get("B_θ")),
-        η_O=float(section.get("η_O")),
-        η_H=float(section.get("η_H")),
-        η_A=float(section.get("η_A")),
-        ρ=float(section.get("ρ")),
-        max_steps=int(section.get("max_steps")),
-        num_angles=int(section.get("num_angles")),
+    return namespace_container.config_input(
+        start=float(config.get("config", "start", fallback=0)),
+        stop=float(config.get("config", "stop", fallback=5)),
+        taylor_stop_angle=float(config.get(
+            "config", "taylor_stop_angle", fallback=0.001
+        )),
+        max_steps=int(config.get("config", "max_steps", fallback=10000)),
+        num_angles=int(config.get("config", "num_angles", fallback=10000)),
+        label=config.get("config", "label", fallback="default"),
+        relative_tolerance=float(config.get(
+            "config", "relative_tolerance", fallback=1e-6
+        )),
+        absolute_tolerance=float(config.get(
+            "config", "absolute_tolerance", fallback=1e-10
+        )),
+        β=float_with_frac(config.get("initial", "β", fallback=5/4)),
+        v_rin_on_c_s=float(config.get("initial", "v_rin_on_c_s", fallback=1)),
+        v_a_on_c_s=float(config.get("initial", "v_a_on_c_s", fallback=1)),
+        c_s_on_v_k=float(config.get("initial", "c_s_on_v_k", fallback=0.03)),
+        η_O=float(config.get("initial", "η_O", fallback=0.1)),
+        η_H=float(config.get("initial", "η_H", fallback=0.5)),
+        η_A=float(config.get("initial", "η_A", fallback=0.05)),
     )
-    return inp

@@ -3,8 +3,6 @@
 Analysis commands
 """
 
-from math import pi, sqrt
-
 import numpy as np
 from numpy import degrees
 
@@ -17,7 +15,7 @@ from .plot_functions import (
     generate_plot, get_plot_args, generate_deriv_plot, get_deriv_plot_args,
     generate_params_plot, get_params_plot_args,
 )
-from ..utils import is_supersonic, find_in_array
+from ..utils import is_supersonic, find_in_array, get_normalisation
 
 INPUT_FORMAT = " {: <20}: {}"
 INIT_FORMAT = " {: <20}: {}"
@@ -39,7 +37,8 @@ def info(soln_file, args):
 
     inp = soln_file.config_input
     init_con = soln_file.initial_conditions
-    c_s = init_con.c_s * init_con.v_norm
+    v_norm = get_normalisation(inp)["v_norm"]  # need to fix config here
+    c_s = init_con.c_s * v_norm
     if args.get("input"):
         print("input settings:")
         for name, value in vars(inp).items():
@@ -49,11 +48,6 @@ def info(soln_file, args):
         for name, value in vars(init_con).items():
             print(INIT_FORMAT.format(name, value))
     print("other info: ")
-    if args.get("sound_ratio"):
-        print(OTHER_FORMAT.format(
-            "v_a/c_s at midplane",
-            sqrt(inp.B_θ**2 / (4*pi*inp.ρ)) / c_s
-        ))
     if args.get("sonic_points"):
         soln = soln_file.solution
         angles = soln_file.angles
