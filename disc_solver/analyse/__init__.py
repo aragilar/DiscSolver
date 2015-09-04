@@ -7,12 +7,14 @@ import argparse
 
 from logbook.compat import redirected_warnings, redirected_logging
 
+import h5py
+
 from . import commands
 from .plot_functions import (
     plot_options, deriv_plot_options, params_plot_options
 )
 
-from ..hdf5_wrapper import soln_open
+from ..file_format import wrap_hdf5_file
 from ..logging import logging_options, log_handler
 from ..utils import cli_to_var
 
@@ -27,10 +29,11 @@ def analyse_main(output_file=None, **kwargs):
         kwargs["quiet"] = True
 
     with log_handler(kwargs), redirected_warnings(), redirected_logging():
-        with soln_open(output_file) as f:
+        with h5py.File(output_file) as f:
+            soln_file = wrap_hdf5_file(f)
             command = getattr(commands, cli_to_var(kwargs["command"]))
             if command:
-                command(f, kwargs)
+                command(soln_file, kwargs)
             else:
                 raise NotImplementedError(kwargs["command"])
 

@@ -27,16 +27,18 @@ def info(soln_file, args):
     Output info about the solution
     """
     print("run properties:")
-    print("label: {}".format(soln_file.config_label))
-    print("config filename: {}".format(soln_file.config_filename))
-    print("file version: {}".format(soln_file.version))
-    print("generator version: {}".format(soln_file.generator_version))
+    print("label: {}".format(soln_file.root.config_label))
+    print("config filename: {}".format(soln_file.root.config_filename))
+    print("file version: {}".format(soln_file.file.attrs["version"]))
+    print("generator version: {}".format(
+        soln_file.file.attrs["generator_version"]
+    ))
 
-    for prop, val in vars(soln_file.solution_properties).items():
+    for prop, val in vars(soln_file.root.solution_properties).items():
         print("{}: {!s}".format(prop, val))
 
-    inp = soln_file.config_input
-    init_con = soln_file.initial_conditions
+    inp = soln_file.root.config_input
+    init_con = soln_file.root.initial_conditions
     v_norm = get_normalisation(inp)["v_norm"]  # need to fix config here
     c_s = init_con.c_s * v_norm
     if args.get("input"):
@@ -49,8 +51,8 @@ def info(soln_file, args):
             print(INIT_FORMAT.format(name, value))
     print("other info: ")
     if args.get("sonic_points"):
-        soln = soln_file.solution
-        angles = soln_file.angles
+        soln = soln_file.root.solution
+        angles = soln_file.root.angles
         zero_soln = np.zeros(len(soln))
         v = np.array([zero_soln, zero_soln, soln[:, 5]])
         slow_index = find_in_array(is_supersonic(
@@ -107,14 +109,14 @@ def check_taylor(soln_file, args):
     """
     Compare derivatives from taylor series to full version
     """
-    v_r_normal = soln_file.internal_data.v_r_normal
-    v_φ_normal = soln_file.internal_data.v_φ_normal
-    ρ_normal = soln_file.internal_data.ρ_normal
-    v_r_taylor = soln_file.internal_data.v_r_taylor
-    v_φ_taylor = soln_file.internal_data.v_φ_taylor
-    ρ_taylor = soln_file.internal_data.ρ_taylor
+    v_r_normal = soln_file.root.internal_data.v_r_normal
+    v_φ_normal = soln_file.root.internal_data.v_φ_normal
+    ρ_normal = soln_file.root.internal_data.ρ_normal
+    v_r_taylor = soln_file.root.internal_data.v_r_taylor
+    v_φ_taylor = soln_file.root.internal_data.v_φ_taylor
+    ρ_taylor = soln_file.root.internal_data.ρ_taylor
 
-    deriv_angles = soln_file.internal_data.angles
+    deriv_angles = soln_file.root.internal_data.angles
     # pylint: disable=unused-variable
     fig, axes = plt.subplots(ncols=3, tight_layout=True)
     if args.get("show_values", False):

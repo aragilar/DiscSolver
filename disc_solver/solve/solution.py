@@ -16,11 +16,10 @@ from .deriv_funcs import (
     dderiv_B_φ_soln, taylor_series,
 )
 
-from ..hdf5_wrapper import NEWEST_CLASS
+from ..file_format import LATEST_NAMESPACE as namespace
 
 INTEGRATOR = "cvode"
 COORDS = "spherical midplane 0"
-namespace_container = NEWEST_CLASS.named_tuples
 
 log = logbook.Logger(__name__)
 
@@ -36,7 +35,7 @@ def ode_system(
         β, c_s, η_O, η_A, η_H, init_con
     )
 
-    internal_data = namespace_container.internal_data(
+    internal_data = namespace.internal_data(  # pylint: disable=no-member
         derivs=[], params=[], angles=[], v_r_normal=[], v_φ_normal=[],
         ρ_normal=[], v_r_taylor=[], v_φ_taylor=[], ρ_taylor=[],
     )
@@ -213,7 +212,7 @@ def solution(
         )
     return (
         soln.values.t, soln.values.y, internal_data,
-        namespace_container.solution_properties(
+        namespace.solution_properties(  # pylint: disable=no-member
             flag=soln.flag,
             coordinate_system=COORDS,
         )

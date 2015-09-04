@@ -9,14 +9,15 @@ import versioneer
 setuptools.setup(
     name="disc_solver",
     version=versioneer.get_version(),
-    packages = ["disc_solver", "disc_solver.analyse", "disc_solver.solve"],
+    packages = setuptools.find_packages(),
     install_requires = [
         "numpy",
         "matplotlib",
         "scikits.odes",
         "logbook",
         "arrow",
-        "hdf5_wrapper",
+        "h5py",
+        "h5schemaesqe",
     ],
     author = "James Tocknell",
     author_email = "aragilar@gmail.com",

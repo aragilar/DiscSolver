@@ -10,10 +10,9 @@ import logbook
 
 import numpy as np
 
-from ..hdf5_wrapper import NEWEST_CLASS
+from ..file_format import LATEST_NAMESPACE as namespace
 from ..utils import float_with_frac
 
-namespace_container = NEWEST_CLASS.named_tuples
 log = logbook.Logger(__name__)
 
 
@@ -84,7 +83,7 @@ def define_conditions(inp):
 
     angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
 
-    return namespace_container.initial_conditions(
+    return namespace.initial_conditions(  # pylint: disable=no-member
         norm_kepler_sq=norm_kepler_sq, c_s=c_s, η_O=η_O, η_A=η_A, η_H=η_H,
         init_con=init_con, angles=angles, β=inp.β
     )
@@ -98,7 +97,7 @@ def get_input(conffile=None):
     if conffile:
         config.read_file(open(conffile))
 
-    return namespace_container.config_input(
+    return namespace.config_input(  # pylint: disable=no-member
         start=float(config.get("config", "start", fallback=0)),
         stop=float(config.get("config", "stop", fallback=5)),
         taylor_stop_angle=float(config.get(

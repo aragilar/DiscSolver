@@ -19,10 +19,10 @@ def generate_plot(soln_file, **kwargs):
     """
     Generate plot, with enough freedom to be able to format fig
     """
-    soln = soln_file.solution
-    angles = soln_file.angles
-    cons = soln_file.initial_conditions
-    inp = soln_file.config_input
+    soln = soln_file.root.solution
+    angles = soln_file.root.angles
+    cons = soln_file.root.initial_conditions
+    inp = soln_file.root.config_input
 
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
@@ -129,7 +129,7 @@ def generate_plot(soln_file, **kwargs):
         if settings.get("legend"):
             ax.legend()
         better_sci_format(ax.yaxis)
-    fig.suptitle("{}:{}".format(soln_file.config_filename, inp.label))
+    fig.suptitle("{}:{}".format(soln_file.root.config_filename, inp.label))
     return fig
 
 
@@ -192,7 +192,7 @@ def generate_deriv_plot(soln_file, **kwargs):
     ]
 
     linestyle = kwargs.pop("line style")
-    internal_data = soln_file.internal_data
+    internal_data = soln_file.root.internal_data
     deriv_angles = internal_data.angles
     derivs = internal_data.derivs
     npnot = np.logical_not
@@ -269,7 +269,7 @@ def generate_params_plot(soln_file, **kwargs):
     ]
 
     linestyle = kwargs.pop("line style")
-    internal_data = soln_file.internal_data
+    internal_data = soln_file.root.internal_data
     param_angles = internal_data.angles
     params = internal_data.params
     npnot = np.logical_not

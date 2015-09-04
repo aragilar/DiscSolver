@@ -8,10 +8,12 @@ import arrow
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
 
+from h5py import File
+
 from .config import define_conditions, get_input
 from .solution import solution
 
-from ..hdf5_wrapper import soln_open
+from ..file_format import wrap_hdf5_file
 from ..logging import logging_options, log_handler
 
 log = logbook.Logger(__name__)
@@ -47,13 +49,14 @@ def solution_main(output_file=None, ismain=True):
         current_time = str(arrow.now())
         if gen_file_name:
             output_file = inp.label + current_time + ".hdf5"
-        with soln_open(output_file) as f:
-            f.angles = angles
-            f.solution = soln
-            f.config_input = inp
-            f.initial_conditions = cons
-            f.config_filename = conffile
-            f.config_label = inp.label
-            f.time = current_time
-            f.solution_properties = soln_props
-            f.internal_data = internal_data
+        with File(output_file) as f:
+            soln_file = wrap_hdf5_file(f, version="latest", new=True)
+            soln_file.root.angles = angles
+            soln_file.root.solution = soln
+            soln_file.root.config_input = inp
+            soln_file.root.initial_conditions = cons
+            soln_file.root.config_filename = str(conffile)
+            soln_file.root.config_label = inp.label
+            soln_file.root.time = current_time
+            soln_file.root.solution_properties = soln_props
+            soln_file.root.internal_data = internal_data
