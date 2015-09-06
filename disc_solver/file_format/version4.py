@@ -2,8 +2,11 @@
 Definition of version 4 of the solution file format
 """
 
+# pylint: skip-file
+
 from numpy import array
 from h5schemaesqe import HDF5Group
+
 
 version_4_schema = HDF5Group(
     angles=array,

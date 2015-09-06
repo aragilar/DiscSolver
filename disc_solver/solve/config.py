@@ -112,11 +112,31 @@ def get_input(conffile=None):
         absolute_tolerance=float(config.get(
             "config", "absolute_tolerance", fallback=1e-10
         )),
-        β=float_with_frac(config.get("initial", "β", fallback=5/4)),
+        β=float_with_frac(config.get("initial", "β", fallback=1.249)),
         v_rin_on_c_s=float(config.get("initial", "v_rin_on_c_s", fallback=1)),
         v_a_on_c_s=float(config.get("initial", "v_a_on_c_s", fallback=1)),
         c_s_on_v_k=float(config.get("initial", "c_s_on_v_k", fallback=0.03)),
-        η_O=float(config.get("initial", "η_O", fallback=0.1)),
-        η_H=float(config.get("initial", "η_H", fallback=0.5)),
-        η_A=float(config.get("initial", "η_A", fallback=0.05)),
+        η_O=float(config.get("initial", "η_O", fallback=0.001)),
+        η_H=float(config.get("initial", "η_H", fallback=0.0001)),
+        η_A=float(config.get("initial", "η_A", fallback=0.0005)),
     )
+
+
+def step_input(inp):
+    """
+    Create new input for next step
+    """
+    inp_dict = vars(inp)
+
+    def step_func(soln_type, step_size):
+        """
+        Return new input
+        """
+        if soln_type == "diverge":
+            inp_dict["v_rin_on_c_s"] -= step_size
+        elif soln_type == "sign flip":
+            inp_dict["v_rin_on_c_s"] += step_size
+        else:
+            raise RuntimeError("Solution type not known")
+        return namespace.soln_input(**inp_dict)  # pylint: disable=no-member
+    return step_func

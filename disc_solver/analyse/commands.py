@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 from .plot_functions import (
     generate_plot, get_plot_args, generate_deriv_plot, get_deriv_plot_args,
-    generate_params_plot, get_params_plot_args,
+    generate_params_plot, get_params_plot_args, get_solutions
 )
 from ..utils import is_supersonic, find_in_array, get_normalisation
 
@@ -27,18 +27,24 @@ def info(soln_file, args):
     Output info about the solution
     """
     print("run properties:")
-    print("label: {}".format(soln_file.root.config_label))
+    print("label: {}".format(soln_file.root.config_input.label))
     print("config filename: {}".format(soln_file.root.config_filename))
     print("file version: {}".format(soln_file.file.attrs["version"]))
     print("generator version: {}".format(
         soln_file.file.attrs["generator_version"]
     ))
 
-    for prop, val in vars(soln_file.root.solution_properties).items():
-        print("{}: {!s}".format(prop, val))
+    soln_range = args.get("soln_range", "0")
 
-    inp = soln_file.root.config_input
-    init_con = soln_file.root.initial_conditions
+    print("ODE return flag: {!s}".format(
+        soln_file.root.solutions[soln_range].flag
+    ))
+    print("Coordinate System: {!s}".format(
+        soln_file.root.solutions[soln_range].coordinate_system
+    ))
+
+    inp = soln_file.root.solutions[soln_range].soln_input
+    init_con = soln_file.root.solutions[soln_range].initial_conditions
     v_norm = get_normalisation(inp)["v_norm"]  # need to fix config here
     c_s = init_con.c_s * v_norm
     if args.get("input"):
@@ -51,8 +57,8 @@ def info(soln_file, args):
             print(INIT_FORMAT.format(name, value))
     print("other info: ")
     if args.get("sonic_points"):
-        soln = soln_file.root.solution
-        angles = soln_file.root.angles
+        soln = soln_file.root.solutions[soln_range].solution
+        angles = soln_file.root.solutions[soln_range].angles
         zero_soln = np.zeros(len(soln))
         v = np.array([zero_soln, zero_soln, soln[:, 5]])
         slow_index = find_in_array(is_supersonic(
@@ -109,14 +115,16 @@ def check_taylor(soln_file, args):
     """
     Compare derivatives from taylor series to full version
     """
-    v_r_normal = soln_file.root.internal_data.v_r_normal
-    v_φ_normal = soln_file.root.internal_data.v_φ_normal
-    ρ_normal = soln_file.root.internal_data.ρ_normal
-    v_r_taylor = soln_file.root.internal_data.v_r_taylor
-    v_φ_taylor = soln_file.root.internal_data.v_φ_taylor
-    ρ_taylor = soln_file.root.internal_data.ρ_taylor
+    soln_range = args.get("soln_range", "0")
+    soln_instance = get_solutions(soln_file, soln_range)
+    v_r_normal = soln_instance.internal_data.v_r_normal
+    v_φ_normal = soln_instance.internal_data.v_φ_normal
+    ρ_normal = soln_instance.internal_data.ρ_normal
+    v_r_taylor = soln_instance.internal_data.v_r_taylor
+    v_φ_taylor = soln_instance.internal_data.v_φ_taylor
+    ρ_taylor = soln_instance.internal_data.ρ_taylor
 
-    deriv_angles = soln_file.root.internal_data.angles
+    deriv_angles = soln_instance.internal_data.angles
     # pylint: disable=unused-variable
     fig, axes = plt.subplots(ncols=3, tight_layout=True)
     if args.get("show_values", False):

@@ -7,11 +7,13 @@ from math import pi, sqrt, tan, degrees, radians
 
 import logbook
 
-import numpy as np
+from numpy import any as np_any, copy, diff
 
 from scikits.odes import ode
-import scikits.odes.sundials as sundials
+from scikits.odes.sundials import CVODESolveFailed
+from scikits.odes.sundials.cvode import StatusEnum
 
+from .config import define_conditions
 from .deriv_funcs import (
     dderiv_B_φ_soln, taylor_series,
 )
@@ -59,7 +61,7 @@ def ode_system(
         nonlocal v_φ_nlist, v_φ_taylist
         nonlocal ρ_nlist, ρ_taylist
 
-        params_list.append(np.copy(params))
+        params_list.append(copy(params))
 
         B_r = params[0]
         B_φ = params[1]
@@ -167,7 +169,7 @@ def ode_system(
         if __debug__:
             log.debug("θ: {}, {}", θ, degrees(θ))
 
-        derivs_list.append(np.copy(derivs))
+        derivs_list.append(copy(derivs))
         angles_list.append(θ)
         v_r_nlist.append(deriv_v_r_normal)
         v_φ_nlist.append(deriv_v_φ_normal)
@@ -203,7 +205,7 @@ def solution(
     )
     try:
         soln = solver.solve(angles, initial_conditions)
-    except sundials.CVODESolveFailed as e:
+    except CVODESolveFailed as e:
         soln = e.soln
         log.error(
             "Solver stopped at {} with flag {!s}.\n{}".format(
@@ -211,11 +213,7 @@ def solution(
             )
         )
     return (
-        soln.values.t, soln.values.y, internal_data,
-        namespace.solution_properties(  # pylint: disable=no-member
-            flag=soln.flag,
-            coordinate_system=COORDS,
-        )
+        soln.values.t, soln.values.y, internal_data, soln.flag, COORDS,
     )
 
 
@@ -223,3 +221,74 @@ def ode_error_handler(error_code, module, func, msg, user_data):
     """ drop all CVODE messages """
     # pylint: disable=unused-argument
     pass
+
+
+def create_soln_splitter(method):
+    """
+    Create func to see split in solution
+    """
+    def v_θ_deriv(soln, num_check=10, start=-10):
+        """
+        Use derivative of v_θ to determine type of solution
+        """
+        v_θ = soln.solution[:, 5]
+        if np_any(v_θ < 0):
+            return "sign flip"
+        if (num_check + start > 0) and start < 0:
+            log.info("Using fewer samples than requested.")
+            d_v_θ = diff(v_θ[start:])
+        elif num_check + start == 0:
+            d_v_θ = diff(v_θ[start:])
+        else:
+            d_v_θ = diff(v_θ[start:start + num_check])
+
+        if all(d_v_θ > 0):
+            return "diverge"
+        elif all(d_v_θ < 0):
+            return "sign flip"
+        return "unknown"
+    method_dict = {"v_θ_deriv": v_θ_deriv}
+
+    return method_dict.get(method) or v_θ_deriv
+
+
+def solver_generator():
+    """
+    Generate solver func
+    """
+    def solver(inp):
+        """
+        solver
+        """
+        inp = namespace.soln_input(**vars(inp))  # pylint: disable=no-member
+        cons = define_conditions(inp)
+        angles, values, internal_data, flag, coords = solution(
+            cons.angles, cons.init_con, cons.β, cons.c_s, cons.norm_kepler_sq,
+            cons.η_O, cons.η_A, cons.η_H,
+            relative_tolerance=inp.relative_tolerance,
+            absolute_tolerance=inp.absolute_tolerance,
+            max_steps=inp.max_steps, taylor_stop_angle=inp.taylor_stop_angle
+        )
+        soln = namespace.solution(  # pylint: disable=no-member
+            soln_input=inp, initial_conditions=cons, flag=flag,
+            coordinate_system=coords, internal_data=internal_data,
+            angles=angles, solution=values
+        )
+        return validate_solution(soln)
+
+    return solver
+
+
+def validate_solution(soln):
+    """
+    Check that the solution returned is valid, even if the ode solver returned
+    success
+    """
+    if soln.flag != StatusEnum.SUCCESS:
+        return soln, False
+    v_θ = soln.solution[:, 5]
+    if np_any(v_θ < 0):
+        return soln, False
+    if np_any(diff(v_θ) < 0):
+        return soln, False
+    return soln, True

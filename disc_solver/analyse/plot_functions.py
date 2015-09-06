@@ -19,10 +19,12 @@ def generate_plot(soln_file, **kwargs):
     """
     Generate plot, with enough freedom to be able to format fig
     """
-    soln = soln_file.root.solution
-    angles = soln_file.root.angles
-    cons = soln_file.root.initial_conditions
-    inp = soln_file.root.config_input
+    soln_range = kwargs.pop("soln_range", "0")
+    soln_instance = get_solutions(soln_file, soln_range)
+    soln = soln_instance.solution
+    angles = soln_instance.angles
+    cons = soln_instance.initial_conditions
+    inp = soln_instance.soln_input
 
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
@@ -156,7 +158,8 @@ def get_plot_args(args):
         "with slow": args.get("with_slow", False),
         "with alfven": args.get("with_alfven", False),
         "with fast": args.get("with_fast", False),
-        "line style": args.get("line_style", "-")
+        "line style": args.get("line_style", "-"),
+        "soln_range": args.get("soln_range", "0"),
     }
 
 
@@ -191,8 +194,10 @@ def generate_deriv_plot(soln_file, **kwargs):
         },
     ]
 
+    soln_range = kwargs.pop("soln_range", "0")
     linestyle = kwargs.pop("line style")
-    internal_data = soln_file.root.internal_data
+    soln_instance = get_solutions(soln_file, soln_range)
+    internal_data = soln_instance.internal_data
     deriv_angles = internal_data.angles
     derivs = internal_data.derivs
     npnot = np.logical_not
@@ -234,6 +239,7 @@ def get_deriv_plot_args(args):
     """
     return {
         "line style": args.get("line_style", "-"),
+        "soln_range": args.get("soln_range", "0"),
     }
 
 
@@ -269,7 +275,9 @@ def generate_params_plot(soln_file, **kwargs):
     ]
 
     linestyle = kwargs.pop("line style")
-    internal_data = soln_file.root.internal_data
+    soln_range = kwargs.pop("soln_range", "0")
+    soln_instance = get_solutions(soln_file, soln_range)
+    internal_data = soln_instance.internal_data
     param_angles = internal_data.angles
     params = internal_data.params
     npnot = np.logical_not
@@ -311,4 +319,14 @@ def get_params_plot_args(args):
     """
     return {
         "line style": args.get("line_style", "-"),
+        "soln_range": args.get("soln_range", "0"),
     }
+
+
+def get_solutions(soln_file, soln_range):
+    """
+    Get solutions based on range
+    """
+    if soln_range == "final":
+        return soln_file.root.final_solution
+    return soln_file.root.solutions[soln_range]
