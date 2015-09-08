@@ -37,6 +37,7 @@ def generate_plot(soln_file, **kwargs):
     with_slow = kwargs.pop("with slow")
     with_alfven = kwargs.pop("with alfven")
     with_fast = kwargs.pop("with fast")
+    with_sonic = kwargs.pop("with sonic")
 
     param_names = [
         {
@@ -104,6 +105,12 @@ def generate_plot(soln_file, **kwargs):
             "data": wave_speeds[MHD_WAVE_INDEX["fast"]],
             "normalisation": v_norm / KM,
         })
+    if with_sonic:
+        param_names[5]["extras"].append({
+            "label": "sound",
+            "data": np.ones(len(soln)),
+            "normalisation": v_norm / KM,
+        })
 
     fig, axes = plt.subplots(
         nrows=2, ncols=4, tight_layout=True, sharex=True, **kwargs
@@ -147,6 +154,8 @@ def plot_options(parser):
         "--with-alfven", action='store_true', default=False)
     parser.add_argument(
         "--with-fast", action='store_true', default=False)
+    parser.add_argument(
+        "--with-sonic", action='store_true', default=False)
 
 
 def get_plot_args(args):
@@ -158,6 +167,7 @@ def get_plot_args(args):
         "with slow": args.get("with_slow", False),
         "with alfven": args.get("with_alfven", False),
         "with fast": args.get("with_fast", False),
+        "with sonic": args.get("with_sonic", False),
         "line style": args.get("line_style", "-"),
         "soln_range": args.get("soln_range", "0"),
     }

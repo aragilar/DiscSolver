@@ -17,16 +17,16 @@ def binary_searcher(
     inp = initial_input
     try:
         for attempt in range(0, num_attempts):
-            log.info("Attempt {}:".format(attempt))
+            log.notice("Attempt {}:".format(attempt))
             out, sucess = func(inp)
             if sucess:
                 return pass_func(out, attempt)
             else:
                 inp = fail_func(out, attempt)
     except StepperError as e:
-        log.error(str(e))
+        log.critical(str(e))
     else:
-        log.error("Failed to find with {} attempts.".format(num_attempts))
+        log.critical("Failed to find with {} attempts.".format(num_attempts))
 
 
 def stepper_creator(
@@ -48,7 +48,7 @@ def stepper_creator(
         nonlocal binary_started, search_steps, prev_soln_type, step_size
         soln_writer(soln, attempt)
         soln_type = get_soln_type(soln)
-
+        log.notice("solution type: {}".format(soln_type))
         if not binary_started:
             search_steps += 1
             if search_steps > max_search_steps:

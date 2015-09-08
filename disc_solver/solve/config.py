@@ -10,6 +10,8 @@ import logbook
 
 import numpy as np
 
+from .stepper import StepperError
+
 from ..file_format import LATEST_NAMESPACE as namespace
 from ..utils import float_with_frac
 
@@ -132,11 +134,14 @@ def step_input(inp):
         """
         Return new input
         """
+        prev_v_rin_on_c_s = inp_dict["v_rin_on_c_s"]
         if soln_type == "diverge":
             inp_dict["v_rin_on_c_s"] -= step_size
         elif soln_type == "sign flip":
             inp_dict["v_rin_on_c_s"] += step_size
         else:
-            raise RuntimeError("Solution type not known")
+            raise StepperError("Solution type not known")
+        if prev_v_rin_on_c_s == inp_dict["v_rin_on_c_s"]:
+            raise StepperError("Hit numerical limit")
         return namespace.soln_input(**inp_dict)  # pylint: disable=no-member
     return step_func

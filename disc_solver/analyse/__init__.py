@@ -65,9 +65,6 @@ def analyse_parser():
         "--initial-conditions", action="store_true", default=False
     )
     info_parser.add_argument(
-        "--sound-ratio", action="store_true", default=False
-    )
-    info_parser.add_argument(
         "--sonic-points", action="store_true", default=False
     )
     add_range(info_parser)

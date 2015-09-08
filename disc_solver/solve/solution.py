@@ -207,7 +207,7 @@ def solution(
         soln = solver.solve(angles, initial_conditions)
     except CVODESolveFailed as e:
         soln = e.soln
-        log.error(
+        log.warn(
             "Solver stopped at {} with flag {!s}.\n{}".format(
                 degrees(soln.errors.t), soln.flag, soln.message
             )
@@ -287,8 +287,11 @@ def validate_solution(soln):
     if soln.flag != StatusEnum.SUCCESS:
         return soln, False
     v_θ = soln.solution[:, 5]
+    ρ = soln.solution[:, 6]
     if np_any(v_θ < 0):
         return soln, False
     if np_any(diff(v_θ) < 0):
+        return soln, False
+    if np_any(ρ < 0):
         return soln, False
     return soln, True

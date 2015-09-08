@@ -33,6 +33,7 @@ def info(soln_file, args):
     print("generator version: {}".format(
         soln_file.file.attrs["generator_version"]
     ))
+    print("number of solutions: {}".format(len(soln_file.root.solutions)))
 
     soln_range = args.get("soln_range", "0")
 
