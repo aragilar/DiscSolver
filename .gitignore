@@ -2,6 +2,7 @@
 plot.png
 pylint_*.txt
 .coverage
+.cache
 .tox
 dist
 *.egg-info

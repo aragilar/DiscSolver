@@ -16,6 +16,7 @@ from .plot_functions import (
     generate_params_plot, get_params_plot_args, get_solutions
 )
 from ..utils import is_supersonic, find_in_array, get_normalisation
+from ..utils import allvars as vars
 
 INPUT_FORMAT = " {: <20}: {}"
 INIT_FORMAT = " {: <20}: {}"

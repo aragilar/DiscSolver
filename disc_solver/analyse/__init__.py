@@ -17,6 +17,7 @@ from .plot_functions import (
 from ..file_format import wrap_hdf5_file
 from ..logging import logging_options, log_handler
 from ..utils import cli_to_var
+from ..utils import allvars as vars
 
 
 def analyse_main(output_file=None, **kwargs):

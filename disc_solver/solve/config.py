@@ -14,6 +14,7 @@ from .stepper import StepperError
 
 from ..file_format import LATEST_NAMESPACE as namespace
 from ..utils import float_with_frac
+from ..utils import allvars as vars
 
 log = logbook.Logger(__name__)
 

@@ -19,6 +19,7 @@ from .deriv_funcs import (
 )
 
 from ..file_format import LATEST_NAMESPACE as namespace
+from ..utils import allvars as vars
 
 INTEGRATOR = "cvode"
 COORDS = "spherical midplane 0"
@@ -178,6 +179,15 @@ def ode_system(
         v_φ_taylist.append(deriv_v_φ_taylor)
         ρ_taylist.append(deriv_ρ_taylor)
 
+        if __debug__:
+            if len(params_list) != len(angles_list):
+                log.error(
+                    "Internal data not consistent, "
+                    "params is {}, angles is {}".format(
+                        len(params_list), len(angles_list)
+                    )
+                )
+
         return 0
     return rhs_equation, internal_data
 
@@ -201,7 +211,8 @@ def solution(
         atol=absolute_tolerance,
         max_steps=max_steps,
         validate_flags=True,
-        err_handler=ode_error_handler
+        old_api=False,
+        err_handler=ode_error_handler,
     )
     try:
         soln = solver.solve(angles, initial_conditions)

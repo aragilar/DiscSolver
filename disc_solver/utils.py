@@ -132,3 +132,16 @@ def get_normalisation(inp, radius=AU, mass=M_SUN, density=1.5e-9):
         "ρ_norm": density,
         "η_norm": radius * c_s,
     }
+
+
+def allvars(obj):
+    """
+    vars replacement to work on namedtuples
+    """
+    try:
+        return vars(obj)
+    except TypeError as e:
+        try:
+            return obj._asdict()
+        except AttributeError as f:
+            raise e from f  # maybe?

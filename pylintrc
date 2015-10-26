@@ -68,7 +68,7 @@ comment=no
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-disable=invalid-name,bad-continuation,too-many-arguments,too-many-locals,too-many-statements
+disable=invalid-name,bad-continuation,too-many-arguments,too-many-locals,too-many-statements,redefined-builtin
 
 
 [SIMILARITIES]

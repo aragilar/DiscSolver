@@ -18,6 +18,7 @@ from .stepper import (
 
 from ..file_format import wrap_hdf5_file
 from ..logging import logging_options, log_handler
+from ..utils import allvars as vars
 
 log = logbook.Logger(__name__)
 
