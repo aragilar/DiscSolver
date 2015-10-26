@@ -45,8 +45,8 @@ def info(soln_file, args):
         soln_file.root.solutions[soln_range].coordinate_system
     ))
 
-    inp = soln_file.root.solutions[soln_range].soln_input
-    init_con = soln_file.root.solutions[soln_range].initial_conditions
+    inp = soln_file.root.solutions[soln_range].soln_input.nt
+    init_con = soln_file.root.solutions[soln_range].initial_conditions.nt
     v_norm = get_normalisation(inp)["v_norm"]  # need to fix config here
     c_s = init_con.c_s * v_norm
     if args.get("input"):
