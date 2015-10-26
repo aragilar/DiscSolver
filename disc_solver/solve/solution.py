@@ -28,14 +28,14 @@ log = logbook.Logger(__name__)
 
 
 def ode_system(
-    β, c_s, central_mass, η_O, η_A, η_H,
+    β, c_s, central_mass, η_O_unfixed, η_A_unfixed, η_H_unfixed,
     taylor_stop_angle, init_con,
 ):
     """
     Set up the system we are solving for.
     """
     dderiv_ρ_M, dderiv_v_rM, dderiv_v_φM = taylor_series(
-        β, c_s, η_O, η_A, η_H, init_con
+        β, c_s, η_O_unfixed, η_A_unfixed, η_H_unfixed, init_con
     )
 
     internal_data = namespace.internal_data(  # pylint: disable=no-member
@@ -62,8 +62,6 @@ def ode_system(
         nonlocal v_φ_nlist, v_φ_taylist
         nonlocal ρ_nlist, ρ_taylist
 
-        params_list.append(copy(params))
-
         B_r = params[0]
         B_φ = params[1]
         B_θ = params[2]
@@ -73,10 +71,22 @@ def ode_system(
         ρ = params[6]
         B_φ_prime = params[7]
 
+        # check sanity of input values
+        if ρ < 0:
+            return 1
+        if v_θ < 0:
+            return 1
+
         B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
         norm_B_r, norm_B_φ, norm_B_θ = (
             B_r/B_mag, B_φ/B_mag, B_θ/B_mag
         )
+
+        # This is to try to avoid the craziness of η / v_A h
+        η_magic = sqrt(init_con[6] / ρ)
+        η_O = η_O_unfixed * η_magic
+        η_A = η_A_unfixed * η_magic
+        η_H = η_H_unfixed * η_magic
 
         deriv_B_φ = B_φ_prime
         deriv_B_r = (
@@ -170,6 +180,7 @@ def ode_system(
         if __debug__:
             log.debug("θ: {}, {}", θ, degrees(θ))
 
+        params_list.append(copy(params))
         derivs_list.append(copy(derivs))
         angles_list.append(θ)
         v_r_nlist.append(deriv_v_r_normal)
