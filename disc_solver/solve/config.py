@@ -47,6 +47,7 @@ def define_conditions(inp):
     v_r = - inp.v_rin_on_c_s  # velocities normalised by c_s
     B_θ = inp.v_a_on_c_s
 
+    β = inp.β
     norm_kepler_sq = 1 / inp.c_s_on_v_k ** 2
     η_O = inp.η_O
     η_A = inp.η_A
@@ -56,7 +57,7 @@ def define_conditions(inp):
     A_v_φ = 1
     B_v_φ = (v_r * η_H) / (2 * (η_O + η_A))
     C_v_φ = (
-        v_r**2 / 2 + 2 * inp.β * c_s**2 -
+        v_r**2 / 2 + 2 * β * c_s**2 -
         norm_kepler_sq - B_θ**2 * (
             v_r / (η_O + η_A)
         ) / (4 * pi * ρ)
@@ -88,11 +89,11 @@ def define_conditions(inp):
 
     return namespace.initial_conditions(  # pylint: disable=no-member
         norm_kepler_sq=norm_kepler_sq, c_s=c_s, η_O=η_O, η_A=η_A, η_H=η_H,
-        init_con=init_con, angles=angles, β=inp.β
+        init_con=init_con, angles=angles, β=β
     )
 
 
-def get_input(conffile=None):
+def get_input_from_conffile(conffile=None):
     """
     Get input values
     """
@@ -101,40 +102,61 @@ def get_input(conffile=None):
         config.read_file(open(conffile))
 
     return namespace.config_input(  # pylint: disable=no-member
-        start=float(config.get("config", "start", fallback=0)),
-        stop=float(config.get("config", "stop", fallback=5)),
-        taylor_stop_angle=float(config.get(
-            "config", "taylor_stop_angle", fallback=0.001
-        )),
-        max_steps=int(config.get("config", "max_steps", fallback=10000)),
-        num_angles=int(config.get("config", "num_angles", fallback=10000)),
+        start=config.get("config", "start", fallback="0"),
+        stop=config.get("config", "stop", fallback="5"),
+        taylor_stop_angle=config.get(
+            "config", "taylor_stop_angle", fallback="0.001"
+        ),
+        max_steps=config.get("config", "max_steps", fallback="10000"),
+        num_angles=config.get("config", "num_angles", fallback="10000"),
         label=config.get("config", "label", fallback="default"),
-        relative_tolerance=float(config.get(
-            "config", "relative_tolerance", fallback=1e-6
-        )),
-        absolute_tolerance=float(config.get(
-            "config", "absolute_tolerance", fallback=1e-10
-        )),
-        β=float_with_frac(config.get("initial", "β", fallback=1.249)),
-        v_rin_on_c_s=float(config.get("initial", "v_rin_on_c_s", fallback=1)),
-        v_a_on_c_s=float(config.get("initial", "v_a_on_c_s", fallback=1)),
-        c_s_on_v_k=float(config.get("initial", "c_s_on_v_k", fallback=0.03)),
-        η_O=float(config.get("initial", "η_O", fallback=0.001)),
-        η_H=float(config.get("initial", "η_H", fallback=0.0001)),
-        η_A=float(config.get("initial", "η_A", fallback=0.0005)),
+        relative_tolerance=config.get(
+            "config", "relative_tolerance", fallback="1e-6"
+        ),
+        absolute_tolerance=config.get(
+            "config", "absolute_tolerance", fallback="1e-10"
+        ),
+        β=config.get("initial", "β", fallback="1.249"),
+        v_rin_on_c_s=config.get("initial", "v_rin_on_c_s", fallback="1"),
+        v_a_on_c_s=config.get("initial", "v_a_on_c_s", fallback="1"),
+        c_s_on_v_k=config.get("initial", "c_s_on_v_k", fallback="0.03"),
+        η_O=config.get("initial", "η_O", fallback="0.001"),
+        η_H=config.get("initial", "η_H", fallback="0.0001"),
+        η_A=config.get("initial", "η_A", fallback="0.0005"),
     )
 
 
-def step_input(inp):
+def config_input_to_soln_input(inp):
+    """
+    Convert user input into solver input
+    """
+    return namespace.soln_input(  # pylint: disable=no-member
+        start=float_with_frac(inp.start),
+        stop=float_with_frac(inp.stop),
+        taylor_stop_angle=float_with_frac(inp.taylor_stop_angle),
+        max_steps=int(inp.max_steps),
+        num_angles=int(inp.num_angles),
+        relative_tolerance=float_with_frac(inp.relative_tolerance),
+        absolute_tolerance=float_with_frac(inp.absolute_tolerance),
+        β=float_with_frac(inp.β),
+        v_rin_on_c_s=float_with_frac(inp.v_rin_on_c_s),
+        v_a_on_c_s=float_with_frac(inp.v_a_on_c_s),
+        c_s_on_v_k=float_with_frac(inp.c_s_on_v_k),
+        η_O=float_with_frac(inp.η_O),
+        η_H=float_with_frac(inp.η_H),
+        η_A=float_with_frac(inp.η_A),
+    )
+
+
+def step_input():
     """
     Create new input for next step
     """
-    inp_dict = vars(inp)
-
-    def step_func(soln_type, step_size):
+    def step_func(soln, soln_type, step_size):
         """
         Return new input
         """
+        inp_dict = vars(soln.soln_input)
         prev_v_rin_on_c_s = inp_dict["v_rin_on_c_s"]
         if soln_type == "diverge":
             inp_dict["v_rin_on_c_s"] -= step_size

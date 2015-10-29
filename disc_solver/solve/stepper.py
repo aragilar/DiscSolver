@@ -62,13 +62,13 @@ def stepper_creator(
                 if prev_soln_type != soln_type:
                     binary_started = True
                     step_size /= 2
-                return step_func(soln_type, step_size)
+                return step_func(soln, soln_type, step_size)
             else:
                 prev_soln_type = soln_type
-                return step_func(soln_type, step_size)
+                return step_func(soln, soln_type, step_size)
 
         step_size /= 2
-        return step_func(soln_type, step_size)
+        return step_func(soln, soln_type, step_size)
 
     return stepper
 

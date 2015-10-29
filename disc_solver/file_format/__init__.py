@@ -8,11 +8,13 @@ from h5schemaesqe import HDF5File, NamedtupleNamespace
 from .._version import version as ds_version
 from .version4 import version_4_schema
 from .version5 import version_5_schema
+from .version6 import version_6_schema
 
 FILE_TYPE = "Disc Solver Solution File"
 SCHEMAS = {
     "4": version_4_schema,
     "5": version_5_schema,
+    "6": version_6_schema,
 }
 
 LATEST_VERSION = max(SCHEMAS)

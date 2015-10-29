@@ -10,7 +10,9 @@ from logbook.compat import redirected_warnings, redirected_logging
 
 from h5py import File
 
-from .config import get_input, step_input
+from .config import (
+    get_input_from_conffile, step_input, config_input_to_soln_input
+)
 from .solution import create_soln_splitter, solver_generator
 from .stepper import (
     binary_searcher, stepper_creator, writer_generator, cleanup_generator
@@ -40,8 +42,8 @@ def solution_main(output_file=None, ismain=True):
         conffile = None
     gen_file_name = True if output_file is None else False
     with log_handler(args), redirected_warnings(), redirected_logging():
-        config_inp = get_input(conffile=conffile)
-        step_func = step_input(config_inp)
+        config_inp = get_input_from_conffile(conffile=conffile)
+        step_func = step_input()
         if gen_file_name:
             output_file = config_inp.label + str(arrow.now()) + ".hdf5"
         with File(output_file) as f:
@@ -56,5 +58,5 @@ def solution_main(output_file=None, ismain=True):
                     writer, step_func,
                     create_soln_splitter("v_θ_deriv")
                 ),
-                config_inp,
+                config_input_to_soln_input(config_inp),
             )

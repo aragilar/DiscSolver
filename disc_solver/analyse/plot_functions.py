@@ -138,7 +138,10 @@ def generate_plot(soln_file, **kwargs):
         if settings.get("legend"):
             ax.legend()
         better_sci_format(ax.yaxis)
-    fig.suptitle("{}:{}".format(soln_file.root.config_filename, inp.label))
+    fig.suptitle("{}:{}".format(
+        soln_file.root.config_filename,
+        soln_file.root.config_input.label
+    ))
     return fig
 
 
