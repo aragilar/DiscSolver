@@ -7,9 +7,10 @@ import versioneer
 #    long_description = f.read()
 
 setuptools.setup(
-    name="disc_solver",
-    version=versioneer.get_version(),
-    packages = setuptools.find_packages(),
+    name = "disc_solver",
+    version = versioneer.get_version(),
+    packages = setuptools.find_packages('src'),
+    package_dir = {'': 'src'},
     install_requires = [
         "numpy",
         "matplotlib",
