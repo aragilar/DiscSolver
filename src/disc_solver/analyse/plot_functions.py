@@ -39,109 +39,114 @@ def generate_plot(soln_file, **kwargs):
     with_fast = kwargs.pop("with fast")
     with_sonic = kwargs.pop("with sonic")
 
-    param_names = [
-        {
-            "name": "B_r",
-            "y_label": "Magnetic Field (Gauss)",
-            "normalisation": B_norm,
-        },
-        {
-            "name": "B_φ",
-            "y_label": "Magnetic Field (Gauss)",
-            "normalisation": B_norm,
-        },
-        {
-            "name": "B_θ",
-            "y_label": "Magnetic Field (Gauss)",
-            "normalisation": B_norm,
-        },
-        {
-            "name": "v_r",
-            "y_label": "Velocity Field (km/s)",
+    plot_props = {
+        "velocity": {
             "normalisation": v_norm / KM,  # km/s
-        },
-        {
-            "name": "v_φ",
             "y_label": "Velocity Field (km/s)",
-            "normalisation": v_norm / KM,  # km/s
-            "offset": sqrt(cons.norm_kepler_sq) * v_norm / KM
+            "lines": [
+                {
+                    "label": "v_r",
+                    "index": 3,
+                },
+                {
+                    "label": "v_φ",
+                    "index": 4,
+                    "offset": sqrt(cons.norm_kepler_sq) * v_norm / KM
+                },
+                {
+                    "label": "v_θ",
+                    "index": 5,
+                },
+            ],
         },
-        {
-            "name": "v_θ",
-            "y_label": "Velocity Field (km/s)",
-            "normalisation": v_norm / KM,  # km/s
-            "legend": True,
-            "scale": kwargs.pop("v_θ scale", "linear"),
-            "extras": []
-        },
-        {
-            "name": "ρ",
+        "density": {
             "y_label": "Density ($g cm^{-3}$)",
             "normalisation": ρ_norm,
             "scale": "log",
+            "lines": [
+                {
+                    "label": "ρ",
+                    "index": 6,
+                }
+            ],
         },
-        {
-            "name": "B_φ_prime",
-            "y_label": "Magnetic Field (Gauss)",
+        "fields": {
             "normalisation": B_norm,
+            "y_label": "Magnetic Field (G)",
+            "lines": [
+                {
+                    "label": "B_r",
+                    "index": 0,
+                },
+                {
+                    "label": "B_φ",
+                    "index": 1,
+                },
+                {
+                    "label": "B_θ",
+                    "index": 2,
+                },
+            ],
         },
-    ]
+    }
 
     if with_slow:
-        param_names[5]["extras"].append({
+        plot_props["velocity"]["lines"].append({
             "label": "slow",
             "data": wave_speeds[MHD_WAVE_INDEX["slow"]],
-            "normalisation": v_norm / KM,
         })
     if with_alfven:
-        param_names[5]["extras"].append({
+        plot_props["velocity"]["lines"].append({
             "label": "alfven",
             "data": wave_speeds[MHD_WAVE_INDEX["alfven"]],
-            "normalisation": v_norm / KM,
         })
     if with_fast:
-        param_names[5]["extras"].append({
+        plot_props["velocity"]["lines"].append({
             "label": "fast",
             "data": wave_speeds[MHD_WAVE_INDEX["fast"]],
-            "normalisation": v_norm / KM,
         })
     if with_sonic:
-        param_names[5]["extras"].append({
+        plot_props["velocity"]["lines"].append({
             "label": "sound",
             "data": np.ones(len(soln)),
-            "normalisation": v_norm / KM,
         })
 
     fig, axes = plt.subplots(
-        nrows=2, ncols=4, tight_layout=True, sharex=True, **kwargs
+        nrows=3, ncols=1, tight_layout=True, sharex=True,
+        gridspec_kw=dict(hspace=0),
+        **kwargs
     )
-    axes.shape = len(param_names)
-    for i, settings in enumerate(param_names):
-        ax = axes[i]
-        ax.plot(
-            degrees(angles),
-            (
-                soln[:, i] * settings["normalisation"] -
-                settings.get("offset", 0)
-            ), linestyle,
-        )
-        for extra in settings.get("extras", []):
-            ax.plot(
-                degrees(angles),
-                extra["data"] * extra["normalisation"],
-                label=extra.get("label")
-            )
-        ax.set_xlabel("angle from plane (°)")
-        ax.set_ylabel(settings["y_label"])
-        ax.set_yscale(settings.get("scale", "linear"))
-        ax.set_title(settings["name"])
-        if settings.get("legend"):
-            ax.legend()
-        better_sci_format(ax.yaxis)
+    axes.shape = len(plot_props)
     fig.suptitle("{}:{}".format(
         soln_file.root.config_filename,
         soln_file.root.config_input.label
     ))
+    for i, plot_name in enumerate(plot_props):
+        ax = axes[i]
+        settings = plot_props[plot_name]
+        for line in settings["lines"]:
+            if line.get("index") is not None:
+                data = soln[:, line["index"]]
+            else:
+                data = line["data"]
+            ax.plot(
+                degrees(angles),
+                (
+                    data * settings["normalisation"] -
+                    line.get("offset", 0)
+                ), linestyle, label=line["label"]
+            )
+        if i == len(plot_props) - 1:  # label only the bottom one
+            ax.set_xlabel("angle from plane (°)")
+        if i % 2 == 1:
+            ax.tick_params(
+                axis='y', which='both', labelleft='off', labelright='on'
+            )
+        ax.set_ylabel(settings["y_label"])
+        ax.set_yscale(settings.get("scale", "linear"))
+        ax.legend()
+        better_sci_format(ax.yaxis)
+    fig.subplots_adjust(hspace=0)
     return fig
 
 
@@ -166,7 +171,7 @@ def get_plot_args(args):
     Parse plot args
     """
     return {
-        "v_θ scale": args.get("v_θ", "linear"),
+        # "v_θ scale": args.get("v_θ", "linear"),
         "with slow": args.get("with_slow", False),
         "with alfven": args.get("with_alfven", False),
         "with fast": args.get("with_fast", False),
