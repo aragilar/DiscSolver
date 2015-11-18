@@ -25,6 +25,8 @@ def generate_plot(soln_file, **kwargs):
     angles = soln_instance.angles
     cons = soln_instance.initial_conditions
     inp = soln_instance.soln_input
+    y_roots = soln_instance.y_roots
+    t_roots = soln_instance.t_roots
 
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
@@ -138,6 +140,8 @@ def generate_plot(soln_file, **kwargs):
         if settings.get("legend"):
             ax.legend()
         better_sci_format(ax.yaxis)
+        ax.axvline(degrees(t_roots[0]))
+        ax.plot(degrees(t_roots[0]), y_roots[0, i], ".")
     fig.suptitle("{}:{}".format(
         soln_file.root.config_filename,
         soln_file.root.config_input.label

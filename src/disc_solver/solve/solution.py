@@ -10,7 +10,7 @@ import logbook
 from numpy import any as np_any, copy, diff
 
 from scikits.odes import ode
-from scikits.odes.sundials import CVODESolveFailed
+from scikits.odes.sundials import CVODESolveFailed, CVODESolveFoundRoot
 from scikits.odes.sundials.cvode import StatusEnum
 
 from .config import define_conditions
@@ -224,6 +224,7 @@ def solution(
         validate_flags=True,
         old_api=False,
         err_handler=ode_error_handler,
+        rootfn=find_sonic_point(c_s), nr_rootfns=1,
     )
     try:
         soln = solver.solve(angles, initial_conditions)
@@ -234,8 +235,12 @@ def solution(
                 degrees(soln.errors.t), soln.flag, soln.message
             )
         )
+    except CVODESolveFoundRoot as e:
+        soln = e.soln
+        for root in soln.roots.t:
+            log.info("Found sonic point at {}".format(degrees(root)))
     return (
-        soln.values.t, soln.values.y, internal_data, soln.flag, COORDS,
+        soln, internal_data, COORDS,
     )
 
 
@@ -284,7 +289,7 @@ def solver_generator():
         """
         inp = namespace.soln_input(**vars(inp))  # pylint: disable=no-member
         cons = define_conditions(inp)
-        angles, values, internal_data, flag, coords = solution(
+        soln, internal_data, coords = solution(
             cons.angles, cons.init_con, cons.β, cons.c_s, cons.norm_kepler_sq,
             cons.η_O, cons.η_A, cons.η_H,
             relative_tolerance=inp.relative_tolerance,
@@ -292,9 +297,10 @@ def solver_generator():
             max_steps=inp.max_steps, taylor_stop_angle=inp.taylor_stop_angle
         )
         soln = namespace.solution(  # pylint: disable=no-member
-            soln_input=inp, initial_conditions=cons, flag=flag,
+            soln_input=inp, initial_conditions=cons, flag=soln.flag,
             coordinate_system=coords, internal_data=internal_data,
-            angles=angles, solution=values
+            angles=soln.values.t, solution=soln.values.y,
+            t_roots=soln.roots.t, y_roots=soln.roots.y,
         )
         return validate_solution(soln)
 
@@ -317,3 +323,17 @@ def validate_solution(soln):
     if np_any(ρ < 0):
         return soln, False
     return soln, True
+
+
+def find_sonic_point(c_s):
+    """
+    Finds acoustic sonic point
+    """
+    def rootfn(θ, params, out):
+        """
+        root function to find acoustic sonic point
+        """
+        # pylint: disable=unused-argument
+        out[0] = c_s - params[5]
+        return 0
+    return rootfn
