@@ -169,6 +169,10 @@ def ode_system(
             deriv_B_r, deriv_B_θ, deriv_B_φ, β
         )
 
+        # check sanity of derivs
+        if deriv_ρ > 0:
+            return 1
+
         derivs[0] = deriv_B_r
         derivs[1] = deriv_B_φ
         derivs[2] = deriv_B_θ
