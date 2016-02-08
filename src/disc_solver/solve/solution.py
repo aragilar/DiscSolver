@@ -169,10 +169,6 @@ def ode_system(
             deriv_B_r, deriv_B_θ, deriv_B_φ, β
         )
 
-        # check sanity of derivs
-        if deriv_ρ > 0:
-            return 1
-
         derivs[0] = deriv_B_r
         derivs[1] = deriv_B_φ
         derivs[2] = deriv_B_θ
@@ -229,6 +225,7 @@ def solution(
         old_api=False,
         err_handler=ode_error_handler,
         rootfn=find_sonic_point(c_s), nr_rootfns=1,
+        onroot=lambda *x: 0,
     )
     try:
         soln = solver.solve(angles, initial_conditions)
