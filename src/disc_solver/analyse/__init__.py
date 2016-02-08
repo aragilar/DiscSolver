@@ -57,6 +57,7 @@ def analyse_parser():
 
     plot_parser = subparsers.add_parser("plot")
     plot_parser.add_argument("plot_filename")
+    plot_parser.add_argument("--figsize", nargs=2)
     plot_options(plot_parser)
     add_range(plot_parser)
 
@@ -83,6 +84,9 @@ def analyse_parser():
     params_show_parser = subparsers.add_parser("params-show")
     params_plot_options(params_show_parser)
     add_range(params_show_parser)
+
+    plot_acc_parser = subparsers.add_parser("plot-acc")
+    add_range(plot_acc_parser)
 
     output_file = parser.parse_args().output_file
 

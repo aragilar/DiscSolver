@@ -3,6 +3,7 @@
 Stuff to analyse solutions
 """
 
+from collections import OrderedDict
 from math import sqrt
 
 import numpy as np
@@ -38,9 +39,10 @@ def generate_plot(soln_file, **kwargs):
     with_alfven = kwargs.pop("with alfven")
     with_fast = kwargs.pop("with fast")
     with_sonic = kwargs.pop("with sonic")
+    stop = float(kwargs.pop("stop", 90))
 
-    plot_props = {
-        "velocity": {
+    plot_props = OrderedDict([
+        ("velocity", {
             "normalisation": v_norm / KM,  # km/s
             "y_label": "Velocity Field (km/s)",
             "lines": [
@@ -58,8 +60,8 @@ def generate_plot(soln_file, **kwargs):
                     "index": 5,
                 },
             ],
-        },
-        "density": {
+        }),
+        ("density", {
             "y_label": "Density ($g cm^{-3}$)",
             "normalisation": ρ_norm,
             "scale": "log",
@@ -69,8 +71,8 @@ def generate_plot(soln_file, **kwargs):
                     "index": 6,
                 }
             ],
-        },
-        "fields": {
+        }),
+        ("fields", {
             "normalisation": B_norm,
             "y_label": "Magnetic Field (G)",
             "lines": [
@@ -87,8 +89,8 @@ def generate_plot(soln_file, **kwargs):
                     "index": 2,
                 },
             ],
-        },
-    }
+        }),
+    ])
 
     if with_slow:
         plot_props["velocity"]["lines"].append({
@@ -111,6 +113,8 @@ def generate_plot(soln_file, **kwargs):
             "data": np.ones(len(soln)),
         })
 
+    indexes = degrees(angles) <= stop
+
     fig, axes = plt.subplots(
         nrows=3, ncols=1, tight_layout=True, sharex=True,
         gridspec_kw=dict(hspace=0),
@@ -130,9 +134,9 @@ def generate_plot(soln_file, **kwargs):
             else:
                 data = line["data"]
             ax.plot(
-                degrees(angles),
+                degrees(angles[indexes]),
                 (
-                    data * settings["normalisation"] -
+                    data[indexes] * settings["normalisation"] -
                     line.get("offset", 0)
                 ), linestyle, label=line["label"]
             )
@@ -164,6 +168,9 @@ def plot_options(parser):
         "--with-fast", action='store_true', default=False)
     parser.add_argument(
         "--with-sonic", action='store_true', default=False)
+    parser.add_argument(
+        "--stop", default=90
+    )
 
 
 def get_plot_args(args):
@@ -178,6 +185,7 @@ def get_plot_args(args):
         "with sonic": args.get("with_sonic", False),
         "line style": args.get("line_style", "-"),
         "soln_range": args.get("soln_range", "0"),
+        "stop": args.get("stop", "90"),
     }
 
 

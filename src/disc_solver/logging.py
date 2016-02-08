@@ -44,7 +44,7 @@ def log_handler(args):
             level=args.get("log_file_level", "DEBUG").upper()
         )
     else:
-        file_handler = NullHandler()
+        file_handler = NullHandler()  # pylint: disable=redefined-variable-type
     return NestedSetup([
         NullHandler(),  # catch everything else
         ThreadedWrapperHandler(file_handler),
