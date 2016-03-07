@@ -3,6 +3,7 @@
 Stuff to analyse solutions
 """
 
+from collections import OrderedDict
 from math import sqrt
 
 import numpy as np
@@ -40,6 +41,9 @@ def generate_plot(soln_file, **kwargs):
     with_alfven = kwargs.pop("with alfven")
     with_fast = kwargs.pop("with fast")
     with_sonic = kwargs.pop("with sonic")
+    stop = float(kwargs.pop("stop", 90))
+
+    indexes = degrees(angles) <= stop
 
     param_names = [
         {
@@ -121,16 +125,16 @@ def generate_plot(soln_file, **kwargs):
     for i, settings in enumerate(param_names):
         ax = axes[i]
         ax.plot(
-            degrees(angles),
+            degrees(angles[indexes]),
             (
                 soln[:, i] * settings["normalisation"] -
                 settings.get("offset", 0)
-            ), linestyle,
+            )[indexes], linestyle,
         )
         for extra in settings.get("extras", []):
             ax.plot(
-                degrees(angles),
-                extra["data"] * extra["normalisation"],
+                degrees(angles[indexes]),
+                (extra["data"] * extra["normalisation"])[indexes],
                 label=extra.get("label")
             )
         ax.set_xlabel("angle from plane (°)")
@@ -149,6 +153,145 @@ def generate_plot(soln_file, **kwargs):
     return fig
 
 
+def generate_plot_combine(soln_file, **kwargs):
+    """
+    Generate plot, with enough freedom to be able to format fig.
+    Combine velocities, fields onto on plot
+    """
+    soln_range = kwargs.pop("soln_range", "0")
+    soln_instance = get_solutions(soln_file, soln_range)
+    soln = soln_instance.solution
+    angles = soln_instance.angles
+    cons = soln_instance.initial_conditions
+    inp = soln_instance.soln_input
+
+    norms = get_normalisation(inp)  # need to allow config here
+    B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
+    zero_soln = np.zeros(len(soln))
+    v = np.array([zero_soln, zero_soln, soln[:, 5]])
+    wave_speeds = np.sqrt(mhd_wave_speeds(
+        v.T, soln[:, 0:3], soln[:, 6], cons.c_s * v_norm
+    ))
+    linestyle = kwargs.pop("line style")
+    with_slow = kwargs.pop("with slow")
+    with_alfven = kwargs.pop("with alfven")
+    with_fast = kwargs.pop("with fast")
+    with_sonic = kwargs.pop("with sonic")
+    stop = float(kwargs.pop("stop", 90))
+
+    plot_props = OrderedDict([
+        ("velocity", {
+            "normalisation": v_norm / KM,  # km/s
+            "y_label": "Velocity Field (km/s)",
+            "lines": [
+                {
+                    "label": "v_r",
+                    "index": 3,
+                },
+                {
+                    "label": "v_φ",
+                    "index": 4,
+                    "offset": sqrt(cons.norm_kepler_sq) * v_norm / KM
+                },
+                {
+                    "label": "v_θ",
+                    "index": 5,
+                },
+            ],
+        }),
+        ("density", {
+            "y_label": "Density ($g cm^{-3}$)",
+            "normalisation": ρ_norm,
+            "scale": "log",
+            "lines": [
+                {
+                    "label": "ρ",
+                    "index": 6,
+                }
+            ],
+        }),
+        ("fields", {
+            "normalisation": B_norm,
+            "y_label": "Magnetic Field (G)",
+            "lines": [
+                {
+                    "label": "B_r",
+                    "index": 0,
+                },
+                {
+                    "label": "B_φ",
+                    "index": 1,
+                },
+                {
+                    "label": "B_θ",
+                    "index": 2,
+                },
+            ],
+        }),
+    ])
+
+    if with_slow:
+        plot_props["velocity"]["lines"].append({
+            "label": "slow",
+            "data": wave_speeds[MHD_WAVE_INDEX["slow"]],
+        })
+    if with_alfven:
+        plot_props["velocity"]["lines"].append({
+            "label": "alfven",
+            "data": wave_speeds[MHD_WAVE_INDEX["alfven"]],
+        })
+    if with_fast:
+        plot_props["velocity"]["lines"].append({
+            "label": "fast",
+            "data": wave_speeds[MHD_WAVE_INDEX["fast"]],
+        })
+    if with_sonic:
+        plot_props["velocity"]["lines"].append({
+            "label": "sound",
+            "data": np.ones(len(soln)),
+        })
+
+    indexes = degrees(angles) <= stop
+
+    fig, axes = plt.subplots(
+        nrows=3, ncols=1, tight_layout=True, sharex=True,
+        gridspec_kw=dict(hspace=0),
+        **kwargs
+    )
+    axes.shape = len(plot_props)
+    fig.suptitle("{}:{}".format(
+        soln_file.root.config_filename,
+        soln_file.root.config_input.label
+    ))
+    for i, plot_name in enumerate(plot_props):
+        ax = axes[i]
+        settings = plot_props[plot_name]
+        for line in settings["lines"]:
+            if line.get("index") is not None:
+                data = soln[:, line["index"]]
+            else:
+                data = line["data"]
+            ax.plot(
+                degrees(angles[indexes]),
+                (
+                    data[indexes] * settings["normalisation"] -
+                    line.get("offset", 0)
+                ), linestyle, label=line["label"]
+            )
+        if i == len(plot_props) - 1:  # label only the bottom one
+            ax.set_xlabel("angle from plane (°)")
+        if i % 2 == 1:
+            ax.tick_params(
+                axis='y', which='both', labelleft='off', labelright='on'
+            )
+        ax.set_ylabel(settings["y_label"])
+        ax.set_yscale(settings.get("scale", "linear"))
+        ax.legend()
+        better_sci_format(ax.yaxis)
+    fig.subplots_adjust(hspace=0)
+    return fig
+
+
 def plot_options(parser):
     """
     Add cli arguments for defining plot
@@ -163,6 +306,9 @@ def plot_options(parser):
         "--with-fast", action='store_true', default=False)
     parser.add_argument(
         "--with-sonic", action='store_true', default=False)
+    parser.add_argument(
+        "--stop", default=90
+    )
 
 
 def get_plot_args(args):
@@ -170,13 +316,14 @@ def get_plot_args(args):
     Parse plot args
     """
     return {
-        "v_θ scale": args.get("v_θ", "linear"),
+        # "v_θ scale": args.get("v_θ", "linear"),
         "with slow": args.get("with_slow", False),
         "with alfven": args.get("with_alfven", False),
         "with fast": args.get("with_fast", False),
         "with sonic": args.get("with_sonic", False),
         "line style": args.get("line_style", "-"),
         "soln_range": args.get("soln_range", "0"),
+        "stop": args.get("stop", "90"),
     }
 
 
