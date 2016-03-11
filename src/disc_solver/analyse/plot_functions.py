@@ -25,7 +25,7 @@ def generate_plot(soln_file, **kwargs):
     soln = soln_instance.solution
     angles = soln_instance.angles
     cons = soln_instance.initial_conditions
-    inp = soln_instance.soln_input
+    inp = soln_instance.solution_input
     y_roots = soln_instance.y_roots
     t_roots = soln_instance.t_roots
 
@@ -147,8 +147,8 @@ def generate_plot(soln_file, **kwargs):
         ax.axvline(degrees(t_roots[0]))
         ax.plot(degrees(t_roots[0]), y_roots[0, i], ".")
     fig.suptitle("{}:{}".format(
-        soln_file.root.config_filename,
-        soln_file.root.config_input.label
+        soln_file.config_filename,
+        soln_file.config_input.label
     ))
     return fig
 
@@ -163,7 +163,7 @@ def generate_plot_combine(soln_file, **kwargs):
     soln = soln_instance.solution
     angles = soln_instance.angles
     cons = soln_instance.initial_conditions
-    inp = soln_instance.soln_input
+    inp = soln_instance.solution_input
 
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
@@ -260,8 +260,8 @@ def generate_plot_combine(soln_file, **kwargs):
     )
     axes.shape = len(plot_props)
     fig.suptitle("{}:{}".format(
-        soln_file.root.config_filename,
-        soln_file.root.config_input.label
+        soln_file.config_filename,
+        soln_file.config_input.label
     ))
     for i, plot_name in enumerate(plot_props):
         ax = axes[i]
@@ -492,5 +492,5 @@ def get_solutions(soln_file, soln_range):
     Get solutions based on range
     """
     if soln_range == "final":
-        return soln_file.root.final_solution
-    return soln_file.root.solutions[soln_range]
+        return soln_file.final_solution
+    return soln_file.solutions[soln_range]

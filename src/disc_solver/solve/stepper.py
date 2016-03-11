@@ -73,7 +73,7 @@ def stepper_creator(
     return stepper
 
 
-def writer_generator(soln_file):
+def writer_generator(run):
     """
     adds soln to file
     """
@@ -81,12 +81,12 @@ def writer_generator(soln_file):
         """
         writer
         """
-        soln_file.root.solutions[str(attempt)] = soln
+        run.solutions[str(attempt)] = soln
 
     return writer
 
 
-def cleanup_generator(soln_file, writer):
+def cleanup_generator(run, writer):
     """
     creates symlink to correct solution
     """
@@ -95,7 +95,7 @@ def cleanup_generator(soln_file, writer):
         cleanup
         """
         writer(soln, attempt)
-        soln_file.root.final_solution = soln_file.root.solutions[str(attempt)]
+        run.final_solution = run.solutions[str(attempt)]
 
     return cleanup
 

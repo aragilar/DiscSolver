@@ -8,7 +8,7 @@ import arrow
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
 
-from h5py import File
+from h5preserve import open
 
 from .config import (
     get_input_from_conffile, step_input, config_input_to_soln_input
@@ -18,7 +18,7 @@ from .stepper import (
     binary_searcher, stepper_creator, writer_generator, cleanup_generator
 )
 
-from ..file_format import wrap_hdf5_file
+from ..file_format import registries, Run
 from ..logging import logging_options, log_handler
 from ..utils import allvars as vars
 
@@ -46,17 +46,16 @@ def solution_main(output_file=None, ismain=True):
         step_func = step_input()
         if gen_file_name:
             output_file = config_inp.label + str(arrow.now()) + ".hdf5"
-        with File(output_file) as f:
-            soln_file = wrap_hdf5_file(f, version="latest", new=True)
-            soln_file.root.config_input = config_inp
-            soln_file.root.config_filename = str(conffile)
-            writer = writer_generator(soln_file)
-            cleanup = cleanup_generator(soln_file, writer)
-            binary_searcher(
-                solver_generator(), cleanup,
-                stepper_creator(
-                    writer, step_func,
-                    create_soln_splitter("v_θ_deriv")
-                ),
-                config_input_to_soln_input(config_inp),
-            )
+        run = Run(config_input=config_inp, config_filename=str(conffile))
+        writer = writer_generator(run)
+        cleanup = cleanup_generator(run, writer)
+        binary_searcher(
+            solver_generator(), cleanup,
+            stepper_creator(
+                writer, step_func,
+                create_soln_splitter("v_θ_deriv")
+            ),
+            config_input_to_soln_input(config_inp),
+        )
+        with open(output_file, registries) as f:
+            f["run"] = run

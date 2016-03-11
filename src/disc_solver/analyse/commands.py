@@ -32,25 +32,21 @@ def info(soln_file, args):
     Output info about the solution
     """
     print("run properties:")
-    print("label: {}".format(soln_file.root.config_input.label))
-    print("config filename: {}".format(soln_file.root.config_filename))
-    print("file version: {}".format(soln_file.file.attrs["version"]))
-    print("generator version: {}".format(
-        soln_file.file.attrs["generator_version"]
-    ))
-    print("number of solutions: {}".format(len(soln_file.root.solutions)))
+    print("label: {}".format(soln_file.config_input.label))
+    print("config filename: {}".format(soln_file.config_filename))
+    print("number of solutions: {}".format(len(soln_file.solutions)))
 
     soln_range = args.get("soln_range", "0")
 
     print("ODE return flag: {!s}".format(
-        soln_file.root.solutions[soln_range].flag
+        soln_file.solutions[soln_range].flag
     ))
     print("Coordinate System: {!s}".format(
-        soln_file.root.solutions[soln_range].coordinate_system
+        soln_file.solutions[soln_range].coordinate_system
     ))
 
-    inp = soln_file.root.solutions[soln_range].soln_input.nt
-    init_con = soln_file.root.solutions[soln_range].initial_conditions.nt
+    inp = soln_file.solutions[soln_range].solution_input
+    init_con = soln_file.solutions[soln_range].initial_conditions
     v_norm = get_normalisation(inp)["v_norm"]  # need to fix config here
     c_s = init_con.c_s * v_norm
     if args.get("input"):
@@ -63,8 +59,8 @@ def info(soln_file, args):
             print(INIT_FORMAT.format(name, value))
     print("other info: ")
     if args.get("sonic_points"):
-        soln = soln_file.root.solutions[soln_range].solution
-        angles = soln_file.root.solutions[soln_range].angles
+        soln = soln_file.solutions[soln_range].solution
+        angles = soln_file.solutions[soln_range].angles
         zero_soln = np.zeros(len(soln))
         v = np.array([zero_soln, zero_soln, soln[:, 5]])
         slow_index = find_in_array(is_supersonic(
@@ -179,7 +175,7 @@ def plot_acc(soln_file, args):
     soln_instance = get_solutions(soln_file, soln_range)
     soln = soln_instance.solution
     angles = soln_instance.angles
-    inp = soln_instance.soln_input
+    inp = soln_instance.solution_input
 
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]

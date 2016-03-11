@@ -12,7 +12,8 @@ import numpy as np
 
 from .stepper import StepperError
 
-from ..file_format import LATEST_NAMESPACE as namespace
+from ..file_format import ConfigInput, InitialConditions, SolutionInput
+
 from ..utils import float_with_frac
 from ..utils import allvars as vars
 
@@ -87,7 +88,7 @@ def define_conditions(inp):
 
     angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
 
-    return namespace.initial_conditions(  # pylint: disable=no-member
+    return InitialConditions(
         norm_kepler_sq=norm_kepler_sq, c_s=c_s, η_O=η_O, η_A=η_A, η_H=η_H,
         init_con=init_con, angles=angles, β=β
     )
@@ -101,7 +102,7 @@ def get_input_from_conffile(conffile=None):
     if conffile:
         config.read_file(open(conffile))
 
-    return namespace.config_input(  # pylint: disable=no-member
+    return ConfigInput(
         start=config.get("config", "start", fallback="0"),
         stop=config.get("config", "stop", fallback="5"),
         taylor_stop_angle=config.get(
@@ -130,7 +131,7 @@ def config_input_to_soln_input(inp):
     """
     Convert user input into solver input
     """
-    return namespace.soln_input(  # pylint: disable=no-member
+    return SolutionInput(
         start=float_with_frac(inp.start),
         stop=float_with_frac(inp.stop),
         taylor_stop_angle=float_with_frac(inp.taylor_stop_angle),
@@ -156,7 +157,7 @@ def step_input():
         """
         Return new input
         """
-        inp_dict = vars(soln.soln_input)
+        inp_dict = vars(soln.solution_input)
         prev_v_rin_on_c_s = inp_dict["v_rin_on_c_s"]
         if soln_type == "diverge":
             inp_dict["v_rin_on_c_s"] -= step_size
@@ -166,5 +167,5 @@ def step_input():
             raise StepperError("Solution type not known")
         if prev_v_rin_on_c_s == inp_dict["v_rin_on_c_s"]:
             raise StepperError("Hit numerical limit")
-        return namespace.soln_input(**inp_dict)  # pylint: disable=no-member
+        return SolutionInput(**inp_dict)
     return step_func

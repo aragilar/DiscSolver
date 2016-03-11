@@ -7,7 +7,7 @@ from math import pi, sqrt, tan, degrees, radians
 
 import logbook
 
-from numpy import any as np_any, copy, diff
+from numpy import any as np_any, array, copy, diff
 
 from scikits.odes import ode
 from scikits.odes.sundials import CVODESolveFailed, CVODESolveFoundRoot
@@ -18,7 +18,7 @@ from .deriv_funcs import (
     dderiv_B_φ_soln, taylor_series,
 )
 
-from ..file_format import LATEST_NAMESPACE as namespace
+from ..file_format import Solution, SolutionInput, InternalData
 from ..utils import allvars as vars
 
 INTEGRATOR = "cvode"
@@ -38,7 +38,7 @@ def ode_system(
         β, c_s, η_O_unfixed, η_A_unfixed, η_H_unfixed, init_con
     )
 
-    internal_data = namespace.internal_data(  # pylint: disable=no-member
+    internal_data = InternalData(
         derivs=[], params=[], angles=[], v_r_normal=[], v_φ_normal=[],
         ρ_normal=[], v_r_taylor=[], v_φ_taylor=[], ρ_taylor=[],
     )
@@ -240,6 +240,11 @@ def solution(
         soln = e.soln
         for root in soln.roots.t:
             log.info("Found sonic point at {}".format(degrees(root)))
+
+    internal_data = InternalData(**{
+        key: array(val) for key, val in vars(internal_data).items()
+    })
+
     return (
         soln, internal_data, COORDS,
     )
@@ -288,7 +293,7 @@ def solver_generator():
         """
         solver
         """
-        inp = namespace.soln_input(**vars(inp))  # pylint: disable=no-member
+        inp = SolutionInput(**vars(inp))
         cons = define_conditions(inp)
         soln, internal_data, coords = solution(
             cons.angles, cons.init_con, cons.β, cons.c_s, cons.norm_kepler_sq,
@@ -297,8 +302,8 @@ def solver_generator():
             absolute_tolerance=inp.absolute_tolerance,
             max_steps=inp.max_steps, taylor_stop_angle=inp.taylor_stop_angle
         )
-        soln = namespace.solution(  # pylint: disable=no-member
-            soln_input=inp, initial_conditions=cons, flag=soln.flag,
+        soln = Solution(
+            solution_input=inp, initial_conditions=cons, flag=soln.flag,
             coordinate_system=coords, internal_data=internal_data,
             angles=soln.values.t, solution=soln.values.y,
             t_roots=soln.roots.t, y_roots=soln.roots.y,
