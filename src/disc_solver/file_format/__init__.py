@@ -2,7 +2,10 @@
 Defines common data structures and how they are to be written to files
 """
 
-from collections import namedtuple
+from collections import namedtuple, defaultdict
+from collections.abc import MutableMapping
+
+from numpy import asarray
 
 from h5preserve import Registry, new_registry_list, GroupContainer
 
@@ -13,11 +16,6 @@ ConfigInput = namedtuple("ConfigInput", [
     "start", "stop", "taylor_stop_angle", "max_steps", "num_angles", "label",
     "relative_tolerance", "absolute_tolerance", "β", "v_rin_on_c_s",
     "v_a_on_c_s", "c_s_on_v_k", "η_O", "η_H", "η_A",
-])
-
-InternalData = namedtuple("InternalData", [
-    "derivs", "params", "angles", "v_r_normal", "v_φ_normal", "ρ_normal",
-    "v_r_taylor", "v_φ_taylor", "ρ_taylor",
 ])
 
 InitialConditions = namedtuple("InitialConditions", [
@@ -34,6 +32,84 @@ Solution = namedtuple("Solution", [
     "solution_input", "angles", "solution", "flag", "coordinate_system",
     "internal_data", "initial_conditions", "t_roots", "y_roots",
 ])
+
+
+class Problems(MutableMapping):
+    # pylint: disable=missing-docstring
+    def __init__(self, **problems):
+        self._problems = defaultdict(list)
+        self.update(problems)
+
+    def __getitem__(self, key):
+        return self._problems[str(key)]
+
+    def __setitem__(self, key, val):
+        self._problems[str(key)].append(val)
+
+    def __delitem__(self, key):
+        del self._problems[key]
+
+    def __iter__(self):
+        for key in self._problems:
+            yield key
+
+    def __len__(self):
+        return len(self._problems)
+
+    def __repr__(self):
+        return repr(self._problems)
+
+
+class InternalData:
+    # pylint: disable=missing-docstring,too-few-public-methods
+    # pylint: disable=too-many-instance-attributes
+    def __init__(
+        self, derivs=None, params=None, angles=None, v_r_normal=None,
+        v_φ_normal=None, ρ_normal=None, v_r_taylor=None, v_φ_taylor=None,
+        ρ_taylor=None, problems=None
+    ):
+        if derivs is None:
+            derivs = []
+        if params is None:
+            params = []
+        if angles is None:
+            angles = []
+        if v_r_normal is None:
+            v_r_normal = []
+        if v_φ_normal is None:
+            v_φ_normal = []
+        if ρ_normal is None:
+            ρ_normal = []
+        if v_r_taylor is None:
+            v_r_taylor = []
+        if v_φ_taylor is None:
+            v_φ_taylor = []
+        if ρ_taylor is None:
+            ρ_taylor = []
+        if problems is None:
+            problems = Problems()
+
+        self.derivs = derivs
+        self.params = params
+        self.angles = angles
+        self.v_r_normal = v_r_normal
+        self.v_φ_normal = v_φ_normal
+        self.ρ_normal = ρ_normal
+        self.v_r_taylor = v_r_taylor
+        self.v_φ_taylor = v_φ_taylor
+        self.ρ_taylor = ρ_taylor
+        self.problems = problems
+
+    def finalise(self):
+        self.derivs = asarray(self.derivs)
+        self.params = asarray(self.params)
+        self.angles = asarray(self.angles)
+        self.v_r_normal = asarray(self.v_r_normal)
+        self.v_φ_normal = asarray(self.v_φ_normal)
+        self.ρ_normal = asarray(self.ρ_normal)
+        self.v_r_taylor = asarray(self.v_r_taylor)
+        self.v_φ_taylor = asarray(self.v_φ_taylor)
+        self.ρ_taylor = asarray(self.ρ_taylor)
 
 
 class Run:
@@ -65,6 +141,23 @@ def _internal_dump(internal_data):
     )
 
 
+@ds_registry.dumper(InternalData, "InternalData", version=2)
+def _internal_dump2(internal_data):
+    # pylint: disable=missing-docstring
+    return GroupContainer(
+        derivs=internal_data.derivs,
+        params=internal_data.params,
+        angles=internal_data.angles,
+        v_r_normal=internal_data.v_r_normal,
+        v_φ_normal=internal_data.v_φ_normal,
+        ρ_normal=internal_data.ρ_normal,
+        v_r_taylor=internal_data.v_r_taylor,
+        v_φ_taylor=internal_data.v_φ_taylor,
+        ρ_taylor=internal_data.ρ_taylor,
+        problems=internal_data.problems,
+    )
+
+
 @ds_registry.loader("InternalData", version=1)
 def _internal_load(group):
     # pylint: disable=missing-docstring
@@ -78,6 +171,23 @@ def _internal_load(group):
         v_r_taylor=group["v_r_taylor"]["data"],
         v_φ_taylor=group["v_φ_taylor"]["data"],
         ρ_taylor=group["ρ_taylor"]["data"],
+    )
+
+
+@ds_registry.loader("InternalData", version=2)
+def _internal_load2(group):
+    # pylint: disable=missing-docstring
+    return InternalData(
+        derivs=group["derivs"]["data"],
+        params=group["params"]["data"],
+        angles=group["angles"]["data"],
+        v_r_normal=group["v_r_normal"]["data"],
+        v_φ_normal=group["v_φ_normal"]["data"],
+        ρ_normal=group["ρ_normal"]["data"],
+        v_r_taylor=group["v_r_taylor"]["data"],
+        v_φ_taylor=group["v_φ_taylor"]["data"],
+        ρ_taylor=group["ρ_taylor"]["data"],
+        problems=group["problems"]
     )
 
 
@@ -254,3 +364,25 @@ def _run_loader(group):
         final_solution=group["final_solution"],
         solutions=group["solutions"],
     )
+
+
+@ds_registry.dumper(Problems, "Problems", version=1)
+def _problems_dumper(problems):
+    # pylint: disable=missing-docstring
+    group = GroupContainer()
+    for key, item in problems.items():
+        group[key] = asarray([
+            s.encode("utf8") for s in item
+        ])
+    return group
+
+
+@ds_registry.loader("Problems", version=1)
+def _problems_loader(group):
+    # pylint: disable=missing-docstring
+    problems = Problems()
+    for key, item in group.items():
+        problems[key] = [
+            s.decode("utf8") for s in item["data"]
+        ]
+    return problems

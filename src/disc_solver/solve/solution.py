@@ -7,7 +7,7 @@ from math import pi, sqrt, tan, degrees, radians
 
 import logbook
 
-from numpy import any as np_any, array, copy, diff
+from numpy import any as np_any, copy, diff
 
 from scikits.odes import ode
 from scikits.odes.sundials import CVODESolveFailed, CVODESolveFoundRoot
@@ -38,10 +38,7 @@ def ode_system(
         β, c_s, η_O_unfixed, η_A_unfixed, η_H_unfixed, init_con
     )
 
-    internal_data = InternalData(
-        derivs=[], params=[], angles=[], v_r_normal=[], v_φ_normal=[],
-        ρ_normal=[], v_r_taylor=[], v_φ_taylor=[], ρ_taylor=[],
-    )
+    internal_data = InternalData()
 
     derivs_list = internal_data.derivs
     params_list = internal_data.params
@@ -52,6 +49,7 @@ def ode_system(
     v_r_taylist = internal_data.v_r_taylor
     v_φ_taylist = internal_data.v_φ_taylor
     ρ_taylist = internal_data.ρ_taylor
+    problems = internal_data.problems
 
     def rhs_equation(θ, params, derivs):
         """
@@ -73,9 +71,11 @@ def ode_system(
 
         # check sanity of input values
         if ρ < 0:
-            return 1
+            problems[θ].append("negative density")
+            return -1
         if v_θ < 0:
-            return 1
+            problems[θ].append("negative velocity")
+            return -1
 
         B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
         norm_B_r, norm_B_φ, norm_B_θ = (
@@ -241,9 +241,7 @@ def solution(
         for root in soln.roots.t:
             log.info("Found sonic point at {}".format(degrees(root)))
 
-    internal_data = InternalData(**{
-        key: array(val) for key, val in vars(internal_data).items()
-    })
+    internal_data.finalise()
 
     return (
         soln, internal_data, COORDS,
@@ -265,7 +263,8 @@ def create_soln_splitter(method):
         Use derivative of v_θ to determine type of solution
         """
         v_θ = soln.solution[:, 5]
-        if np_any(v_θ < 0):
+        problems = soln.internal_data.problems
+        if any("negative velocity" in pl for pl in problems.values()):
             return "sign flip"
         if (num_check + start > 0) and start < 0:
             log.info("Using fewer samples than requested.")
