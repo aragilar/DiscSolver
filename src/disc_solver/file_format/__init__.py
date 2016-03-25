@@ -5,7 +5,7 @@ Defines common data structures and how they are to be written to files
 from collections import namedtuple, defaultdict
 from collections.abc import MutableMapping
 
-from numpy import asarray
+from numpy import asarray, zeros
 
 from h5preserve import Registry, new_registry_list, GroupContainer
 
@@ -16,10 +16,6 @@ ConfigInput = namedtuple("ConfigInput", [
     "start", "stop", "taylor_stop_angle", "max_steps", "num_angles", "label",
     "relative_tolerance", "absolute_tolerance", "β", "v_rin_on_c_s",
     "v_a_on_c_s", "c_s_on_v_k", "η_O", "η_H", "η_A",
-])
-
-InitialConditions = namedtuple("InitialConditions", [
-    "norm_kepler_sq", "c_s", "η_O", "η_A", "η_H", "β", "init_con", "angles",
 ])
 
 SolutionInput = namedtuple("SolutionInput", [
@@ -64,7 +60,7 @@ class InternalData:
     # pylint: disable=missing-docstring,too-few-public-methods
     # pylint: disable=too-many-instance-attributes
     def __init__(
-        self, derivs=None, params=None, angles=None, v_r_normal=None,
+        self, *, derivs=None, params=None, angles=None, v_r_normal=None,
         v_φ_normal=None, ρ_normal=None, v_r_taylor=None, v_φ_taylor=None,
         ρ_taylor=None, problems=None
     ):
@@ -115,7 +111,7 @@ class InternalData:
 class Run:
     # pylint: disable=missing-docstring,too-few-public-methods
     def __init__(
-        self, config_input=None, config_filename=None, time=None,
+        self, *, config_input=None, config_filename=None, time=None,
         final_solution=None, solutions=None
     ):
         self.config_input = config_input
@@ -123,6 +119,56 @@ class Run:
         self.time = time
         self.final_solution = final_solution
         self.solutions = solutions if solutions is not None else {}
+
+
+class InitialConditions:
+    # pylint: disable=missing-docstring,too-few-public-methods
+    # pylint: disable=too-many-branches,too-many-instance-attributes
+    def __init__(
+        self, *, norm_kepler_sq=None, c_s=None, η_O=None, η_A=None, η_H=None,
+        β=None, init_con=None, angles=None
+    ):
+        if norm_kepler_sq is None:
+            raise TypeError("norm_kepler_sq required")
+        self.norm_kepler_sq = norm_kepler_sq
+        if c_s is None:
+            raise TypeError("c_s required")
+        self.c_s = c_s
+        if β is None:
+            raise TypeError("β required")
+        self.β = β
+        if angles is None:
+            raise TypeError("angles required")
+        self.angles = angles
+
+        if init_con is None:
+            raise TypeError("init_con required")
+
+        if len(init_con) == 8:
+            self.init_con = zeros(11)
+            self.init_con[:8] = init_con
+            self.init_con[8] = η_O
+            self.init_con[9] = η_A
+            self.init_con[10] = η_H
+        else:
+            if η_O is None:
+                η_O = init_con[8]
+            elif η_O != init_con[8]:
+                raise RuntimeError("Initial conditions for η_O inconstant")
+
+            if η_A is None:
+                η_A = init_con[9]
+            elif η_A != init_con[9]:
+                raise RuntimeError("Initial conditions for η_A inconstant")
+
+            if η_H is None:
+                η_H = init_con[10]
+            elif η_H != init_con[10]:
+                raise RuntimeError("Initial conditions for η_H inconstant")
+            self.init_con = init_con
+        self.η_O = η_O
+        self.η_A = η_A
+        self.η_H = η_H
 
 
 @ds_registry.dumper(InternalData, "InternalData", version=1)
@@ -243,16 +289,25 @@ def _solution_dumper(solution):
 @ds_registry.loader("Solution", version=1)
 def _solution_loader(group):
     # pylint: disable=missing-docstring
+    if group["t_roots"] is None:
+        t_roots = None
+    else:
+        t_roots = group["t_roots"]["data"]
+    if group["y_roots"] is None:
+        y_roots = None
+    else:
+        y_roots = group["y_roots"]["data"]
+
     return Solution(
         flag=group.attrs["flag"],
         coordinate_system=group.attrs["coordinate_system"],
         angles=group["angles"]["data"],
         solution=group["solution"]["data"],
-        t_roots=group["t_roots"]["data"],
-        y_roots=group["y_roots"]["data"],
         internal_data=group["internal_data"],
         initial_conditions=group["initial_conditions"],
-        solution_input=group["solution_input"]
+        solution_input=group["solution_input"],
+        t_roots=t_roots,
+        y_roots=y_roots,
     )
 
 

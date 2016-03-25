@@ -11,7 +11,7 @@ import numpy as np
 from disc_solver.constants import G
 from disc_solver.solve.solution import ode_system
 
-ODE_NUMBER = 8
+ODE_NUMBER = 11
 
 class ODE_Test(unittest.TestCase):
     def setUp(self):
@@ -20,9 +20,6 @@ class ODE_Test(unittest.TestCase):
         self.β = 2
         self.c_s = 2
         self.central_mass = 2
-        self.η_O = 2
-        self.η_A = 2
-        self.η_H = 2
 
         # This is slightly off the plane, this should mean we don't get
         # cancellation
@@ -32,9 +29,7 @@ class ODE_Test(unittest.TestCase):
         derivs = np.zeros(ODE_NUMBER)
         with logbook.NullHandler().applicationbound():
             self.rhs, internal_data = ode_system(
-                    self.β, self.c_s, self.central_mass,
-                    self.η_O, self.η_A, self.η_H, 0,
-                    params
+                self.β, self.c_s, self.central_mass, 0, params
             )
             self.rhs(self.angle, params, derivs)
 
@@ -46,6 +41,9 @@ class ODE_Test(unittest.TestCase):
         self.v_φ = params[4]
         self.v_θ = params[5]
         self.ρ = params[6]
+        self.η_O = params[8]
+        self.η_A = params[9]
+        self.η_H = params[10]
         self.deriv_B_r = derivs[0]
         self.deriv_B_φ = derivs[1]
         self.deriv_B_θ = derivs[2]
@@ -54,6 +52,9 @@ class ODE_Test(unittest.TestCase):
         self.deriv_v_θ = derivs[5]
         self.deriv_ρ = derivs[6]
         self.dderiv_B_φ = derivs[7]
+        self.deriv_η_O = derivs[8]
+        self.deriv_η_A = derivs[9]
+        self.deriv_η_H = derivs[10]
 
 
         B_mag = sqrt(self.B_r**2 + self.B_φ**2 + self.B_θ **2)

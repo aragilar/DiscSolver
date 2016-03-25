@@ -75,7 +75,7 @@ def define_conditions(inp):
         v_φ * v_r * 2 * pi * ρ
     ) / B_θ
 
-    init_con = np.zeros(8)
+    init_con = np.zeros(11)
 
     init_con[0] = B_r
     init_con[1] = B_φ
@@ -85,12 +85,15 @@ def define_conditions(inp):
     init_con[5] = v_θ
     init_con[6] = ρ
     init_con[7] = B_φ_prime
+    init_con[8] = η_O
+    init_con[9] = η_A
+    init_con[10] = η_H
 
     angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
 
     return InitialConditions(
-        norm_kepler_sq=norm_kepler_sq, c_s=c_s, η_O=η_O, η_A=η_A, η_H=η_H,
-        init_con=init_con, angles=angles, β=β
+        norm_kepler_sq=norm_kepler_sq, c_s=c_s, init_con=init_con,
+        angles=angles, β=β
     )
 
 

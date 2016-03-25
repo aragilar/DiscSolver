@@ -28,15 +28,17 @@ log = logbook.Logger(__name__)
 
 
 def ode_system(
-    β, c_s, central_mass, η_O_unfixed, η_A_unfixed, η_H_unfixed,
-    taylor_stop_angle, init_con,
+    β, c_s, central_mass, taylor_stop_angle, init_con,
 ):
     """
     Set up the system we are solving for.
     """
     dderiv_ρ_M, dderiv_v_rM, dderiv_v_φM = taylor_series(
-        β, c_s, η_O_unfixed, η_A_unfixed, η_H_unfixed, init_con
+        β, c_s, init_con
     )
+    η_O_scale = init_con[8] / init_con[6]  # η_O / ρ
+    η_A_scale = init_con[9] / init_con[6]  # η_A / ρ
+    η_H_scale = init_con[10] / init_con[6]  # η_H / ρ
 
     internal_data = InternalData()
 
@@ -68,6 +70,9 @@ def ode_system(
         v_θ = params[5]
         ρ = params[6]
         B_φ_prime = params[7]
+        η_O = params[8]
+        η_A = params[9]
+        η_H = params[10]
 
         # check sanity of input values
         if ρ < 0:
@@ -81,12 +86,6 @@ def ode_system(
         norm_B_r, norm_B_φ, norm_B_θ = (
             B_r/B_mag, B_φ/B_mag, B_θ/B_mag
         )
-
-        # This is to try to avoid the craziness of η / v_A h
-        η_magic = sqrt(init_con[6] / ρ)
-        η_O = η_O_unfixed * η_magic
-        η_A = η_A_unfixed * η_magic
-        η_H = η_H_unfixed * η_magic
 
         deriv_B_φ = B_φ_prime
         deriv_B_r = (
@@ -163,10 +162,15 @@ def ode_system(
         )
         deriv_ρ = deriv_ρ_taylor if θ < taylor_stop_angle else deriv_ρ_normal
 
+        deriv_η_O = deriv_ρ * η_O_scale
+        deriv_η_A = deriv_ρ * η_A_scale
+        deriv_η_H = deriv_ρ * η_H_scale
+
         dderiv_B_φ = dderiv_B_φ_soln(
             B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r,
             v_θ, v_φ, deriv_v_r, deriv_v_θ, deriv_v_φ,
-            deriv_B_r, deriv_B_θ, deriv_B_φ, β
+            deriv_B_r, deriv_B_θ, deriv_B_φ, β, deriv_η_O, deriv_η_A,
+            deriv_η_H
         )
 
         derivs[0] = deriv_B_r
@@ -177,6 +181,9 @@ def ode_system(
         derivs[5] = deriv_v_θ
         derivs[6] = deriv_ρ
         derivs[7] = dderiv_B_φ
+        derivs[8] = deriv_η_O
+        derivs[9] = deriv_η_A
+        derivs[10] = deriv_η_H
         if __debug__:
             log.debug("θ: {}, {}", θ, degrees(θ))
 
@@ -205,16 +212,14 @@ def ode_system(
 
 def solution(
         angles, initial_conditions, β, c_s, central_mass,
-        η_O, η_A, η_H, relative_tolerance=1e-6,
-        absolute_tolerance=1e-10,
+        relative_tolerance=1e-6, absolute_tolerance=1e-10,
         max_steps=500, taylor_stop_angle=0
 ):
     """
     Find solution
     """
     system, internal_data = ode_system(
-        β, c_s, central_mass, η_O, η_A, η_H,
-        radians(taylor_stop_angle), initial_conditions
+        β, c_s, central_mass, radians(taylor_stop_angle), initial_conditions
     )
     solver = ode(
         INTEGRATOR, system,
@@ -296,7 +301,6 @@ def solver_generator():
         cons = define_conditions(inp)
         soln, internal_data, coords = solution(
             cons.angles, cons.init_con, cons.β, cons.c_s, cons.norm_kepler_sq,
-            cons.η_O, cons.η_A, cons.η_H,
             relative_tolerance=inp.relative_tolerance,
             absolute_tolerance=inp.absolute_tolerance,
             max_steps=inp.max_steps, taylor_stop_angle=inp.taylor_stop_angle

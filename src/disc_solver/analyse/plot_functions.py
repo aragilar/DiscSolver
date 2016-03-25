@@ -144,8 +144,9 @@ def generate_plot(soln_file, **kwargs):
         if settings.get("legend"):
             ax.legend()
         better_sci_format(ax.yaxis)
-        ax.axvline(degrees(t_roots[0]))
-        ax.plot(degrees(t_roots[0]), y_roots[0, i], ".")
+        if t_roots:
+            ax.axvline(degrees(t_roots[0]))
+            ax.plot(degrees(t_roots[0]), y_roots[0, i], ".")
     fig.suptitle("{}:{}".format(
         soln_file.config_filename,
         soln_file.config_input.label
