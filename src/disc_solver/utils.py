@@ -96,7 +96,6 @@ def float_with_frac(some_object):
     """
     Convert fraction as a string to a float
     """
-    # pylint: disable=abstract-class-instantiated
     return float(Fraction(some_object))
 
 
