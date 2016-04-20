@@ -53,7 +53,7 @@ class Problems(MutableMapping):
         return len(self._problems)
 
     def __repr__(self):
-        return repr(self._problems)
+        return repr("Problems(**{})".format(self._problems))
 
 
 class InternalData:
@@ -108,7 +108,7 @@ class InternalData:
         self.ρ_taylor = asarray(self.ρ_taylor)
 
     def __repr__(self):
-        return repr(self.__dict__)
+        return repr("InternalData(**{})".format(self.__dict__))
 
 
 class Run:
@@ -122,6 +122,9 @@ class Run:
         self.time = time
         self.final_solution = final_solution
         self.solutions = solutions if solutions is not None else {}
+
+    def __repr__(self):
+        return repr("Run(**{})".format(self.__dict__))
 
 
 class InitialConditions:
@@ -172,6 +175,9 @@ class InitialConditions:
         self.η_O = η_O
         self.η_A = η_A
         self.η_H = η_H
+
+    def __repr__(self):
+        return repr("InitialConditions(**{})".format(self.__dict__))
 
 
 @ds_registry.dumper(InternalData, "InternalData", version=1)
