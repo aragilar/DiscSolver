@@ -10,12 +10,9 @@ import logbook
 
 import numpy as np
 
-from .stepper import StepperError
-
 from ..file_format import ConfigInput, InitialConditions, SolutionInput
 
 from ..utils import float_with_frac
-from ..utils import allvars as vars
 
 log = logbook.Logger(__name__)
 
@@ -27,11 +24,6 @@ class CaseDependentConfigParser(configparser.ConfigParser):
     """
     def optionxform(self, optionstr):
         return optionstr
-
-
-def strdict(d):
-    """ stringify a dictionary"""
-    return {str(k): str(v) for k, v in d.items()}
 
 
 def define_conditions(inp):
@@ -150,25 +142,3 @@ def config_input_to_soln_input(inp):
         η_H=float_with_frac(inp.η_H),
         η_A=float_with_frac(inp.η_A),
     )
-
-
-def step_input():
-    """
-    Create new input for next step
-    """
-    def step_func(soln, soln_type, step_size):
-        """
-        Return new input
-        """
-        inp_dict = vars(soln.solution_input)
-        prev_v_rin_on_c_s = inp_dict["v_rin_on_c_s"]
-        if soln_type == "diverge":
-            inp_dict["v_rin_on_c_s"] -= step_size
-        elif soln_type == "sign flip":
-            inp_dict["v_rin_on_c_s"] += step_size
-        else:
-            raise StepperError("Solution type not known")
-        if prev_v_rin_on_c_s == inp_dict["v_rin_on_c_s"]:
-            raise StepperError("Hit numerical limit")
-        return SolutionInput(**inp_dict)
-    return step_func

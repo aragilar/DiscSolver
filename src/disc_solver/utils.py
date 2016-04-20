@@ -14,6 +14,11 @@ from .constants import G, AU, M_SUN
 MHD_WAVE_INDEX = {"slow": 0, "alfven": 1, "fast": 2}
 
 
+def strdict(d):
+    """ stringify a dictionary"""
+    return {str(k): str(v) for k, v in d.items()}
+
+
 def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
     """
     Checks whether velocity is supersonic.

@@ -11,11 +11,11 @@ from logbook.compat import redirected_warnings, redirected_logging
 from h5preserve import open
 
 from .config import (
-    get_input_from_conffile, step_input, config_input_to_soln_input
+    get_input_from_conffile, config_input_to_soln_input
 )
-from .solution import create_soln_splitter, solver_generator
 from .stepper import (
-    binary_searcher, stepper_creator, writer_generator, cleanup_generator
+    binary_searcher, stepper_creator, writer_generator, cleanup_generator,
+    create_soln_splitter, solver_generator, step_input,
 )
 
 from ..file_format import registries, Run

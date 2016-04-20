@@ -7,19 +7,15 @@ from math import pi, sqrt, tan, degrees, radians
 
 import logbook
 
-from numpy import any as np_any, copy, diff
+from numpy import copy
 
 from scikits.odes import ode
 from scikits.odes.sundials import CVODESolveFailed, CVODESolveFoundRoot
-from scikits.odes.sundials.cvode import StatusEnum
 
-from .config import define_conditions
-from .deriv_funcs import (
-    dderiv_B_φ_soln, taylor_series,
-)
+from .deriv_funcs import dderiv_B_φ_soln, taylor_series
+from .utils import gen_sonic_point_rootfn, ode_error_handler
 
-from ..file_format import Solution, SolutionInput, InternalData
-from ..utils import allvars as vars
+from ..file_format import InternalData
 
 INTEGRATOR = "cvode"
 COORDS = "spherical midplane 0"
@@ -213,11 +209,19 @@ def ode_system(
 def solution(
         angles, initial_conditions, β, c_s, central_mass,
         relative_tolerance=1e-6, absolute_tolerance=1e-10,
-        max_steps=500, taylor_stop_angle=0
+        max_steps=500, taylor_stop_angle=0, onroot_func=None,
+        find_sonic_point=False,
 ):
     """
     Find solution
     """
+    extra_args = {
+        "nr_rootfns": 0
+    }
+    if find_sonic_point:
+        extra_args["rootfn"] = gen_sonic_point_rootfn(c_s)
+        extra_args["nr_rootfns"] += 1
+
     system, internal_data = ode_system(
         β, c_s, central_mass, radians(taylor_stop_angle), initial_conditions
     )
@@ -229,8 +233,8 @@ def solution(
         validate_flags=True,
         old_api=False,
         err_handler=ode_error_handler,
-        rootfn=find_sonic_point(c_s), nr_rootfns=1,
-        onroot=lambda *x: 0,
+        onroot=onroot_func,
+        **extra_args
     )
     try:
         soln = solver.solve(angles, initial_conditions)
@@ -251,98 +255,3 @@ def solution(
     return (
         soln, internal_data, COORDS,
     )
-
-
-def ode_error_handler(error_code, module, func, msg, user_data):
-    """ drop all CVODE messages """
-    # pylint: disable=unused-argument
-    pass
-
-
-def create_soln_splitter(method):
-    """
-    Create func to see split in solution
-    """
-    def v_θ_deriv(soln, num_check=10, start=-10):
-        """
-        Use derivative of v_θ to determine type of solution
-        """
-        v_θ = soln.solution[:, 5]
-        problems = soln.internal_data.problems
-        if any("negative velocity" in pl for pl in problems.values()):
-            return "sign flip"
-        if (num_check + start > 0) and start < 0:
-            log.info("Using fewer samples than requested.")
-            d_v_θ = diff(v_θ[start:])
-        elif num_check + start == 0:
-            d_v_θ = diff(v_θ[start:])
-        else:
-            d_v_θ = diff(v_θ[start:start + num_check])
-
-        if all(d_v_θ > 0):
-            return "diverge"
-        elif all(d_v_θ < 0):
-            return "sign flip"
-        return "unknown"
-    method_dict = {"v_θ_deriv": v_θ_deriv}
-
-    return method_dict.get(method) or v_θ_deriv
-
-
-def solver_generator():
-    """
-    Generate solver func
-    """
-    def solver(inp):
-        """
-        solver
-        """
-        inp = SolutionInput(**vars(inp))
-        cons = define_conditions(inp)
-        soln, internal_data, coords = solution(
-            cons.angles, cons.init_con, cons.β, cons.c_s, cons.norm_kepler_sq,
-            relative_tolerance=inp.relative_tolerance,
-            absolute_tolerance=inp.absolute_tolerance,
-            max_steps=inp.max_steps, taylor_stop_angle=inp.taylor_stop_angle
-        )
-        soln = Solution(
-            solution_input=inp, initial_conditions=cons, flag=soln.flag,
-            coordinate_system=coords, internal_data=internal_data,
-            angles=soln.values.t, solution=soln.values.y,
-            t_roots=soln.roots.t, y_roots=soln.roots.y,
-        )
-        return validate_solution(soln)
-
-    return solver
-
-
-def validate_solution(soln):
-    """
-    Check that the solution returned is valid, even if the ode solver returned
-    success
-    """
-    if soln.flag != StatusEnum.SUCCESS:
-        return soln, False
-    v_θ = soln.solution[:, 5]
-    ρ = soln.solution[:, 6]
-    if np_any(v_θ < 0):
-        return soln, False
-    if np_any(diff(v_θ) < 0):
-        return soln, False
-    if np_any(ρ < 0):
-        return soln, False
-    return soln, True
-
-
-def find_sonic_point(c_s):
-    """
-    Finds acoustic sonic point
-    """
-    def rootfn(θ, params, out):
-        """
-        root function to find acoustic sonic point
-        """
-        # pylint: disable=unused-argument
-        out[0] = c_s - params[5]
-        return 0
-    return rootfn

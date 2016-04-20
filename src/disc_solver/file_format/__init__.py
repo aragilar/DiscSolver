@@ -107,6 +107,9 @@ class InternalData:
         self.v_φ_taylor = asarray(self.v_φ_taylor)
         self.ρ_taylor = asarray(self.ρ_taylor)
 
+    def __repr__(self):
+        return repr(self.__dict__)
+
 
 class Run:
     # pylint: disable=missing-docstring,too-few-public-methods
