@@ -112,6 +112,9 @@ def get_input_from_conffile(conffile=None):
         absolute_tolerance=config.get(
             "config", "absolute_tolerance", fallback="1e-10"
         ),
+        jump_before_sonic=config.get(
+            "config", "jump_before_sonic", fallback="None"
+        ),
         β=config.get("initial", "β", fallback="1.249"),
         v_rin_on_c_s=config.get("initial", "v_rin_on_c_s", fallback="1"),
         v_a_on_c_s=config.get("initial", "v_a_on_c_s", fallback="1"),
@@ -134,6 +137,10 @@ def config_input_to_soln_input(inp):
         num_angles=int(inp.num_angles),
         relative_tolerance=float_with_frac(inp.relative_tolerance),
         absolute_tolerance=float_with_frac(inp.absolute_tolerance),
+        jump_before_sonic=(
+            None if inp.jump_before_sonic == "None"
+            else float_with_frac(inp.jump_before_sonic)
+        ),
         β=float_with_frac(inp.β),
         v_rin_on_c_s=float_with_frac(inp.v_rin_on_c_s),
         v_a_on_c_s=float_with_frac(inp.v_a_on_c_s),

@@ -10,7 +10,9 @@ import logbook
 from numpy import copy
 
 from scikits.odes import ode
-from scikits.odes.sundials import CVODESolveFailed, CVODESolveFoundRoot
+from scikits.odes.sundials import (
+    CVODESolveFailed, CVODESolveFoundRoot, CVODESolveReachedTSTOP
+)
 
 from .deriv_funcs import dderiv_B_φ_soln, taylor_series
 from .utils import gen_sonic_point_rootfn, ode_error_handler
@@ -32,9 +34,9 @@ def ode_system(
     dderiv_ρ_M, dderiv_v_rM, dderiv_v_φM = taylor_series(
         β, c_s, init_con
     )
-    η_O_scale = init_con[8] / init_con[6]  # η_O / ρ
-    η_A_scale = init_con[9] / init_con[6]  # η_A / ρ
-    η_H_scale = init_con[10] / init_con[6]  # η_H / ρ
+    η_O_scale = init_con[8] / sqrt(init_con[6])  # η_O / ρ
+    η_A_scale = init_con[9] / sqrt(init_con[6])  # η_A / ρ
+    η_H_scale = init_con[10] / sqrt(init_con[6])  # η_H / ρ
 
     internal_data = InternalData()
 
@@ -73,7 +75,7 @@ def ode_system(
         # check sanity of input values
         if ρ < 0:
             problems[θ].append("negative density")
-            return -1
+            return 1
         if v_θ < 0:
             problems[θ].append("negative velocity")
             return -1
@@ -158,9 +160,10 @@ def ode_system(
         )
         deriv_ρ = deriv_ρ_taylor if θ < taylor_stop_angle else deriv_ρ_normal
 
-        deriv_η_O = deriv_ρ * η_O_scale
-        deriv_η_A = deriv_ρ * η_A_scale
-        deriv_η_H = deriv_ρ * η_H_scale
+        deriv_ρ_scale = deriv_ρ / sqrt(ρ)
+        deriv_η_O = deriv_ρ_scale * η_O_scale
+        deriv_η_A = deriv_ρ_scale * η_A_scale
+        deriv_η_H = deriv_ρ_scale * η_H_scale
 
         dderiv_B_φ = dderiv_B_φ_soln(
             B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r,
@@ -210,7 +213,7 @@ def solution(
         angles, initial_conditions, β, c_s, central_mass,
         relative_tolerance=1e-6, absolute_tolerance=1e-10,
         max_steps=500, taylor_stop_angle=0, onroot_func=None,
-        find_sonic_point=False,
+        find_sonic_point=False, tstop=None, ontstop_func=None,
 ):
     """
     Find solution
@@ -234,8 +237,11 @@ def solution(
         old_api=False,
         err_handler=ode_error_handler,
         onroot=onroot_func,
+        tstop=tstop,
+        ontstop=ontstop_func,
         **extra_args
     )
+
     try:
         soln = solver.solve(angles, initial_conditions)
     except CVODESolveFailed as e:
@@ -248,7 +254,11 @@ def solution(
     except CVODESolveFoundRoot as e:
         soln = e.soln
         for root in soln.roots.t:
-            log.info("Found sonic point at {}".format(degrees(root)))
+            log.notice("Found sonic point at {}".format(degrees(root)))
+    except CVODESolveReachedTSTOP as e:
+        soln = e.soln
+        for tstop in soln.tstop.t:
+            log.notice("Stopped at {}".format(degrees(tstop)))
 
     internal_data.finalise()
 

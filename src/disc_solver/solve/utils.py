@@ -2,7 +2,11 @@
 """
 Utility function and classes for solver associated code
 """
-from numpy import any as np_any, diff
+from numpy import (
+    any as np_any,
+    diff,
+    abs as np_abs,
+)
 
 from scikits.odes.sundials.cvode import StatusEnum
 
@@ -59,3 +63,48 @@ def onroot_stop(*args):
     """
     # pylint: disable=unused-argument
     return 1
+
+
+def ontstop_continue(*args):
+    """
+    Always continue after finding tstop
+    """
+    # pylint: disable=unused-argument
+    return 0
+
+
+def ontstop_stop(*args):
+    """
+    Always stop after finding tstop
+    """
+    # pylint: disable=unused-argument
+    return 1
+
+
+def closest(a, max_val):
+    """
+    Return closest value in a to max_val
+    """
+    return a[closest_index(a, max_val)]
+
+
+def closest_less_than(a, max_val):
+    """
+    Return closest value in a to max_val which is less than max_val
+    """
+    return a[closest_less_than_index(a, max_val)]
+
+
+def closest_index(a, max_val):
+    """
+    Return index of closest value in a to max_val
+    """
+    return np_abs(a - max_val).argmin()
+
+
+def closest_less_than_index(a, max_val):
+    """
+    Return index of closest value in a to max_val which is less than max_val
+    """
+    less_than = a < max_val
+    return closest_index(a[less_than], max_val)

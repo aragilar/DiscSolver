@@ -144,7 +144,7 @@ def generate_plot(soln_file, **kwargs):
         if settings.get("legend"):
             ax.legend()
         better_sci_format(ax.yaxis)
-        if t_roots:
+        if t_roots is not None:
             ax.axvline(degrees(t_roots[0]))
             ax.plot(degrees(t_roots[0]), y_roots[0, i], ".")
     fig.suptitle("{}:{}".format(
@@ -317,7 +317,7 @@ def get_plot_args(args):
     Parse plot args
     """
     return {
-        # "v_θ scale": args.get("v_θ", "linear"),
+        "v_θ scale": args.get("v_θ", "linear"),
         "with slow": args.get("with_slow", False),
         "with alfven": args.get("with_alfven", False),
         "with fast": args.get("with_fast", False),

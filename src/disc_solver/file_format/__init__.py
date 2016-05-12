@@ -5,29 +5,68 @@ Defines common data structures and how they are to be written to files
 from collections import namedtuple, defaultdict
 from collections.abc import MutableMapping
 
-from numpy import asarray, zeros
+from numpy import asarray, concatenate, zeros
 
 from h5preserve import Registry, new_registry_list, GroupContainer
 
 ds_registry = Registry("disc_solver")
 registries = new_registry_list(ds_registry)
 
-ConfigInput = namedtuple("ConfigInput", [
-    "start", "stop", "taylor_stop_angle", "max_steps", "num_angles", "label",
-    "relative_tolerance", "absolute_tolerance", "β", "v_rin_on_c_s",
-    "v_a_on_c_s", "c_s_on_v_k", "η_O", "η_H", "η_A",
-])
-
-SolutionInput = namedtuple("SolutionInput", [
-    "start", "stop", "taylor_stop_angle", "max_steps", "num_angles",
-    "relative_tolerance", "absolute_tolerance", "β", "v_rin_on_c_s",
-    "v_a_on_c_s", "c_s_on_v_k", "η_O", "η_H", "η_A",
-])
-
 Solution = namedtuple("Solution", [
     "solution_input", "angles", "solution", "flag", "coordinate_system",
     "internal_data", "initial_conditions", "t_roots", "y_roots",
 ])
+
+
+class ConfigInput:
+    # pylint: disable=missing-docstring,too-few-public-methods
+    # pylint: disable=too-many-instance-attributes
+    def __init__(
+        self, *, start, stop, taylor_stop_angle, max_steps, num_angles, label,
+        relative_tolerance, absolute_tolerance, β, v_rin_on_c_s, v_a_on_c_s,
+        c_s_on_v_k, η_O, η_H, η_A, jump_before_sonic=None
+    ):
+        self.start = start
+        self.stop = stop
+        self.taylor_stop_angle = taylor_stop_angle
+        self.max_steps = max_steps
+        self.num_angles = num_angles
+        self.label = label
+        self.relative_tolerance = relative_tolerance
+        self.absolute_tolerance = absolute_tolerance
+        self.β = β
+        self.v_rin_on_c_s = v_rin_on_c_s
+        self.v_a_on_c_s = v_a_on_c_s
+        self.c_s_on_v_k = c_s_on_v_k
+        self.η_O = η_O
+        self.η_H = η_H
+        self.η_A = η_A
+        self.jump_before_sonic = jump_before_sonic
+
+
+class SolutionInput:
+    # pylint: disable=missing-docstring,too-few-public-methods
+    # pylint: disable=too-many-instance-attributes
+    def __init__(
+        self, *, start, stop, taylor_stop_angle, max_steps, num_angles,
+        relative_tolerance, absolute_tolerance, β, v_rin_on_c_s, v_a_on_c_s,
+        c_s_on_v_k, η_O, η_H, η_A, jump_before_sonic=None
+    ):
+        self.start = start
+        self.stop = stop
+        self.taylor_stop_angle = taylor_stop_angle
+        self.max_steps = max_steps
+        self.num_angles = num_angles
+        self.relative_tolerance = relative_tolerance
+        self.absolute_tolerance = absolute_tolerance
+        self.β = β
+        self.v_rin_on_c_s = v_rin_on_c_s
+        self.v_a_on_c_s = v_a_on_c_s
+        self.c_s_on_v_k = c_s_on_v_k
+        self.η_O = η_O
+        self.η_H = η_H
+        self.η_A = η_A
+        self.jump_before_sonic = jump_before_sonic
 
 
 class Problems(MutableMapping):
@@ -109,6 +148,20 @@ class InternalData:
 
     def __repr__(self):
         return repr("InternalData(**{})".format(self.__dict__))
+
+    def __add__(self, other):
+        return InternalData(
+            derivs=concatenate((self.derivs, other.derivs)),
+            params=concatenate((self.params, other.params)),
+            angles=concatenate((self.angles, other.angles)),
+            v_r_normal=concatenate((self.v_r_normal, other.v_r_normal)),
+            v_φ_normal=concatenate((self.v_φ_normal, other.v_φ_normal)),
+            ρ_normal=concatenate((self.ρ_normal, other.ρ_normal)),
+            v_r_taylor=concatenate((self.v_r_taylor, other.v_r_taylor)),
+            v_φ_taylor=concatenate((self.v_φ_taylor, other.v_φ_taylor)),
+            ρ_taylor=concatenate((self.ρ_taylor, other.ρ_taylor)),
+            problems=Problems(**self.problems).update(other.problems),
+        )
 
 
 class Run:
@@ -342,6 +395,30 @@ def _config_dumper(config_input):
     })
 
 
+@ds_registry.dumper(ConfigInput, "ConfigInput", version=2)
+def _config_dumper2(config_input):
+    # pylint: disable=missing-docstring
+    return GroupContainer(
+        attrs={
+            "start": config_input.start,
+            "stop": config_input.stop,
+            "taylor_stop_angle": config_input.taylor_stop_angle,
+            "max_steps": config_input.max_steps,
+            "num_angles": config_input.num_angles,
+            "label": config_input.label,
+            "relative_tolerance": config_input.relative_tolerance,
+            "absolute_tolerance": config_input.absolute_tolerance,
+            "β": config_input.β,
+            "v_rin_on_c_s": config_input.v_rin_on_c_s,
+            "v_a_on_c_s": config_input.v_a_on_c_s,
+            "c_s_on_v_k": config_input.c_s_on_v_k,
+            "η_O": config_input.η_O,
+            "η_H": config_input.η_H,
+            "η_A": config_input.η_A,
+        }, jump_before_sonic=config_input.jump_before_sonic
+    )
+
+
 @ds_registry.loader("ConfigInput", version=1)
 def _config_loader(group):
     # pylint: disable=missing-docstring
@@ -361,6 +438,29 @@ def _config_loader(group):
         η_O=group.attrs["η_O"],
         η_H=group.attrs["η_H"],
         η_A=group.attrs["η_A"],
+    )
+
+
+@ds_registry.loader("ConfigInput", version=2)
+def _config_loader2(group):
+    # pylint: disable=missing-docstring
+    return ConfigInput(
+        start=group.attrs["start"],
+        stop=group.attrs["stop"],
+        taylor_stop_angle=group.attrs["taylor_stop_angle"],
+        max_steps=group.attrs["max_steps"],
+        num_angles=group.attrs["num_angles"],
+        label=group.attrs["label"],
+        relative_tolerance=group.attrs["relative_tolerance"],
+        absolute_tolerance=group.attrs["absolute_tolerance"],
+        β=group.attrs["β"],
+        v_rin_on_c_s=group.attrs["v_rin_on_c_s"],
+        v_a_on_c_s=group.attrs["v_a_on_c_s"],
+        c_s_on_v_k=group.attrs["c_s_on_v_k"],
+        η_O=group.attrs["η_O"],
+        η_H=group.attrs["η_H"],
+        η_A=group.attrs["η_A"],
+        jump_before_sonic=group["jump_before_sonic"]
     )
 
 
@@ -385,6 +485,29 @@ def _input_dumper(solution_input):
     })
 
 
+@ds_registry.dumper(SolutionInput, "SolutionInput", version=2)
+def _input_dumper2(solution_input):
+    # pylint: disable=missing-docstring
+    return GroupContainer(
+        attrs={
+            "start": solution_input.start,
+            "stop": solution_input.stop,
+            "taylor_stop_angle": solution_input.taylor_stop_angle,
+            "max_steps": solution_input.max_steps,
+            "num_angles": solution_input.num_angles,
+            "relative_tolerance": solution_input.relative_tolerance,
+            "absolute_tolerance": solution_input.absolute_tolerance,
+            "β": solution_input.β,
+            "v_rin_on_c_s": solution_input.v_rin_on_c_s,
+            "v_a_on_c_s": solution_input.v_a_on_c_s,
+            "c_s_on_v_k": solution_input.c_s_on_v_k,
+            "η_O": solution_input.η_O,
+            "η_H": solution_input.η_H,
+            "η_A": solution_input.η_A,
+        }, jump_before_sonic=solution_input.jump_before_sonic
+    )
+
+
 @ds_registry.loader("SolutionInput", version=1)
 def _input_loader(group):
     # pylint: disable=missing-docstring
@@ -403,6 +526,28 @@ def _input_loader(group):
         η_O=group.attrs["η_O"],
         η_H=group.attrs["η_H"],
         η_A=group.attrs["η_A"],
+    )
+
+
+@ds_registry.loader("SolutionInput", version=2)
+def _input_loader2(group):
+    # pylint: disable=missing-docstring
+    return SolutionInput(
+        start=group.attrs["start"],
+        stop=group.attrs["stop"],
+        taylor_stop_angle=group.attrs["taylor_stop_angle"],
+        max_steps=group.attrs["max_steps"],
+        num_angles=group.attrs["num_angles"],
+        relative_tolerance=group.attrs["relative_tolerance"],
+        absolute_tolerance=group.attrs["absolute_tolerance"],
+        β=group.attrs["β"],
+        v_rin_on_c_s=group.attrs["v_rin_on_c_s"],
+        v_a_on_c_s=group.attrs["v_a_on_c_s"],
+        c_s_on_v_k=group.attrs["c_s_on_v_k"],
+        η_O=group.attrs["η_O"],
+        η_H=group.attrs["η_H"],
+        η_A=group.attrs["η_A"],
+        jump_before_sonic=group["jump_before_sonic"]
     )
 
 
