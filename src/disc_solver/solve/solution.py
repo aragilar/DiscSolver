@@ -26,7 +26,7 @@ log = logbook.Logger(__name__)
 
 
 def ode_system(
-    β, c_s, central_mass, taylor_stop_angle, init_con,
+    β, c_s, central_mass, taylor_stop_angle, init_con, η_derivs=True,
 ):
     """
     Set up the system we are solving for.
@@ -34,9 +34,14 @@ def ode_system(
     dderiv_ρ_M, dderiv_v_rM, dderiv_v_φM = taylor_series(
         β, c_s, init_con
     )
-    η_O_scale = init_con[8] / sqrt(init_con[6])  # η_O / ρ
-    η_A_scale = init_con[9] / sqrt(init_con[6])  # η_A / ρ
-    η_H_scale = init_con[10] / sqrt(init_con[6])  # η_H / ρ
+    if η_derivs:
+        η_O_scale = init_con[8] / sqrt(init_con[6])  # η_O / ρ
+        η_A_scale = init_con[9] / sqrt(init_con[6])  # η_A / ρ
+        η_H_scale = init_con[10] / sqrt(init_con[6])  # η_H / ρ
+    else:
+        η_O_scale = 0
+        η_A_scale = 0
+        η_H_scale = 0
 
     internal_data = InternalData()
 
@@ -214,19 +219,19 @@ def solution(
         relative_tolerance=1e-6, absolute_tolerance=1e-10,
         max_steps=500, taylor_stop_angle=0, onroot_func=None,
         find_sonic_point=False, tstop=None, ontstop_func=None,
+        η_derivs=True,
 ):
     """
     Find solution
     """
-    extra_args = {
-        "nr_rootfns": 0
-    }
+    extra_args = {}
     if find_sonic_point:
         extra_args["rootfn"] = gen_sonic_point_rootfn(c_s)
-        extra_args["nr_rootfns"] += 1
+        extra_args["nr_rootfns"] = 1
 
     system, internal_data = ode_system(
-        β, c_s, central_mass, radians(taylor_stop_angle), initial_conditions
+        β, c_s, central_mass, radians(taylor_stop_angle), initial_conditions,
+        η_derivs=η_derivs,
     )
     solver = ode(
         INTEGRATOR, system,

@@ -4,14 +4,21 @@ Useful functions
 """
 
 from math import pi, cos, sin, sqrt
-from fractions import Fraction
 
 import numpy as np
 from matplotlib.ticker import FuncFormatter
 
+from stringtopy import (
+    str_to_float_converter, str_to_int_converter, str_to_bool_converter
+)
+
 from .constants import G, AU, M_SUN
 
 MHD_WAVE_INDEX = {"slow": 0, "alfven": 1, "fast": 2}
+
+str_to_float = str_to_float_converter()
+str_to_int = str_to_int_converter()
+str_to_bool = str_to_bool_converter()
 
 
 def strdict(d):
@@ -95,13 +102,6 @@ def better_sci_format(physical_axis):
     physical_axis.set_major_formatter(
         FuncFormatter(lambda x, pos: "{:.2e}".format(x).replace("-", "−"))
     )
-
-
-def float_with_frac(some_object):
-    """
-    Convert fraction as a string to a float
-    """
-    return float(Fraction(some_object))
 
 
 def find_in_array(array, item):

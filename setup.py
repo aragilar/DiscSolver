@@ -19,6 +19,7 @@ setuptools.setup(
         "arrow",
         "h5py>2.5",
         "h5preserve>=0.5",
+        "stringtopy",
     ],
     author = "James Tocknell",
     author_email = "aragilar@gmail.com",

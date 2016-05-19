@@ -12,7 +12,7 @@ import numpy as np
 
 from ..file_format import ConfigInput, InitialConditions, SolutionInput
 
-from ..utils import float_with_frac
+from ..utils import str_to_float, str_to_int, str_to_bool
 
 log = logbook.Logger(__name__)
 
@@ -115,6 +115,7 @@ def get_input_from_conffile(conffile=None):
         jump_before_sonic=config.get(
             "config", "jump_before_sonic", fallback="None"
         ),
+        η_derivs=config.get("config", "η_derivs", fallback="True"),
         β=config.get("initial", "β", fallback="1.249"),
         v_rin_on_c_s=config.get("initial", "v_rin_on_c_s", fallback="1"),
         v_a_on_c_s=config.get("initial", "v_a_on_c_s", fallback="1"),
@@ -130,22 +131,23 @@ def config_input_to_soln_input(inp):
     Convert user input into solver input
     """
     return SolutionInput(
-        start=float_with_frac(inp.start),
-        stop=float_with_frac(inp.stop),
-        taylor_stop_angle=float_with_frac(inp.taylor_stop_angle),
-        max_steps=int(inp.max_steps),
-        num_angles=int(inp.num_angles),
-        relative_tolerance=float_with_frac(inp.relative_tolerance),
-        absolute_tolerance=float_with_frac(inp.absolute_tolerance),
+        start=str_to_float(inp.start),
+        stop=str_to_float(inp.stop),
+        taylor_stop_angle=str_to_float(inp.taylor_stop_angle),
+        max_steps=str_to_int(inp.max_steps),
+        num_angles=str_to_int(inp.num_angles),
+        relative_tolerance=str_to_float(inp.relative_tolerance),
+        absolute_tolerance=str_to_float(inp.absolute_tolerance),
         jump_before_sonic=(
             None if inp.jump_before_sonic == "None"
-            else float_with_frac(inp.jump_before_sonic)
+            else str_to_float(inp.jump_before_sonic)
         ),
-        β=float_with_frac(inp.β),
-        v_rin_on_c_s=float_with_frac(inp.v_rin_on_c_s),
-        v_a_on_c_s=float_with_frac(inp.v_a_on_c_s),
-        c_s_on_v_k=float_with_frac(inp.c_s_on_v_k),
-        η_O=float_with_frac(inp.η_O),
-        η_H=float_with_frac(inp.η_H),
-        η_A=float_with_frac(inp.η_A),
+        η_derivs=str_to_bool(inp.η_derivs),
+        β=str_to_float(inp.β),
+        v_rin_on_c_s=str_to_float(inp.v_rin_on_c_s),
+        v_a_on_c_s=str_to_float(inp.v_a_on_c_s),
+        c_s_on_v_k=str_to_float(inp.c_s_on_v_k),
+        η_O=str_to_float(inp.η_O),
+        η_H=str_to_float(inp.η_H),
+        η_A=str_to_float(inp.η_A),
     )
