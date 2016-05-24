@@ -127,9 +127,6 @@ def ode_system(
         deriv_v_r = (
             deriv_v_r_taylor if θ < taylor_stop_angle else deriv_v_r_normal
         )
-        if __debug__:
-            if central_mass < (v_θ * deriv_v_r_normal + central_mass):
-                log.info("not grav dominant at {}".format(degrees(θ)))
 
         deriv_v_φ_taylor = θ * dderiv_v_φM
         deriv_v_φ_normal = (

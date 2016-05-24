@@ -160,7 +160,8 @@ def solver_generator():
             relative_tolerance=inp.relative_tolerance,
             absolute_tolerance=inp.absolute_tolerance,
             max_steps=inp.max_steps, taylor_stop_angle=inp.taylor_stop_angle,
-            onroot_func=onroot_continue, find_sonic_point=True
+            onroot_func=onroot_continue, find_sonic_point=True,
+            η_derivs=inp.η_derivs,
         )
         soln = Solution(
             solution_input=inp, initial_conditions=cons, flag=soln.flag,

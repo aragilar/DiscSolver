@@ -35,7 +35,7 @@ def solver(inp, run):
         relative_tolerance=inp.relative_tolerance,
         absolute_tolerance=inp.absolute_tolerance,
         max_steps=inp.max_steps, taylor_stop_angle=inp.taylor_stop_angle,
-        tstop=jump_point,
+        tstop=jump_point, η_derivs=inp.η_derivs,
     )
 
     if not validate_solution(Solution(
@@ -132,7 +132,7 @@ def find_sonic_point(inp, cons):
         relative_tolerance=inp.relative_tolerance,
         absolute_tolerance=inp.absolute_tolerance,
         max_steps=inp.max_steps, taylor_stop_angle=inp.taylor_stop_angle,
-        onroot_func=onroot_stop, find_sonic_point=True
+        onroot_func=onroot_stop, find_sonic_point=True, η_derivs=inp.η_derivs,
     )
     if soln.roots.t is None:
         raise RuntimeError("Solver failed to reach sonic point")

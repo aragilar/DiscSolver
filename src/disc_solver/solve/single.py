@@ -19,6 +19,7 @@ def solver(inp, run):
         absolute_tolerance=inp.absolute_tolerance,
         relative_tolerance=inp.relative_tolerance,
         max_steps=inp.max_steps, taylor_stop_angle=inp.taylor_stop_angle,
+        η_derivs=inp.η_derivs,
     )
     final_solution = Solution(
         solution_input=inp, initial_conditions=cons, flag=soln.flag,
