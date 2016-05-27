@@ -314,7 +314,7 @@ def dderiv_v_φ_midplane(ρ, B_θ, v_φ, dderiv_v_rM, η_O, η_H, η_A, Y5, Y4):
     )
 
 
-def taylor_series(β, c_s, init_con):
+def taylor_series(β, c_s, init_con, η_derivs=True):
     """
     Compute taylor series of v_r'', ρ'' and v_φ''
     """
@@ -335,9 +335,15 @@ def taylor_series(β, c_s, init_con):
     Y1 = Y1_func(ρ, B_θ, v_r, v_φ, deriv_B_r, deriv_B_φ, β, c_s)
 
     dderiv_ρ = ρ * Y1
-    dderiv_η_O = dderiv_ρ / ρ * η_O
-    dderiv_η_A = dderiv_ρ / ρ * η_A
-    dderiv_η_H = dderiv_ρ / ρ * η_H
+
+    if η_derivs:
+        dderiv_η_scale = dderiv_ρ / ρ / 2
+    else:
+        dderiv_η_scale = 0
+
+    dderiv_η_O = dderiv_η_scale * η_O
+    dderiv_η_A = dderiv_η_scale * η_A
+    dderiv_η_H = dderiv_η_scale * η_H
 
     Y2 = Y2_func(
         B_θ, v_r, v_φ, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, η_O, η_A,

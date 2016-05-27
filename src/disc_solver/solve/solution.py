@@ -162,7 +162,7 @@ def ode_system(
         )
         deriv_ρ = deriv_ρ_taylor if θ < taylor_stop_angle else deriv_ρ_normal
 
-        deriv_ρ_scale = deriv_ρ / sqrt(ρ)
+        deriv_ρ_scale = deriv_ρ / sqrt(ρ) / 2
         deriv_η_O = deriv_ρ_scale * η_O_scale
         deriv_η_A = deriv_ρ_scale * η_A_scale
         deriv_η_H = deriv_ρ_scale * η_H_scale
