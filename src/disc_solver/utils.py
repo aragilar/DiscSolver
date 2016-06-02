@@ -4,6 +4,7 @@ Useful functions
 """
 
 from math import pi, cos, sin, sqrt
+from configparser import ConfigParser
 
 import numpy as np
 from matplotlib.ticker import FuncFormatter
@@ -149,3 +150,12 @@ def allvars(obj):
             return obj._asdict()
         except AttributeError as f:
             raise e from f  # maybe?
+
+
+class CaseDependentConfigParser(ConfigParser):
+    # pylint: disable=too-many-ancestors
+    """
+    configparser.ConfigParser subclass that removes the case transform.
+    """
+    def optionxform(self, optionstr):
+        return optionstr

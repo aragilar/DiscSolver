@@ -3,7 +3,6 @@
 Define input and environment for ode system
 """
 
-import configparser
 from math import pi, sqrt
 
 import logbook
@@ -12,18 +11,11 @@ import numpy as np
 
 from ..file_format import ConfigInput, InitialConditions, SolutionInput
 
-from ..utils import str_to_float, str_to_int, str_to_bool
+from ..utils import (
+    str_to_float, str_to_int, str_to_bool, CaseDependentConfigParser,
+)
 
 log = logbook.Logger(__name__)
-
-
-class CaseDependentConfigParser(configparser.ConfigParser):
-    # pylint: disable=too-many-ancestors
-    """
-    configparser.ConfigParser subclass that removes the case transform.
-    """
-    def optionxform(self, optionstr):
-        return optionstr
 
 
 def define_conditions(inp):
