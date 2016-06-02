@@ -37,16 +37,17 @@ def info(soln_file, args):
     print("number of solutions: {}".format(len(soln_file.solutions)))
 
     soln_range = args.get("soln_range", "0")
+    soln_instance = get_solutions(soln_file, soln_range)
 
     print("ODE return flag: {!s}".format(
-        soln_file.solutions[soln_range].flag
+        soln_instance.flag
     ))
     print("Coordinate System: {!s}".format(
-        soln_file.solutions[soln_range].coordinate_system
+        soln_instance.coordinate_system
     ))
 
-    inp = soln_file.solutions[soln_range].solution_input
-    init_con = soln_file.solutions[soln_range].initial_conditions
+    inp = soln_instance.solution_input
+    init_con = soln_instance.initial_conditions
     v_norm = get_normalisation(inp)["v_norm"]  # need to fix config here
     c_s = init_con.c_s * v_norm
     if args.get("input"):
@@ -59,8 +60,8 @@ def info(soln_file, args):
             print(INIT_FORMAT.format(name, value))
     print("other info: ")
     if args.get("sonic_points"):
-        soln = soln_file.solutions[soln_range].solution
-        angles = soln_file.solutions[soln_range].angles
+        soln = soln_instance.solution
+        angles = soln_instance.angles
         zero_soln = np.zeros(len(soln))
         v = np.array([zero_soln, zero_soln, soln[:, 5]])
         slow_index = find_in_array(is_supersonic(
