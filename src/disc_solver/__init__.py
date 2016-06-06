@@ -4,9 +4,12 @@ Solver for PHD Project
 """
 
 import tempfile
+from pathlib import Path
 
-from .solve import solution_main
+from .solve import solve
 from .analyse import analyse_main
+
+PLOT_FILE = "plot.png"
 
 
 def main():
@@ -14,22 +17,22 @@ def main():
     The main function
     """
     for method in ("step",):
-        with tempfile.NamedTemporaryFile() as output_file:
-            solution_main(
-                output_file=output_file.name, ismain=False,
-                sonic_method=method
+        with tempfile.TemporaryDirectory() as workdir:
+            h5file = solve(
+                output_dir=Path(workdir), sonic_method=method,
+                config_file=None, output_file=None
             )
-            analyse_main(output_file=output_file.name, command="show")
+            analyse_main(output_file=h5file, command="show")
             analyse_main(
-                output_file=output_file.name, command="plot",
-                plot_filename="plot.png"
+                output_file=h5file, command="plot",
+                plot_filename=Path(workdir, PLOT_FILE),
             )
             analyse_main(
-                output_file=output_file.name, command="info", input=True,
+                output_file=h5file, command="info", input=True,
                 initial_conditions=True, sound_ratio=True, sonic_points=True,
             )
-            analyse_main(output_file=output_file.name, command="deriv_show")
-            analyse_main(output_file=output_file.name, command="check_taylor")
-            analyse_main(output_file=output_file.name, command="params_show")
+            analyse_main(output_file=h5file, command="deriv_show")
+            analyse_main(output_file=h5file, command="check_taylor")
+            analyse_main(output_file=h5file, command="params_show")
 
 from ._version import version as __version__  # noqa

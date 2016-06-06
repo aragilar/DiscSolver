@@ -16,7 +16,7 @@ from .plot_functions import (
     generate_plot, get_plot_args, generate_deriv_plot, get_deriv_plot_args,
     generate_params_plot, get_params_plot_args, get_solutions
 )
-from ..utils import is_supersonic, find_in_array, get_normalisation
+from ..utils import is_supersonic, find_in_array, get_normalisation, fspath
 from ..utils import allvars as vars
 
 INPUT_FORMAT = " {: <20}: {}"
@@ -93,7 +93,7 @@ def plot(soln_file, args):
     """
     plot_args = get_plot_args(args)
     fig = generate_plot(soln_file, **plot_args)
-    fig.savefig(args["plot_filename"])
+    fig.savefig(fspath(args["plot_filename"]))
 
 
 def show(soln_file, args):

@@ -3,6 +3,7 @@
 Solver component of Disc Solver
 """
 import argparse
+from pathlib import Path
 
 import arrow
 import logbook
@@ -22,56 +23,75 @@ from .single import solver as single_solver
 
 from ..file_format import registries, Run
 from ..logging import logging_options, log_handler
-from ..utils import allvars as vars
+from ..utils import allvars as vars, expanded_path
 
 log = logbook.Logger(__name__)
 
 
-def solution_main(output_file=None, ismain=True, sonic_method=None):
+def solve(*, output_file, sonic_method, config_file, output_dir):
     """
     Main function to generate solution
     """
-    if ismain:
-        parser = argparse.ArgumentParser(description='Solver for DiscSolver')
-        parser.add_argument("conffile")
-        parser.add_argument(
-            "--sonic-method", choices=("step", "jump", "single"),
-            default="step",
+    config_input = get_input_from_conffile(config_file=config_file)
+    run = Run(config_input=config_input, config_filename=str(config_file))
+
+    if output_file is None:
+        output_file = Path(config_input.label + str(arrow.now()) + ".hdf5")
+    output_file = expanded_path(output_dir / output_file)
+
+    if sonic_method == "step":
+        step_func = step_input()
+        writer = writer_generator(run)
+        cleanup = cleanup_generator(run, writer)
+        binary_searcher(
+            solver_generator(), cleanup,
+            stepper_creator(
+                writer, step_func,
+                create_soln_splitter("v_θ_deriv")
+            ),
+            config_input_to_soln_input(config_input),
         )
-        logging_options(parser)
-        args = vars(parser.parse_args())
-        conffile = args["conffile"]
-        sonic_method = args["sonic_method"]
+    elif sonic_method == "jump":
+        jumper_solver(config_input_to_soln_input(config_input), run)
+    elif sonic_method == "single":
+        single_solver(config_input_to_soln_input(config_input), run)
     else:
-        args = {
-            "quiet": True,
-        }
-        conffile = None
-    gen_file_name = True if output_file is None else False
+        raise RuntimeError("No method chosen to cross sonic point")
+
+    with open(output_file, registries) as f:
+        f["run"] = run
+
+    return output_file
+
+
+def main():
+    """
+    Entry point for ds-soln
+    """
+    parser = argparse.ArgumentParser(description='Solver for DiscSolver')
+    parser.add_argument("config_file")
+    parser.add_argument(
+        "--sonic-method", choices=("step", "jump", "single"),
+        default="step",
+    )
+    parser.add_argument("--output-file")
+    parser.add_argument(
+        "--output-dir", default=".",
+    )
+    logging_options(parser)
+    args = vars(parser.parse_args())
+
+    config_file = expanded_path(args["config_file"])
+    output_dir = expanded_path(args["output_dir"])
+    sonic_method = args["sonic_method"]
+    output_file = args.get("output_file", None)
+
     with log_handler(args), redirected_warnings(), redirected_logging():
-        config_inp = get_input_from_conffile(conffile=conffile)
-        run = Run(config_input=config_inp, config_filename=str(conffile))
+        print(solve(
+            output_file=output_file, sonic_method=sonic_method,
+            config_file=config_file, output_dir=output_dir
+        ))
 
-        if gen_file_name:
-            output_file = config_inp.label + str(arrow.now()) + ".hdf5"
-        if sonic_method == "step":
-            step_func = step_input()
-            writer = writer_generator(run)
-            cleanup = cleanup_generator(run, writer)
-            binary_searcher(
-                solver_generator(), cleanup,
-                stepper_creator(
-                    writer, step_func,
-                    create_soln_splitter("v_θ_deriv")
-                ),
-                config_input_to_soln_input(config_inp),
-            )
-        elif sonic_method == "jump":
-            jumper_solver(config_input_to_soln_input(config_inp), run)
-        elif sonic_method == "single":
-            single_solver(config_input_to_soln_input(config_inp), run)
-        else:
-            raise RuntimeError("No method chosen to cross sonic point")
 
-        with open(output_file, registries) as f:
-            f["run"] = run
+if __name__ == '__main__':
+    main()

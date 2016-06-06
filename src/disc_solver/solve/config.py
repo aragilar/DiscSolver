@@ -81,13 +81,14 @@ def define_conditions(inp):
     )
 
 
-def get_input_from_conffile(conffile=None):
+def get_input_from_conffile(*, config_file):
     """
     Get input values
     """
     config = CaseDependentConfigParser()
-    if conffile:
-        config.read_file(open(conffile))
+    if config_file:
+        with config_file.open("r") as f:
+            config.read_file(f)
 
     return ConfigInput(
         start=config.get("config", "start", fallback="0"),
