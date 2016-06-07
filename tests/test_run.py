@@ -11,7 +11,6 @@ PLOT_FILE = "plot.png"
 
 
 class TestConfigGeneration:
-    @pytest.mark.xfail
     def test_default(self, tmpdir):
         for path in config_generator(
             input_file=None, output_path=Path(str(tmpdir))

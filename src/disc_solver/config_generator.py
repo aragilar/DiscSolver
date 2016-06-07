@@ -38,7 +38,6 @@ def range_generator(range_obj):
         raise ValueError("Invalid range object")
 
     while cmp(num, stop):
-        print(num, step)
         yield num
         num += step
 
@@ -164,8 +163,9 @@ def read_input(input_file):
     Read input file
     """
     parser = CaseDependentConfigParser()
-    with input_file.open("r") as f:
-        parser.read_file(f)
+    if input_file is not None:
+        with input_file.open("r") as f:
+            parser.read_file(f)
 
     return {
         "label_format": parser.get(
@@ -195,17 +195,17 @@ def read_input(input_file):
         "β": slice(
             parser.get("β", "start", fallback=1.24),
             parser.get("β", "stop", fallback=1.25),
-            parser.get("β", "step", fallback=0.001),
+            parser.get("β", "step", fallback=0.01),
         ),
         "v_rin_on_c_s": slice(
             parser.get("v_rin_on_c_s", "start", fallback=0.5),
             parser.get("v_rin_on_c_s", "stop", fallback=2.5),
-            parser.get("v_rin_on_c_s", "step", fallback=0.05)
+            parser.get("v_rin_on_c_s", "step", fallback=1)
         ),
         "v_a_on_c_s": slice(
             parser.get("v_a_on_c_s", "start", fallback=0.5),
             parser.get("v_a_on_c_s", "stop", fallback=1),
-            parser.get("v_a_on_c_s", "step", fallback=0.05)
+            parser.get("v_a_on_c_s", "step", fallback=0.5)
         ),
         "c_s_on_v_k": slice(
             parser.get("c_s_on_v_k", "start", fallback=0.1),
@@ -215,17 +215,17 @@ def read_input(input_file):
         "η_O": slice(
             parser.get("η_O", "start", fallback=2.5e-4),
             parser.get("η_O", "stop", fallback=0.05),
-            parser.get("η_O", "step", fallback=5e-4)
+            parser.get("η_O", "step", fallback=5e-2)
         ),
         "η_H": slice(
             parser.get("η_H", "start", fallback=0),
             parser.get("η_H", "stop", fallback=0),
-            parser.get("η_H", "step", fallback=0)
+            parser.get("η_H", "step", fallback=None)
         ),
         "η_A": slice(
             parser.get("η_A", "start", fallback=0),
             parser.get("η_A", "stop", fallback=0),
-            parser.get("η_A", "step", fallback=0)
+            parser.get("η_A", "step", fallback=None)
         ),
     }
 
@@ -236,7 +236,7 @@ def config_generator(*, input_file, output_path):
     """
     for path in (
         config_writer(output_path)(*cfg)
-        for cfg in yield_configs(*read_input(input_file))
+        for cfg in yield_configs(**read_input(input_file))
     ):
         yield path
 
