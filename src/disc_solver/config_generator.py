@@ -258,7 +258,3 @@ def main():
             output_path=expanded_path(args["output_path"]),
         ):
             print(path)
-
-
-if __name__ == '__main__':
-    main()

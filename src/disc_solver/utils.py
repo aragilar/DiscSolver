@@ -168,6 +168,7 @@ class CaseDependentConfigParser(ConfigParser):
     def optionxform(self, optionstr):
         return optionstr
 
+
 try:
     from os import fspath  # pylint: disable=unused-import,wrong-import-order
 except ImportError:

@@ -91,7 +91,3 @@ def main():
             output_file=output_file, sonic_method=sonic_method,
             config_file=config_file, output_dir=output_dir
         ))
-
-
-if __name__ == '__main__':
-    main()
