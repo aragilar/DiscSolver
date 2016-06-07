@@ -6,7 +6,7 @@ import pytest
 from disc_solver.solve import solve
 
 ALL_SOLUTIONS = [
-    #"single_solution_default",
+    "single_solution_default",
     #"jump_solution_default",
     "step_solution_default",
 ]
