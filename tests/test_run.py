@@ -39,9 +39,7 @@ class TestSolve:
         )
 
 class TestAnalysis:
-    def test_show(self, solution):
-        import matplotlib.pyplot as plt
-        plt.ion()
+    def test_show(self, solution, mpl_interactive):
         analyse_main(output_file=solution, command="show")
 
 
@@ -57,19 +55,13 @@ class TestAnalysis:
             initial_conditions=True, sound_ratio=True, sonic_points=True,
         )
 
-    def test_derivs_show(self, solution):
-        import matplotlib.pyplot as plt
-        plt.ion()
+    def test_derivs_show(self, solution, mpl_interactive):
         analyse_main(output_file=solution, command="deriv_show")
 
-    def test_check_taylor(self, solution):
-        import matplotlib.pyplot as plt
-        plt.ion()
+    def test_check_taylor(self, solution, mpl_interactive):
         analyse_main(output_file=solution, command="check_taylor")
 
-    def test_params_show(self, solution):
-        import matplotlib.pyplot as plt
-        plt.ion()
+    def test_params_show(self, solution, mpl_interactive):
         analyse_main(output_file=solution, command="params_show")
 
 

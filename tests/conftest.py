@@ -41,3 +41,8 @@ def step_solution_default(tmpdir_factory):
 @pytest.fixture(scope="session", params=ALL_SOLUTIONS)
 def solution(request):
     return request.getfuncargvalue(request.param)
+
+@pytest.fixture()
+def mpl_interactive():
+    import matplotlib.pyplot as plt
+    plt.ion()
