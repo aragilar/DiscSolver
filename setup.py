@@ -44,9 +44,9 @@ setuptools.setup(
     #],
     entry_points = {
         'console_scripts': [
-            "ds-soln = disc_solver:solution_main",
             "ds-analyse = disc_solver:analyse_main",
-            "ds-quick = disc_solver:main",
+            "ds-soln = disc_solver.solve:main",
+            "ds-generate-config = disc_solver.config_generator:main",
         ],
     },
     cmdclass=versioneer.get_cmdclass(),
