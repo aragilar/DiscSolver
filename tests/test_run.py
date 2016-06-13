@@ -65,5 +65,5 @@ class TestAnalysis:
         analyse_main(output_file=solution, command="params_show")
 
 
-class TestFindSolutions:
+class TestFilter:
     pass

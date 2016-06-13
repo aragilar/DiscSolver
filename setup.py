@@ -47,6 +47,7 @@ setuptools.setup(
             "ds-analyse = disc_solver:analyse_main",
             "ds-soln = disc_solver.solve:main",
             "ds-generate-config = disc_solver.config_generator:main",
+            "ds-filter-files = disc_solver.filter_files:main",
         ],
     },
     cmdclass=versioneer.get_cmdclass(),
