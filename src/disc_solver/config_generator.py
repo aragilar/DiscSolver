@@ -11,7 +11,7 @@ import logbook
 from logbook.compat import redirected_warnings, redirected_logging
 
 from .logging import logging_options, log_handler
-from .utils import CaseDependentConfigParser, expanded_path
+from .utils import CaseDependentConfigParser, expanded_path, str_to_float
 
 log = logbook.Logger(__name__)
 
@@ -25,10 +25,12 @@ def range_generator(range_obj):
     else:
         num = 0
     stop = range_obj.stop
-    if range_obj.step is not None:
-        step = range_obj.step
-    else:
+    if range_obj.step is None:
         step = 1
+    elif range_obj.step == 0:
+        step = 1
+    else:
+        step = range_obj.step
 
     if num <= stop and step > 0:
         cmp = operator.le
@@ -143,13 +145,13 @@ def config_writer(output_path):
             "η_derivs": η_derivs,
         }
         parser["initial"] = {
-            "β": β,
-            "v_rin_on_c_s": v_rin_on_c_s,
-            "v_a_on_c_s": v_a_on_c_s,
-            "c_s_on_v_k": c_s_on_v_k,
-            "η_O": η_O,
-            "η_H": η_H,
-            "η_A": η_A,
+            "β": str(β),
+            "v_rin_on_c_s": str(v_rin_on_c_s),
+            "v_a_on_c_s": str(v_a_on_c_s),
+            "c_s_on_v_k": str(c_s_on_v_k),
+            "η_O": str(η_O),
+            "η_H": str(η_H),
+            "η_A": str(η_A),
         }
         path = output_path / Path(label + ".cfg")
         with path.open("w") as f:
@@ -193,39 +195,39 @@ def read_input(input_file):
             "common", "η_derivs", fallback="false",
         ),
         "β": slice(
-            parser.get("β", "start", fallback=1.24),
-            parser.get("β", "stop", fallback=1.25),
-            parser.get("β", "step", fallback=0.01),
+            str_to_float(parser.get("β", "start", fallback="1.24")),
+            str_to_float(parser.get("β", "stop", fallback="1.25")),
+            str_to_float(parser.get("β", "step", fallback="0.01")),
         ),
         "v_rin_on_c_s": slice(
-            parser.get("v_rin_on_c_s", "start", fallback=0.5),
-            parser.get("v_rin_on_c_s", "stop", fallback=2.5),
-            parser.get("v_rin_on_c_s", "step", fallback=1)
+            str_to_float(parser.get("v_rin_on_c_s", "start", fallback="0.5")),
+            str_to_float(parser.get("v_rin_on_c_s", "stop", fallback="2.5")),
+            str_to_float(parser.get("v_rin_on_c_s", "step", fallback="1"))
         ),
         "v_a_on_c_s": slice(
-            parser.get("v_a_on_c_s", "start", fallback=0.5),
-            parser.get("v_a_on_c_s", "stop", fallback=1),
-            parser.get("v_a_on_c_s", "step", fallback=0.5)
+            str_to_float(parser.get("v_a_on_c_s", "start", fallback="0.5")),
+            str_to_float(parser.get("v_a_on_c_s", "stop", fallback="1")),
+            str_to_float(parser.get("v_a_on_c_s", "step", fallback="0.5"))
         ),
         "c_s_on_v_k": slice(
-            parser.get("c_s_on_v_k", "start", fallback=0.1),
-            parser.get("c_s_on_v_k", "stop", fallback=1e-2),
-            parser.get("c_s_on_v_k", "step", fallback=-1e-2)
+            str_to_float(parser.get("c_s_on_v_k", "start", fallback="0.1")),
+            str_to_float(parser.get("c_s_on_v_k", "stop", fallback="1e-2")),
+            str_to_float(parser.get("c_s_on_v_k", "step", fallback="-1e-2"))
         ),
         "η_O": slice(
-            parser.get("η_O", "start", fallback=2.5e-4),
-            parser.get("η_O", "stop", fallback=0.05),
-            parser.get("η_O", "step", fallback=5e-2)
+            str_to_float(parser.get("η_O", "start", fallback="2.5e-4")),
+            str_to_float(parser.get("η_O", "stop", fallback="0.05")),
+            str_to_float(parser.get("η_O", "step", fallback="5e-2"))
         ),
         "η_H": slice(
-            parser.get("η_H", "start", fallback=0),
-            parser.get("η_H", "stop", fallback=0),
-            parser.get("η_H", "step", fallback=None)
+            str_to_float(parser.get("η_H", "start", fallback="0")),
+            str_to_float(parser.get("η_H", "stop", fallback="0")),
+            str_to_float(parser.get("η_H", "step", fallback="0"))
         ),
         "η_A": slice(
-            parser.get("η_A", "start", fallback=0),
-            parser.get("η_A", "stop", fallback=0),
-            parser.get("η_A", "step", fallback=None)
+            str_to_float(parser.get("η_A", "start", fallback="0")),
+            str_to_float(parser.get("η_A", "stop", fallback="0")),
+            str_to_float(parser.get("η_A", "step", fallback="0"))
         ),
     }
 
