@@ -3,6 +3,7 @@
 Useful functions
 """
 
+from enum import IntEnum
 from math import pi, cos, sin, sqrt
 from configparser import ConfigParser
 from pathlib import Path
@@ -200,3 +201,23 @@ except ImportError:
                 "expected str, bytes or os.PathLike object, not " +
                 path_type.__name__
             )
+
+
+class ODEIndex(IntEnum):
+    """
+    Enum for array index for variables in the odes
+    """
+    B_r = 0
+    B_φ = 1
+    B_θ = 2
+    v_r = 3
+    v_φ = 4
+    v_θ = 5
+    ρ = 6
+    B_φ_prime = 7
+    η_O = 8
+    η_A = 9
+    η_H = 10
+
+
+MAGNETIC_INDEXES = [ODEIndex.B_r, ODEIndex.B_φ, ODEIndex.B_θ]

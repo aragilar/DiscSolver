@@ -12,7 +12,8 @@ import matplotlib.pyplot as plt
 
 from ..constants import KM
 from ..utils import (
-    better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX, get_normalisation
+    better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX, get_normalisation,
+    ODEIndex, MAGNETIC_INDEXES,
 )
 
 
@@ -32,9 +33,9 @@ def generate_plot(soln_file, **kwargs):
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
     zero_soln = np.zeros(len(soln))
-    v = np.array([zero_soln, zero_soln, soln[:, 5]])
+    v = np.array([zero_soln, zero_soln, soln[:, ODEIndex.v_θ]])
     wave_speeds = np.sqrt(mhd_wave_speeds(
-        v.T, soln[:, 0:3], soln[:, 6], cons.c_s * v_norm
+        v.T, soln[:, MAGNETIC_INDEXES], soln[:, ODEIndex.ρ], cons.c_s * v_norm
     ))
     linestyle = kwargs.pop("line style")
     with_slow = kwargs.pop("with slow")
@@ -94,25 +95,25 @@ def generate_plot(soln_file, **kwargs):
     ]
 
     if with_slow:
-        param_names[5]["extras"].append({
+        param_names[ODEIndex.v_θ]["extras"].append({
             "label": "slow",
             "data": wave_speeds[MHD_WAVE_INDEX["slow"]],
             "normalisation": v_norm / KM,
         })
     if with_alfven:
-        param_names[5]["extras"].append({
+        param_names[ODEIndex.v_θ]["extras"].append({
             "label": "alfven",
             "data": wave_speeds[MHD_WAVE_INDEX["alfven"]],
             "normalisation": v_norm / KM,
         })
     if with_fast:
-        param_names[5]["extras"].append({
+        param_names[ODEIndex.v_θ]["extras"].append({
             "label": "fast",
             "data": wave_speeds[MHD_WAVE_INDEX["fast"]],
             "normalisation": v_norm / KM,
         })
     if with_sonic:
-        param_names[5]["extras"].append({
+        param_names[ODEIndex.v_θ]["extras"].append({
             "label": "sound",
             "data": np.ones(len(soln)),
             "normalisation": v_norm / KM,
@@ -169,9 +170,9 @@ def generate_plot_combine(soln_file, **kwargs):
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
     zero_soln = np.zeros(len(soln))
-    v = np.array([zero_soln, zero_soln, soln[:, 5]])
+    v = np.array([zero_soln, zero_soln, soln[:, ODEIndex.v_θ]])
     wave_speeds = np.sqrt(mhd_wave_speeds(
-        v.T, soln[:, 0:3], soln[:, 6], cons.c_s * v_norm
+        v.T, soln[:, MAGNETIC_INDEXES], soln[:, ODEIndex.ρ], cons.c_s * v_norm
     ))
     linestyle = kwargs.pop("line style")
     with_slow = kwargs.pop("with slow")
@@ -187,16 +188,16 @@ def generate_plot_combine(soln_file, **kwargs):
             "lines": [
                 {
                     "label": "v_r",
-                    "index": 3,
+                    "index": ODEIndex.v_r,
                 },
                 {
                     "label": "v_φ",
-                    "index": 4,
+                    "index": ODEIndex.v_φ,
                     "offset": sqrt(cons.norm_kepler_sq) * v_norm / KM
                 },
                 {
                     "label": "v_θ",
-                    "index": 5,
+                    "index": ODEIndex.v_θ,
                 },
             ],
         }),
@@ -207,7 +208,7 @@ def generate_plot_combine(soln_file, **kwargs):
             "lines": [
                 {
                     "label": "ρ",
-                    "index": 6,
+                    "index": ODEIndex.ρ,
                 }
             ],
         }),
@@ -217,15 +218,15 @@ def generate_plot_combine(soln_file, **kwargs):
             "lines": [
                 {
                     "label": "B_r",
-                    "index": 0,
+                    "index": ODEIndex.B_r,
                 },
                 {
                     "label": "B_φ",
-                    "index": 1,
+                    "index": ODEIndex.B_φ,
                 },
                 {
                     "label": "B_θ",
-                    "index": 2,
+                    "index": ODEIndex.B_θ,
                 },
             ],
         }),

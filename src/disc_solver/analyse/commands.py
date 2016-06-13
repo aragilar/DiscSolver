@@ -16,7 +16,10 @@ from .plot_functions import (
     generate_plot, get_plot_args, generate_deriv_plot, get_deriv_plot_args,
     generate_params_plot, get_params_plot_args, get_solutions
 )
-from ..utils import is_supersonic, find_in_array, get_normalisation, fspath
+from ..utils import (
+    is_supersonic, find_in_array, get_normalisation, fspath, ODEIndex,
+    MAGNETIC_INDEXES,
+)
 from ..utils import allvars as vars
 
 INPUT_FORMAT = " {: <20}: {}"
@@ -63,15 +66,18 @@ def info(soln_file, args):
         soln = soln_instance.solution
         angles = soln_instance.angles
         zero_soln = np.zeros(len(soln))
-        v = np.array([zero_soln, zero_soln, soln[:, 5]])
+        v = np.array([zero_soln, zero_soln, soln[:, ODEIndex.v_θ]])
         slow_index = find_in_array(is_supersonic(
-            v.T, soln[:, 0:3], soln[:, 6], c_s, "slow"
+            v.T, soln[:, MAGNETIC_INDEXES], soln[:, ODEIndex.ρ],
+            c_s, "slow"
         ), True)
         alfven_index = find_in_array(is_supersonic(
-            v.T, soln[:, 0:3], soln[:, 6], c_s, "alfven"
+            v.T, soln[:, MAGNETIC_INDEXES], soln[:, ODEIndex.ρ],
+            c_s, "alfven"
         ), True)
         fast_index = find_in_array(is_supersonic(
-            v.T, soln[:, 0:3], soln[:, 6], c_s, "fast"
+            v.T, soln[:, MAGNETIC_INDEXES], soln[:, ODEIndex.ρ],
+            c_s, "fast"
         ), True)
         print(OTHER_FORMAT.format(
             "slow sonic point",
@@ -181,10 +187,10 @@ def plot_acc(soln_file, args):
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
 
-    B_θ = soln[:, 2] * B_norm
-    B_φ = soln[:, 1] * B_norm
-    v_θ = soln[:, 5] * v_norm
-    ρ = soln[:, 6] * ρ_norm
+    B_θ = soln[:, ODEIndex.B_θ] * B_norm
+    B_φ = soln[:, ODEIndex.B_φ] * B_norm
+    v_θ = soln[:, ODEIndex.v_θ] * v_norm
+    ρ = soln[:, ODEIndex.ρ] * ρ_norm
     xpos = degrees(angles) < 1
 
     # pylint: disable=unused-variable

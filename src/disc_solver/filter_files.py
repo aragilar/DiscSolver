@@ -11,8 +11,9 @@ from logbook.compat import redirected_warnings, redirected_logging
 
 from h5preserve import open
 
-from ..file_format import registries
-from ..logging import logging_options, log_handler
+from .file_format import registries
+from .logging import logging_options, log_handler
+from .utils import ODEIndex
 
 log = logbook.Logger(__name__)
 
@@ -22,7 +23,7 @@ def get_level(file):
     Get value for level
     """
     with open(file, registries) as f:
-        return max(f["run"].final_solution.solution[:, 5])
+        return max(f["run"].final_solution.solution[:, ODEIndex.v_θ])
 
 
 def level_wrapper(output_path, level_list):

@@ -13,6 +13,7 @@ from ..file_format import ConfigInput, InitialConditions, SolutionInput
 
 from ..utils import (
     str_to_float, str_to_int, str_to_bool, CaseDependentConfigParser,
+    ODEIndex,
 )
 
 log = logbook.Logger(__name__)
@@ -61,17 +62,17 @@ def define_conditions(inp):
 
     init_con = np.zeros(11)
 
-    init_con[0] = B_r
-    init_con[1] = B_φ
-    init_con[2] = B_θ
-    init_con[3] = v_r
-    init_con[4] = v_φ
-    init_con[5] = v_θ
-    init_con[6] = ρ
-    init_con[7] = B_φ_prime
-    init_con[8] = η_O
-    init_con[9] = η_A
-    init_con[10] = η_H
+    init_con[ODEIndex.B_r] = B_r
+    init_con[ODEIndex.B_φ] = B_φ
+    init_con[ODEIndex.B_θ] = B_θ
+    init_con[ODEIndex.v_r] = v_r
+    init_con[ODEIndex.v_φ] = v_φ
+    init_con[ODEIndex.v_θ] = v_θ
+    init_con[ODEIndex.ρ] = ρ
+    init_con[ODEIndex.B_φ_prime] = B_φ_prime
+    init_con[ODEIndex.η_O] = η_O
+    init_con[ODEIndex.η_A] = η_A
+    init_con[ODEIndex.η_H] = η_H
 
     angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
 
