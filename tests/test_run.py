@@ -6,6 +6,7 @@ import pytest
 from disc_solver.analyse import analyse_main
 from disc_solver.config_generator import config_generator
 from disc_solver.solve import solve
+from disc_solver.filter_files import filter_files
 
 PLOT_FILE = "plot.png"
 
