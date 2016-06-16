@@ -243,7 +243,7 @@ def config_generator(*, input_file, output_path):
 
 def main():
     """
-    Entry point for ds-gen-config
+    Entry point for ds-config-generator
     """
     parser = argparse.ArgumentParser(
         description='Config Generator for DiscSolver'

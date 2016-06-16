@@ -5,6 +5,7 @@ import pytest
 
 from disc_solver.solve import solve
 
+PLOT_FILE = "plot.png"
 ALL_SOLUTIONS = [
     "single_solution_default",
     #"jump_solution_default",
@@ -46,3 +47,16 @@ def solution(request):
 def mpl_interactive():
     import matplotlib.pyplot as plt
     plt.ion()
+
+@pytest.fixture
+def tmp_text_stream(request):
+    from io import StringIO
+    stream = StringIO()
+    def fin():
+        stream.close()
+    request.addfinalizer(fin)
+    return stream
+
+@pytest.fixture
+def plot_file(tmpdir):
+    return Path(Path(str(tmpdir)), PLOT_FILE)

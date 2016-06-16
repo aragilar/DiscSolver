@@ -44,9 +44,15 @@ setuptools.setup(
     #],
     entry_points = {
         'console_scripts': [
-            "ds-soln = disc_solver:solution_main",
-            "ds-analyse = disc_solver:analyse_main",
-            "ds-quick = disc_solver:main",
+            "ds-soln = disc_solver.solve:main",
+            "ds-analyse-info = disc_solver.analyse:info_main",
+            "ds-analyse-plot = disc_solver.analyse:plot_main",
+            "ds-analyse-derivs = disc_solver.analyse:derivs_main",
+            "ds-analyse-params = disc_solver.analyse:params_main",
+            "ds-analyse-taylor = disc_solver.analyse:taylor_main",
+            "ds-analyse-combine = disc_solver.analyse:combine_main",
+            "ds-analyse-acc = disc_solver.analyse:acc_main",
+            "ds-generate-config = disc_solver.config_generator:main",
         ],
     },
     cmdclass=versioneer.get_cmdclass(),
