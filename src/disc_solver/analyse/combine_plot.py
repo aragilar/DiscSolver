@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 
 from ..constants import KM
 from ..utils import (
-    better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX, get_normalisation
+    better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX, get_normalisation,
+    ODEIndex, MAGNETIC_INDEXES
 )
 
 from .utils import single_solution_plotter
@@ -37,9 +38,10 @@ def generate_plot_combine(
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
     zero_soln = np.zeros(len(solution))
-    v = np.array([zero_soln, zero_soln, solution[:, 5]])
+    v = np.array([zero_soln, zero_soln, solution[:, ODEIndex.v_θ]])
     wave_speeds = np.sqrt(mhd_wave_speeds(
-        v.T, solution[:, 0:3], solution[:, 6], cons.c_s * v_norm
+        v.T, solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ],
+        cons.c_s * v_norm
     ))
 
     plot_props = OrderedDict([
@@ -49,16 +51,16 @@ def generate_plot_combine(
             "lines": [
                 {
                     "label": "v_r",
-                    "index": 3,
+                    "index": ODEIndex.v_r,
                 },
                 {
                     "label": "v_φ",
-                    "index": 4,
+                    "index": ODEIndex.v_φ,
                     "offset": sqrt(cons.norm_kepler_sq) * v_norm / KM
                 },
                 {
                     "label": "v_θ",
-                    "index": 5,
+                    "index": ODEIndex.v_θ,
                 },
             ],
         }),
@@ -69,7 +71,7 @@ def generate_plot_combine(
             "lines": [
                 {
                     "label": "ρ",
-                    "index": 6,
+                    "index": ODEIndex.ρ,
                 }
             ],
         }),
@@ -79,15 +81,15 @@ def generate_plot_combine(
             "lines": [
                 {
                     "label": "B_r",
-                    "index": 0,
+                    "index": ODEIndex.B_r,
                 },
                 {
                     "label": "B_φ",
-                    "index": 1,
+                    "index": ODEIndex.B_φ,
                 },
                 {
                     "label": "B_θ",
-                    "index": 2,
+                    "index": ODEIndex.B_θ,
                 },
             ],
         }),

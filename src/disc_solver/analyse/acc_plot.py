@@ -8,7 +8,7 @@ from numpy import degrees
 import matplotlib.pyplot as plt
 
 from ..constants import KM, AU, M_SUN, YEAR
-from ..utils import get_normalisation
+from ..utils import get_normalisation, ODEIndex
 from .utils import single_solution_plotter, common_plotting_options
 
 # AU^2 * Gauss^2 / 30 km/s in Msun/year
@@ -42,10 +42,10 @@ def plot_acc(
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
 
-    B_θ = solution[:, 2] * B_norm
-    B_φ = solution[:, 1] * B_norm
-    v_θ = solution[:, 5] * v_norm
-    ρ = solution[:, 6] * ρ_norm
+    B_θ = solution[:, ODEIndex.B_θ] * B_norm
+    B_φ = solution[:, ODEIndex.B_φ] * B_norm
+    v_θ = solution[:, ODEIndex.v_θ] * v_norm
+    ρ = solution[:, ODEIndex.ρ] * ρ_norm
     xpos = degrees(angles) < 1
 
     fig, (ax_in, ax_wind) = plt.subplots(ncols=2, **figargs)

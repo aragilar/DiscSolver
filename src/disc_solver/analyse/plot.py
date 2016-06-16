@@ -12,7 +12,8 @@ import matplotlib.pyplot as plt
 
 from ..constants import KM
 from ..utils import (
-    better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX, get_normalisation
+    better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX, get_normalisation,
+    ODEIndex, MAGNETIC_INDEXES,
 )
 
 from .utils import (
@@ -110,9 +111,9 @@ def generate_plot(
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
     zero_soln = np_zeros(len(solution))
-    v = np_array([zero_soln, zero_soln, solution[:, 5]])
+    v = np_array([zero_soln, zero_soln, solution[:, ODEIndex.v_θ]])
     wave_speeds = np_sqrt(mhd_wave_speeds(
-        v.T, solution[:, 0:3], solution[:, 6], cons.c_s * v_norm
+        v.T, solution[:, MAGNETIC_INDEXES], solution[:, 6], cons.c_s * v_norm
     ))
 
     indexes = degrees(angles) <= stop
@@ -166,25 +167,25 @@ def generate_plot(
     ]
 
     if with_slow:
-        param_names[5]["extras"].append({
+        param_names[ODEIndex.v_θ]["extras"].append({
             "label": "slow",
             "data": wave_speeds[MHD_WAVE_INDEX["slow"]],
             "normalisation": v_norm / KM,
         })
     if with_alfven:
-        param_names[5]["extras"].append({
+        param_names[ODEIndex.v_θ]["extras"].append({
             "label": "alfven",
             "data": wave_speeds[MHD_WAVE_INDEX["alfven"]],
             "normalisation": v_norm / KM,
         })
     if with_fast:
-        param_names[5]["extras"].append({
+        param_names[ODEIndex.v_θ]["extras"].append({
             "label": "fast",
             "data": wave_speeds[MHD_WAVE_INDEX["fast"]],
             "normalisation": v_norm / KM,
         })
     if with_sonic:
-        param_names[5]["extras"].append({
+        param_names[ODEIndex.v_θ]["extras"].append({
             "label": "sound",
             "data": np_ones(len(solution)),
             "normalisation": v_norm / KM,

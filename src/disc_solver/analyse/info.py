@@ -8,7 +8,8 @@ import numpy as np
 from numpy import degrees
 
 from ..utils import (
-    is_supersonic, find_in_array, get_normalisation, allvars as vars
+    is_supersonic, find_in_array, get_normalisation, allvars as vars, ODEIndex,
+    MAGNETIC_INDEXES,
 )
 from .utils import get_solutions, analyse_main_wrapper, analysis_func_wrapper
 
@@ -87,15 +88,18 @@ def info(soln_file, *, group, soln_range, output_file):
             soln = soln_instance.solution
             angles = soln_instance.angles
             zero_soln = np.zeros(len(soln))
-            v = np.array([zero_soln, zero_soln, soln[:, 5]])
+            v = np.array([zero_soln, zero_soln, soln[:, ODEIndex.v_θ]])
             slow_index = find_in_array(is_supersonic(
-                v.T, soln[:, 0:3], soln[:, 6], c_s, "slow"
+                v.T, soln[:, MAGNETIC_INDEXES], soln[:, ODEIndex.ρ],
+                c_s, "slow"
             ), True)
             alfven_index = find_in_array(is_supersonic(
-                v.T, soln[:, 0:3], soln[:, 6], c_s, "alfven"
+                v.T, soln[:, MAGNETIC_INDEXES], soln[:, ODEIndex.ρ],
+                c_s, "alfven"
             ), True)
             fast_index = find_in_array(is_supersonic(
-                v.T, soln[:, 0:3], soln[:, 6], c_s, "fast"
+                v.T, soln[:, MAGNETIC_INDEXES], soln[:, ODEIndex.ρ],
+                c_s, "fast"
             ), True)
             print(OTHER_FORMAT.format(
                 "slow sonic point",
