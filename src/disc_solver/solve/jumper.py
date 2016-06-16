@@ -14,6 +14,7 @@ from .utils import (
     onroot_stop, validate_solution, closest_less_than_index,
 )
 from ..file_format import Solution
+from ..utils import ODEIndex
 
 log = logbook.Logger(__name__)
 
@@ -58,12 +59,14 @@ def solver(inp, run):
     log.notice("Solver finished with flag: {!r}".format(
         StatusEnum(soln_before_jump.flag)
     ))
-    log.notice("Final velocity: {}".format(soln_before_jump.values.y[-1][5]))
-    log.notice(jump_derivs[internal_index][5])
+    log.notice("Final velocity: {}".format(
+        soln_before_jump.values.y[-1][ODEIndex.v_θ]
+    ))
+    log.notice(jump_derivs[internal_index][ODEIndex.v_θ])
 
     end_jump_point = jump_point + (
-        cons.c_s - soln_before_jump.values.y[-1][5] + 0.1
-    ) / jump_derivs[internal_index][5]
+        cons.c_s - soln_before_jump.values.y[-1][ODEIndex.v_θ] + 0.1
+    ) / jump_derivs[internal_index][ODEIndex.v_θ]
 
     log.notice("end_jump_point: {}".format(degrees(end_jump_point)))
     if degrees(end_jump_point) > inp.stop:

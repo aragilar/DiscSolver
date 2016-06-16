@@ -12,6 +12,7 @@ from disc_solver.analyse.taylor_plot import taylor_plot
 #from disc_solver.analyse.combine_plot import combine_plot
 #from disc_solver.analyse.acc_plot import acc_plot
 from disc_solver.solve import solve
+from disc_solver.filter_files import filter_files
 
 
 
@@ -116,5 +117,5 @@ class TestAnalysis:
     #def test_acc_file(self, solution, plot_file):
     #    acc_plot(soln_file=solution, plot_filename=plot_file)
 
-class TestFindSolutions:
+class TestFilter:
     pass

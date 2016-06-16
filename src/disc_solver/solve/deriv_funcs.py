@@ -7,7 +7,7 @@ from math import pi, sqrt, tan
 
 import logbook
 
-from ..utils import sec
+from ..utils import sec, ODEIndex
 
 log = logbook.Logger(__name__)
 
@@ -318,14 +318,14 @@ def taylor_series(β, c_s, init_con, η_derivs=True):
     """
     Compute taylor series of v_r'', ρ'' and v_φ''
     """
-    B_θ = init_con[2]
-    v_r = init_con[3]
-    v_φ = init_con[4]
-    ρ = init_con[6]
-    deriv_B_φ = init_con[7]
-    η_O = init_con[8]
-    η_A = init_con[9]
-    η_H = init_con[10]
+    B_θ = init_con[ODEIndex.B_θ]
+    v_r = init_con[ODEIndex.v_r]
+    v_φ = init_con[ODEIndex.v_φ]
+    ρ = init_con[ODEIndex.ρ]
+    deriv_B_φ = init_con[ODEIndex.B_φ_prime]
+    η_O = init_con[ODEIndex.η_O]
+    η_A = init_con[ODEIndex.η_A]
+    η_H = init_con[ODEIndex.η_H]
     deriv_B_r = - (
         B_θ * (1 - β) + (v_r * B_θ + deriv_B_φ * η_H) / (η_O + η_A)
     )

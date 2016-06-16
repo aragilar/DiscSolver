@@ -18,6 +18,7 @@ from .deriv_funcs import dderiv_B_φ_soln, taylor_series
 from .utils import gen_sonic_point_rootfn, ode_error_handler
 
 from ..file_format import InternalData
+from ..utils import ODEIndex
 
 INTEGRATOR = "cvode"
 COORDS = "spherical midplane 0"
@@ -35,9 +36,9 @@ def ode_system(
         β, c_s, init_con
     )
     if η_derivs:
-        η_O_scale = init_con[8] / sqrt(init_con[6])  # η_O / ρ
-        η_A_scale = init_con[9] / sqrt(init_con[6])  # η_A / ρ
-        η_H_scale = init_con[10] / sqrt(init_con[6])  # η_H / ρ
+        η_O_scale = init_con[ODEIndex.η_O] / sqrt(init_con[ODEIndex.ρ])
+        η_A_scale = init_con[ODEIndex.η_A] / sqrt(init_con[ODEIndex.ρ])
+        η_H_scale = init_con[ODEIndex.η_H] / sqrt(init_con[ODEIndex.ρ])
     else:
         η_O_scale = 0
         η_A_scale = 0
@@ -65,17 +66,17 @@ def ode_system(
         nonlocal v_φ_nlist, v_φ_taylist
         nonlocal ρ_nlist, ρ_taylist
 
-        B_r = params[0]
-        B_φ = params[1]
-        B_θ = params[2]
-        v_r = params[3]
-        v_φ = params[4]
-        v_θ = params[5]
-        ρ = params[6]
-        B_φ_prime = params[7]
-        η_O = params[8]
-        η_A = params[9]
-        η_H = params[10]
+        B_r = params[ODEIndex.B_r]
+        B_φ = params[ODEIndex.B_φ]
+        B_θ = params[ODEIndex.B_θ]
+        v_r = params[ODEIndex.v_r]
+        v_φ = params[ODEIndex.v_φ]
+        v_θ = params[ODEIndex.v_θ]
+        ρ = params[ODEIndex.ρ]
+        B_φ_prime = params[ODEIndex.B_φ_prime]
+        η_O = params[ODEIndex.η_O]
+        η_A = params[ODEIndex.η_A]
+        η_H = params[ODEIndex.η_H]
 
         # check sanity of input values
         if ρ < 0:
@@ -174,17 +175,17 @@ def ode_system(
             deriv_η_H
         )
 
-        derivs[0] = deriv_B_r
-        derivs[1] = deriv_B_φ
-        derivs[2] = deriv_B_θ
-        derivs[3] = deriv_v_r
-        derivs[4] = deriv_v_φ
-        derivs[5] = deriv_v_θ
-        derivs[6] = deriv_ρ
-        derivs[7] = dderiv_B_φ
-        derivs[8] = deriv_η_O
-        derivs[9] = deriv_η_A
-        derivs[10] = deriv_η_H
+        derivs[ODEIndex.B_r] = deriv_B_r
+        derivs[ODEIndex.B_φ] = deriv_B_φ
+        derivs[ODEIndex.B_θ] = deriv_B_θ
+        derivs[ODEIndex.v_r] = deriv_v_r
+        derivs[ODEIndex.v_φ] = deriv_v_φ
+        derivs[ODEIndex.v_θ] = deriv_v_θ
+        derivs[ODEIndex.ρ] = deriv_ρ
+        derivs[ODEIndex.B_φ_prime] = dderiv_B_φ
+        derivs[ODEIndex.η_O] = deriv_η_O
+        derivs[ODEIndex.η_A] = deriv_η_A
+        derivs[ODEIndex.η_H] = deriv_η_H
         if __debug__:
             log.debug("θ: {}, {}", θ, degrees(θ))
 

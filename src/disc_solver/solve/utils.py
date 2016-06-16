@@ -10,6 +10,8 @@ from numpy import (
 
 from scikits.odes.sundials.cvode import StatusEnum
 
+from ..utils import ODEIndex
+
 
 def ode_error_handler(error_code, module, func, msg, user_data):
     """ drop all CVODE messages """
@@ -26,7 +28,7 @@ def gen_sonic_point_rootfn(c_s):
         root function to find acoustic sonic point
         """
         # pylint: disable=unused-argument
-        out[0] = c_s - params[5]
+        out[0] = c_s - params[ODEIndex.v_θ]
         return 0
     return rootfn
 
@@ -38,8 +40,8 @@ def validate_solution(soln):
     """
     if soln.flag != StatusEnum.SUCCESS:
         return soln, False
-    v_θ = soln.solution[:, 5]
-    ρ = soln.solution[:, 6]
+    v_θ = soln.solution[:, ODEIndex.v_θ]
+    ρ = soln.solution[:, ODEIndex.ρ]
     if np_any(v_θ < 0):
         return soln, False
     if np_any(diff(v_θ) < 0):

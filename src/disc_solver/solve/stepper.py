@@ -11,7 +11,7 @@ from .config import define_conditions
 from .solution import solution
 from .utils import validate_solution, onroot_continue
 from ..file_format import Solution, SolutionInput
-from ..utils import allvars as vars
+from ..utils import allvars as vars, ODEIndex
 
 log = logbook.Logger(__name__)
 
@@ -123,7 +123,7 @@ def create_soln_splitter(method):
         """
         Use derivative of v_θ to determine type of solution
         """
-        v_θ = soln.solution[:, 5]
+        v_θ = soln.solution[:, ODEIndex.v_θ]
         problems = soln.internal_data.problems
         if any("negative velocity" in pl for pl in problems.values()):
             return "sign flip"
