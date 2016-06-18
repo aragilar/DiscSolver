@@ -60,7 +60,7 @@ def get_plot_args(args):
         "plot_args": get_plot_args,
     }
 )
-def plot_main(soln, * soln_range, common_plot_args, plot_args):
+def plot_main(soln, *, soln_range, common_plot_args, plot_args):
     """
     Entry point for ds-plot
     """

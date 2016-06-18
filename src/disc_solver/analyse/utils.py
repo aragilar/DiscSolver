@@ -11,7 +11,7 @@ from h5preserve import open
 
 from ..file_format import registries
 from ..logging import log_handler, logging_options
-from ..utils import fspath
+from ..utils import fspath, str_to_float
 
 
 def single_solution_plotter(func):
@@ -73,7 +73,7 @@ def get_common_plot_args(args):
         "show": args.get("show", False),
         "plot_filename": args.get("filename"),
         "figargs": figargs,
-        "stop": args.get("stop", 90),
+        "stop": str_to_float(args.get("stop", "90")),
         "linestyle": args.get("line-style", "-"),
     }
 
@@ -105,12 +105,15 @@ def analyse_main_wrapper(
             logging
             """
             cmd_args = {}
-            parser = argparse.ArgumentParser(description=cmd_description)
+            parser = argparse.ArgumentParser(
+                description=cmd_description,
+                argument_default=argparse.SUPPRESS,
+            )
             parser.add_argument("soln_file")
             parser.add_argument("soln_range")
             logging_options(parser)
             cmd_parser = cmd_parser_func(parser)
-            args = cmd_parser.parse_args()
+            args = vars(cmd_parser.parse_args())
             for name, func in cmd_parser_splitters.items():
                 cmd_args[name] = func(args)
             with log_handler(args):

@@ -2,7 +2,7 @@
 """
 Info command and associated code
 """
-from sys import stdin
+from sys import stdout
 
 import numpy as np
 from numpy import degrees
@@ -22,7 +22,10 @@ def info_parser(parser):
     """
     Add arguments for info command to parser
     """
-    parser.add_argument("group")
+    parser.add_argument("group", choices=[
+        "run", "status", "input", "initial-conditions", "sonic-points",
+        "crosses-points",
+    ])
     return parser
 
 
@@ -30,7 +33,7 @@ def info_parser(parser):
     "Info dumper for output from DiscSolver",
     info_parser,
     cmd_parser_splitters={
-        "group", lambda args: args["group"]
+        "group": lambda args: args["group"]
     }
 )
 def info_main(soln_file, *, group, soln_range):
@@ -38,7 +41,7 @@ def info_main(soln_file, *, group, soln_range):
     Entry point for ds-info
     """
     return info(
-        soln_file, group=group, soln_range=soln_range, output_file=stdin
+        soln_file, group=group, soln_range=soln_range, output_file=stdout
     )
 
 
@@ -80,11 +83,11 @@ def info(soln_file, *, group, soln_range, output_file):
             print("input settings:", file=output_file)
             for name, value in vars(inp).items():
                 print(INPUT_FORMAT.format(name, value), file=output_file)
-        elif group == "initial_conditions":
+        elif group == "initial-conditions":
             print("initial conditions:", file=output_file)
             for name, value in vars(init_con).items():
                 print(INIT_FORMAT.format(name, value), file=output_file)
-        elif group == "sonic_points":
+        else:
             soln = soln_instance.solution
             angles = soln_instance.angles
             zero_soln = np.zeros(len(soln))
@@ -101,17 +104,28 @@ def info(soln_file, *, group, soln_range, output_file):
                 v.T, soln[:, MAGNETIC_INDEXES], soln[:, ODEIndex.ρ],
                 c_s, "fast"
             ), True)
-            print(OTHER_FORMAT.format(
-                "slow sonic point",
-                degrees(angles[slow_index]) if slow_index else None
-            ), file=output_file)
-            print(OTHER_FORMAT.format(
-                "alfven sonic point",
-                degrees(angles[alfven_index]) if alfven_index else None
-            ), file=output_file)
-            print(OTHER_FORMAT.format(
-                "fast sonic point",
-                degrees(angles[fast_index]) if fast_index else None
-            ), file=output_file)
-        else:
-            print("Cannot find {}.".format(group), file=output_file)
+
+            if group == "crosses-points":
+                if fast_index:
+                    print("{}: fast".format(soln_file.config_input.label))
+                elif alfven_index:
+                    print("{}: alfven".format(soln_file.config_input.label))
+                elif slow_index:
+                    print("{}: slow".format(soln_file.config_input.label))
+                else:
+                    print("{}: none".format(soln_file.config_input.label))
+            elif group == "sonic-points":
+                print(OTHER_FORMAT.format(
+                    "slow sonic point",
+                    degrees(angles[slow_index]) if slow_index else None
+                ), file=output_file)
+                print(OTHER_FORMAT.format(
+                    "alfven sonic point",
+                    degrees(angles[alfven_index]) if alfven_index else None
+                ), file=output_file)
+                print(OTHER_FORMAT.format(
+                    "fast sonic point",
+                    degrees(angles[fast_index]) if fast_index else None
+                ), file=output_file)
+            else:
+                print("Cannot find {}.".format(group), file=output_file)
