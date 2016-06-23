@@ -8,10 +8,11 @@ from sys import exit
 
 from logbook.compat import redirected_warnings, redirected_logging
 from h5preserve import open
+from scipy.interpolate import interp1d
 
 from ..file_format import registries
 from ..logging import log_handler, logging_options
-from ..utils import fspath, str_to_float
+from ..utils import ODEIndex, fspath, str_to_float
 
 
 def single_solution_plotter(func):
@@ -141,3 +142,23 @@ def analysis_func_wrapper(func):
         with open(filename, registries) as soln_file:
             return func(soln_file["run"], *args, **kwargs)
     return wrapper
+
+
+def get_scale_height(solution):
+    """
+    Get the scale height of the solution
+    """
+    return solution.solution_input.c_s_on_v_k
+
+
+def get_sonic_point(solution):
+    """
+    Get the angle at which the sonic point occurs
+    """
+    if solution.t_roots is not None:
+        return solution.t_roots[0]
+    fit = interp1d(
+        solution.solution[:, ODEIndex.v_θ],
+        solution.angles,
+    )
+    return fit(1.0)

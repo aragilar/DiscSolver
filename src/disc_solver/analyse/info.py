@@ -11,7 +11,10 @@ from ..utils import (
     is_supersonic, find_in_array, get_normalisation, allvars as vars, ODEIndex,
     MAGNETIC_INDEXES,
 )
-from .utils import get_solutions, analyse_main_wrapper, analysis_func_wrapper
+from .utils import (
+    get_solutions, analyse_main_wrapper, analysis_func_wrapper,
+    get_sonic_point, get_scale_height,
+)
 
 INPUT_FORMAT = " {: <20}: {}"
 INIT_FORMAT = " {: <20}: {}"
@@ -24,7 +27,7 @@ def info_parser(parser):
     """
     parser.add_argument("group", choices=[
         "run", "status", "input", "initial-conditions", "sonic-points",
-        "crosses-points",
+        "crosses-points", "sonic-on-scale",
     ])
     return parser
 
@@ -74,6 +77,11 @@ def info(soln_file, *, group, soln_range, output_file):
             "Coordinate System: {!s}".format(soln_instance.coordinate_system),
             file=output_file
         )
+    elif group == "sonic-on-scale":
+        print("{}: {}".format(
+            soln_file.config_input.label,
+            get_sonic_point(soln_instance) / get_scale_height(soln_instance)
+        ))
     else:
         inp = soln_instance.solution_input
         init_con = soln_instance.initial_conditions
