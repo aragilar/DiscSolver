@@ -215,7 +215,7 @@ def generate_plot(
         ax.set_yscale(settings.get("scale", "linear"))
         ax.set_title(settings["name"])
         if settings.get("legend"):
-            ax.legend()
+            ax.legend(loc=0)
         better_sci_format(ax.yaxis)
         if t_roots is not None:
             ax.axvline(degrees(t_roots[0]))
