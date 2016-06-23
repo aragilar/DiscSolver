@@ -15,7 +15,77 @@ from ..utils import (
     ODEIndex, MAGNETIC_INDEXES
 )
 
-from .utils import single_solution_plotter
+from .utils import (
+    single_solution_plotter, analyse_main_wrapper, analysis_func_wrapper,
+    common_plotting_options, get_common_plot_args, savefig
+)
+
+
+def plot_parser(parser):
+    """
+    Add arguments for plot command to parser
+    """
+    common_plotting_options(parser)
+    parser.add_argument(
+        "--with-slow", action='store_true', default=False)
+    parser.add_argument(
+        "--with-alfven", action='store_true', default=False)
+    parser.add_argument(
+        "--with-fast", action='store_true', default=False)
+    parser.add_argument(
+        "--with-sonic", action='store_true', default=False)
+    return parser
+
+
+def get_plot_args(args):
+    """
+    Parse plot args
+    """
+    return {
+        "with_slow": args.get("with_slow", False),
+        "with_alfven": args.get("with_alfven", False),
+        "with_fast": args.get("with_fast", False),
+        "with_sonic": args.get("with_sonic", False),
+    }
+
+
+@analyse_main_wrapper(
+    "Nice plotter for DiscSolver",
+    plot_parser,
+    cmd_parser_splitters={
+        "common_plot_args": get_common_plot_args,
+        "plot_args": get_plot_args,
+    }
+)
+def combine_main(soln, *, soln_range, common_plot_args, plot_args):
+    """
+    Entry point for ds-combine-plot
+    """
+    return combine_plot(
+        soln, soln_range=soln_range, **common_plot_args, **plot_args
+    )
+
+
+@analysis_func_wrapper
+def combine_plot(
+    soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
+    with_slow=False, with_alfven=False, with_fast=False, with_sonic=False,
+    stop=90, figargs=None, title=None
+):
+    """
+    Plot solution to file, with velocities, fields onto on one plot
+    """
+    # pylint: disable=too-many-function-args,unexpected-keyword-arg
+    fig = generate_plot_combine(
+        soln, soln_range, linestyle=linestyle, with_slow=with_slow,
+        with_alfven=with_alfven, with_fast=with_fast, with_sonic=with_sonic,
+        stop=stop, figargs=figargs, title=title,
+    )
+
+    if plot_filename is not None:
+        savefig(fig, plot_filename)
+    if show:
+        plt.show()
 
 
 @single_solution_plotter
@@ -147,7 +217,7 @@ def generate_plot_combine(
             )
         ax.set_ylabel(settings["y_label"])
         ax.set_yscale(settings.get("scale", "linear"))
-        ax.legend()
+        ax.legend(loc=0)
         better_sci_format(ax.yaxis)
     fig.subplots_adjust(hspace=0)
     return fig

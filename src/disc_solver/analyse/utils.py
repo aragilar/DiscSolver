@@ -59,6 +59,7 @@ def common_plotting_options(parser):
     parser.add_argument("--figsize", nargs=2)
     parser.add_argument("--stop")
     parser.add_argument("--linestyle")
+    parser.add_argument("--title")
     return parser
 
 
@@ -76,6 +77,7 @@ def get_common_plot_args(args):
         "figargs": figargs,
         "stop": str_to_float(args.get("stop", "90")),
         "linestyle": args.get("linestyle", "-"),
+        "title": args.get("title"),
     }
 
 
