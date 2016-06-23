@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from ..utils import better_sci_format
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
-    get_common_plot_args
+    get_common_plot_args, analysis_func_wrapper, savefig
 )
 
 
@@ -28,17 +28,34 @@ def plot_parser(parser):
         "common_plot_args": get_common_plot_args,
     }
 )
-def derivs_plot(soln_file, *, plot_args):
+def derivs_main(soln, *, soln_range, common_plot_args):
+    """
+    Entry point for ds-derivs-plot
+    """
+    return derivs_plot(soln, soln_range=soln_range, **common_plot_args)
+
+
+@analysis_func_wrapper
+def derivs_plot(
+    soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
+    figargs=None, linestyle='.'
+):
     """
     Show derivatives
     """
-    generate_derivs_plot(soln_file, **plot_args)
-    plt.show()
+    # pylint: disable=too-many-function-args
+    fig = generate_derivs_plot(
+        soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
+    )
+    if plot_filename is not None:
+        savefig(fig, plot_filename)
+    if show:
+        plt.show()
 
 
 @single_solution_plotter
 def generate_derivs_plot(
-    soln, *, linestyle='.', figargs=None
+    soln, *, linestyle='.', figargs=None, stop=90
 ):
     """
     Generate plot of derivatives
@@ -77,6 +94,8 @@ def generate_derivs_plot(
     deriv_angles = internal_data.angles
     derivs = internal_data.derivs
     npnot = np.logical_not
+    npand = np.logical_and
+    indexes = degrees(deriv_angles) <= stop
 
     fig, axes = plt.subplots(
         nrows=2, ncols=4, tight_layout=True, sharex=True, **figargs
@@ -86,12 +105,12 @@ def generate_derivs_plot(
         ax = axes[i]
         pos_deriv = derivs[:, i] >= 0
         ax.plot(
-            degrees(deriv_angles[pos_deriv]),
-            derivs[pos_deriv, i], linestyle + "b",
+            degrees(deriv_angles[npand(pos_deriv, indexes)]),
+            derivs[npand(pos_deriv, indexes), i], linestyle + "b",
         )
         ax.plot(
-            degrees(deriv_angles[npnot(pos_deriv)]),
-            - derivs[npnot(pos_deriv), i], linestyle + "g",
+            degrees(deriv_angles[npand(npnot(pos_deriv), indexes)]),
+            - derivs[npand(npnot(pos_deriv), indexes), i], linestyle + "g",
         )
         ax.set_xlabel("angle from plane (°)")
         ax.set_yscale(settings.get("scale", "log"))
