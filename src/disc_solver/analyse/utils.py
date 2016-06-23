@@ -69,7 +69,10 @@ def get_common_plot_args(args):
     """
     figargs = {}
     if args.get("figsize") is not None:
-        figargs["figsize"] = args["figsize"]
+        figargs["figsize"] = (
+            int(args["figsize"][0]),
+            int(args["figsize"][1])
+        )
 
     return {
         "show": args.get("show", False),
