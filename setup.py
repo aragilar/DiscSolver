@@ -51,6 +51,7 @@ setuptools.setup(
             "ds-params-plot = disc_solver.analyse.params_plot:params_main",
             "ds-taylor-plot = disc_solver.analyse.taylor_plot:taylor_main",
             "ds-combine-plot = disc_solver.analyse.combine_plot:combine_main",
+            "ds-scale-height = disc_solver.analyse.scale_height:scale_height_main",
             "ds-acc-plot = disc_solver.analyse.acc_plot:acc_main",
             "ds-generate-config = disc_solver.config_generator:main",
             "ds-filter-files = disc_solver.filter_files:main",
