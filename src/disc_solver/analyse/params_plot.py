@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from ..utils import better_sci_format
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
-    get_common_plot_args,
+    get_common_plot_args, analysis_func_wrapper, savefig
 )
 
 
@@ -28,17 +28,34 @@ def plot_parser(parser):
         "common_plot_args": get_common_plot_args,
     }
 )
-def params_plot(soln_file, *, plot_args):
+def params_main(soln, *, soln_range, common_plot_args):
+    """
+    Entry point for ds-params-plot
+    """
+    return params_plot(soln, soln_range=soln_range, **common_plot_args)
+
+
+@analysis_func_wrapper
+def params_plot(
+    soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
+    figargs=None, linestyle='.'
+):
     """
     Show solution at every step the solver takes.
     """
-    generate_params_plot(soln_file, **plot_args)
-    plt.show()
+    # pylint: disable=too-many-function-args
+    fig = generate_params_plot(
+        soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
+    )
+    if plot_filename is not None:
+        savefig(fig, plot_filename)
+    if show:
+        plt.show()
 
 
 @single_solution_plotter
 def generate_params_plot(
-    soln, *, linestyle='.', figargs=None
+    soln, *, linestyle='.', figargs=None, stop=90
 ):
     """
     Generate plot of all values, including intermediate values
@@ -77,6 +94,8 @@ def generate_params_plot(
     param_angles = internal_data.angles
     params = internal_data.params
     npnot = np.logical_not
+    npand = np.logical_and
+    indexes = degrees(param_angles) <= stop
 
     fig, axes = plt.subplots(
         nrows=2, ncols=4, tight_layout=True, sharex=True, **figargs
@@ -86,12 +105,13 @@ def generate_params_plot(
         ax = axes[i]
         pos_params = params[:, i] >= 0
         ax.plot(
-            degrees(param_angles[pos_params]), params[pos_params, i],
+            degrees(param_angles[npand(pos_params, indexes)]),
+            params[npand(pos_params, indexes), i],
             linestyle,
         )
         ax.plot(
-            degrees(param_angles[npnot(pos_params)]),
-            - params[npnot(pos_params), i], linestyle,
+            degrees(param_angles[npand(npnot(pos_params), indexes)]),
+            - params[npand(npnot(pos_params), indexes), i], linestyle,
         )
         ax.set_xlabel("angle from plane (°)")
         ax.set_yscale(settings.get("scale", "log"))
