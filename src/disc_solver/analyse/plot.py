@@ -71,16 +71,16 @@ def plot_main(soln, *, soln_range, common_plot_args, plot_args):
 def plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
     with_slow=False, with_alfven=False, with_fast=False, with_sonic=False,
-    stop=90, figargs=None, v_θ_scale="linear"
+    stop=90, figargs=None, v_θ_scale="linear", title=None
 ):
     """
     Plot solution to file
     """
-    # pylint: disable=too-many-function-args
+    # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_plot(
         soln, soln_range, linestyle=linestyle, with_slow=with_slow,
         with_alfven=with_alfven, with_fast=with_fast, with_sonic=with_sonic,
-        stop=stop, figargs=figargs, v_θ_scale=v_θ_scale,
+        stop=stop, figargs=figargs, v_θ_scale=v_θ_scale, title=title,
     )
 
     if plot_filename is not None:

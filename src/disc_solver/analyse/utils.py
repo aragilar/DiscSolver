@@ -84,11 +84,11 @@ def get_common_plot_args(args):
     }
 
 
-def savefig(fig, file, **kwargs):
+def savefig(fig, file, *, facecolor="none", **kwargs):
     """
     Savefig wrapper
     """
-    fig.savefig(fspath(file), **kwargs)
+    fig.savefig(fspath(file), facecolor=facecolor, **kwargs)
 
 
 def analyse_main_wrapper(
