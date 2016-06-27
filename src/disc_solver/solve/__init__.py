@@ -72,7 +72,7 @@ def main():
     parser.add_argument("config_file")
     parser.add_argument(
         "--sonic-method", choices=("step", "jump", "single"),
-        default="step",
+        default="single",
     )
     parser.add_argument("--output-file")
     parser.add_argument(
