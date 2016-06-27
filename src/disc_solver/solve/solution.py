@@ -233,6 +233,7 @@ def solution(
     )
     solver = ode(
         INTEGRATOR, system,
+        linsolver="lapackdense",
         rtol=relative_tolerance,
         atol=absolute_tolerance,
         max_steps=max_steps,
