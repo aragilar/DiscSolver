@@ -27,7 +27,8 @@ log = logbook.Logger(__name__)
 
 
 def ode_system(
-    β, c_s, central_mass, taylor_stop_angle, init_con, η_derivs=True,
+    β, c_s, central_mass, taylor_stop_angle, init_con, *, η_derivs=True,
+    store_internal=True
 ):
     """
     Set up the system we are solving for.
@@ -44,28 +45,25 @@ def ode_system(
         η_A_scale = 0
         η_H_scale = 0
 
-    internal_data = InternalData()
-
-    derivs_list = internal_data.derivs
-    params_list = internal_data.params
-    angles_list = internal_data.angles
-    v_r_nlist = internal_data.v_r_normal
-    v_φ_nlist = internal_data.v_φ_normal
-    ρ_nlist = internal_data.ρ_normal
-    v_r_taylist = internal_data.v_r_taylor
-    v_φ_taylist = internal_data.v_φ_taylor
-    ρ_taylist = internal_data.ρ_taylor
-    problems = internal_data.problems
+    if store_internal:
+        internal_data = InternalData()
+        derivs_list = internal_data.derivs
+        params_list = internal_data.params
+        angles_list = internal_data.angles
+        v_r_nlist = internal_data.v_r_normal
+        v_φ_nlist = internal_data.v_φ_normal
+        ρ_nlist = internal_data.ρ_normal
+        v_r_taylist = internal_data.v_r_taylor
+        v_φ_taylist = internal_data.v_φ_taylor
+        ρ_taylist = internal_data.ρ_taylor
+        problems = internal_data.problems
+    else:
+        internal_data = None
 
     def rhs_equation(θ, params, derivs):
         """
         Compute the ODEs
         """
-        nonlocal derivs_list, params_list, angles_list
-        nonlocal v_r_nlist, v_r_taylist
-        nonlocal v_φ_nlist, v_φ_taylist
-        nonlocal ρ_nlist, ρ_taylist
-
         B_r = params[ODEIndex.B_r]
         B_φ = params[ODEIndex.B_φ]
         B_θ = params[ODEIndex.B_θ]
@@ -80,10 +78,12 @@ def ode_system(
 
         # check sanity of input values
         if ρ < 0:
-            problems[θ].append("negative density")
+            if store_internal:
+                problems[θ].append("negative density")
             return 1
         if v_θ < 0:
-            problems[θ].append("negative velocity")
+            if store_internal:
+                problems[θ].append("negative velocity")
             return -1
 
         B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
@@ -189,17 +189,17 @@ def ode_system(
         if __debug__:
             log.debug("θ: {}, {}", θ, degrees(θ))
 
-        params_list.append(copy(params))
-        derivs_list.append(copy(derivs))
-        angles_list.append(θ)
-        v_r_nlist.append(deriv_v_r_normal)
-        v_φ_nlist.append(deriv_v_φ_normal)
-        ρ_nlist.append(deriv_ρ_normal)
-        v_r_taylist.append(deriv_v_r_taylor)
-        v_φ_taylist.append(deriv_v_φ_taylor)
-        ρ_taylist.append(deriv_ρ_taylor)
+        if store_internal:
+            params_list.append(copy(params))
+            derivs_list.append(copy(derivs))
+            angles_list.append(θ)
+            v_r_nlist.append(deriv_v_r_normal)
+            v_φ_nlist.append(deriv_v_φ_normal)
+            ρ_nlist.append(deriv_ρ_normal)
+            v_r_taylist.append(deriv_v_r_taylor)
+            v_φ_taylist.append(deriv_v_φ_taylor)
+            ρ_taylist.append(deriv_ρ_taylor)
 
-        if __debug__:
             if len(params_list) != len(angles_list):
                 log.error(
                     "Internal data not consistent, "
@@ -213,11 +213,11 @@ def ode_system(
 
 
 def solution(
-        angles, initial_conditions, β, c_s, central_mass,
+        angles, initial_conditions, β, c_s, central_mass, *,
         relative_tolerance=1e-6, absolute_tolerance=1e-10,
         max_steps=500, taylor_stop_angle=0, onroot_func=None,
         find_sonic_point=False, tstop=None, ontstop_func=None,
-        η_derivs=True,
+        η_derivs=True, store_internal=True
 ):
     """
     Find solution
@@ -229,7 +229,7 @@ def solution(
 
     system, internal_data = ode_system(
         β, c_s, central_mass, radians(taylor_stop_angle), initial_conditions,
-        η_derivs=η_derivs,
+        η_derivs=η_derivs, store_internal=store_internal
     )
     solver = ode(
         INTEGRATOR, system,
