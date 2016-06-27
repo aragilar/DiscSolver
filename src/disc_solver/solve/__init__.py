@@ -28,7 +28,9 @@ from ..utils import allvars as vars, expanded_path
 log = logbook.Logger(__name__)
 
 
-def solve(*, output_file, sonic_method, config_file, output_dir):
+def solve(
+    *, output_file, sonic_method, config_file, output_dir, store_internal
+):
     """
     Main function to generate solution
     """
@@ -54,7 +56,10 @@ def solve(*, output_file, sonic_method, config_file, output_dir):
     elif sonic_method == "jump":
         jumper_solver(config_input_to_soln_input(config_input), run)
     elif sonic_method == "single":
-        single_solver(config_input_to_soln_input(config_input), run)
+        single_solver(
+            config_input_to_soln_input(config_input), run,
+            store_internal=store_internal,
+        )
     else:
         raise RuntimeError("No method chosen to cross sonic point")
 
@@ -78,6 +83,7 @@ def main():
     parser.add_argument(
         "--output-dir", default=".",
     )
+    parser.add_argument("--store-internal")
     logging_options(parser)
     args = vars(parser.parse_args())
 
@@ -85,9 +91,11 @@ def main():
     output_dir = expanded_path(args["output_dir"])
     sonic_method = args["sonic_method"]
     output_file = args.get("output_file", None)
+    store_internal = args.get("store_internal", True)
 
     with log_handler(args), redirected_warnings(), redirected_logging():
         print(solve(
             output_file=output_file, sonic_method=sonic_method,
-            config_file=config_file, output_dir=output_dir
+            config_file=config_file, output_dir=output_dir,
+            store_internal=store_internal,
         ))

@@ -28,20 +28,26 @@ class TestSolve:
     def test_single_default(self, tmpdir):
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="single",
-            config_file=None, output_file=None
+            config_file=None, output_file=None, store_internal=False,
+        )
+
+    def test_single_no_internal(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="single",
+            config_file=None, output_file=None, store_internal=False,
         )
 
     def test_step_default(self, tmpdir):
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="step",
-            config_file=None, output_file=None
+            config_file=None, output_file=None, store_internal=False,
         )
 
     @pytest.mark.xfail
     def test_jump_default(self, tmpdir):
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="jump",
-            config_file=None, output_file=None
+            config_file=None, output_file=None, store_internal=False,
         )
 
 class TestAnalysis:

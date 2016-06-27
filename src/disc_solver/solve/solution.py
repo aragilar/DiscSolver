@@ -264,7 +264,8 @@ def solution(
         for tstop in soln.tstop.t:
             log.notice("Stopped at {}".format(degrees(tstop)))
 
-    internal_data.finalise()
+    if store_internal:
+        internal_data.finalise()
 
     return (
         soln, internal_data, COORDS,

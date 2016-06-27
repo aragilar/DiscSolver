@@ -9,7 +9,7 @@ from .solution import solution
 from ..file_format import Solution
 
 
-def solver(inp, run):
+def solver(inp, run, *, store_internal=True):
     """
     Single run solver
     """
@@ -19,7 +19,7 @@ def solver(inp, run):
         absolute_tolerance=inp.absolute_tolerance,
         relative_tolerance=inp.relative_tolerance,
         max_steps=inp.max_steps, taylor_stop_angle=inp.taylor_stop_angle,
-        η_derivs=inp.η_derivs,
+        η_derivs=inp.η_derivs, store_internal=store_internal,
     )
     single_solution = Solution(
         solution_input=inp, initial_conditions=cons, flag=soln.flag,

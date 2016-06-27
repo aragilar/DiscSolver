@@ -10,6 +10,9 @@ ALL_SOLUTIONS = [
     "single_solution_default",
     #"jump_solution_default",
     "step_solution_default",
+    "single_solution_no_internal",
+    #"jump_solution_no_internal",
+    "step_solution_no_internal",
 ]
 
 @pytest.fixture(scope="session")
@@ -18,7 +21,7 @@ def single_solution_default(tmpdir_factory):
     tmpdir = tmpdir_factory.mktemp(method)
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None
+        output_file=None, config_file=None, store_internal=True,
     )
 
 @pytest.fixture(scope="session")
@@ -27,7 +30,7 @@ def jump_solution_default(tmpdir_factory):
     tmpdir = tmpdir_factory.mktemp(method)
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None
+        output_file=None, config_file=None, store_internal=True,
     )
 
 @pytest.fixture(scope="session")
@@ -36,7 +39,34 @@ def step_solution_default(tmpdir_factory):
     tmpdir = tmpdir_factory.mktemp(method)
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None
+        output_file=None, config_file=None, store_internal=True,
+    )
+
+@pytest.fixture(scope="session")
+def single_solution_no_internal(tmpdir_factory):
+    method = "single"
+    tmpdir = tmpdir_factory.mktemp(method)
+    return solve(
+        sonic_method=method, output_dir=Path(str(tmpdir)),
+        output_file=None, config_file=None, store_internal=False,
+    )
+
+@pytest.fixture(scope="session")
+def jump_solution_no_internal(tmpdir_factory):
+    method = "jump"
+    tmpdir = tmpdir_factory.mktemp(method)
+    return solve(
+        sonic_method=method, output_dir=Path(str(tmpdir)),
+        output_file=None, config_file=None, store_internal=False,
+    )
+
+@pytest.fixture(scope="session")
+def step_solution_no_internal(tmpdir_factory):
+    method = "step"
+    tmpdir = tmpdir_factory.mktemp(method)
+    return solve(
+        sonic_method=method, output_dir=Path(str(tmpdir)),
+        output_file=None, config_file=None, store_internal=False,
     )
 
 @pytest.fixture(scope="session", params=ALL_SOLUTIONS)
