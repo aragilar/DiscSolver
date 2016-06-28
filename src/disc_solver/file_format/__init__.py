@@ -7,7 +7,11 @@ from collections.abc import MutableMapping
 
 from numpy import asarray, concatenate, zeros
 
-from h5preserve import Registry, new_registry_list, GroupContainer
+from h5preserve import (
+    Registry, new_registry_list, GroupContainer, DatasetContainer,
+)
+
+COMPRESSION = "lzf"
 
 ds_registry = Registry("disc_solver")
 registries = new_registry_list(ds_registry)
@@ -16,6 +20,18 @@ Solution = namedtuple("Solution", [
     "solution_input", "angles", "solution", "flag", "coordinate_system",
     "internal_data", "initial_conditions", "t_roots", "y_roots",
 ])
+
+
+def compress_if_not_None(obj):
+    """
+    Compress obj if it's not None
+    """
+    if obj is None:
+        return None
+    return DatasetContainer(
+        data=obj,
+        compression=COMPRESSION
+    )
 
 
 class ConfigInput:
@@ -255,15 +271,41 @@ def _internal_dump(internal_data):
 def _internal_dump2(internal_data):
     # pylint: disable=missing-docstring
     return GroupContainer(
-        derivs=internal_data.derivs,
-        params=internal_data.params,
-        angles=internal_data.angles,
-        v_r_normal=internal_data.v_r_normal,
-        v_φ_normal=internal_data.v_φ_normal,
-        ρ_normal=internal_data.ρ_normal,
-        v_r_taylor=internal_data.v_r_taylor,
-        v_φ_taylor=internal_data.v_φ_taylor,
-        ρ_taylor=internal_data.ρ_taylor,
+        derivs=DatasetContainer(
+            data=internal_data.derivs,
+            compression=COMPRESSION
+        ),
+        params=DatasetContainer(
+            data=internal_data.params,
+            compression=COMPRESSION
+        ),
+        angles=DatasetContainer(
+            data=internal_data.angles,
+            compression=COMPRESSION
+        ),
+        v_r_normal=DatasetContainer(
+            data=internal_data.v_r_normal,
+            compression=COMPRESSION
+        ),
+        v_φ_normal=DatasetContainer(
+            data=internal_data.v_φ_normal,
+            compression=COMPRESSION
+        ),
+        ρ_normal=DatasetContainer(
+            data=internal_data.ρ_normal,
+            compression=COMPRESSION),
+        v_r_taylor=DatasetContainer(
+            data=internal_data.v_r_taylor,
+            compression=COMPRESSION
+        ),
+        v_φ_taylor=DatasetContainer(
+            data=internal_data.v_φ_taylor,
+            compression=COMPRESSION
+        ),
+        ρ_taylor=DatasetContainer(
+            data=internal_data.ρ_taylor,
+            compression=COMPRESSION
+        ),
         problems=internal_data.problems,
     )
 
@@ -313,7 +355,10 @@ def _initial_dump(initial_conditions):
             "η_H": initial_conditions.η_H,
             "β": initial_conditions.β,
             "init_con": initial_conditions.init_con,
-        }, angles=initial_conditions.angles,
+        }, angles=DatasetContainer(
+            data=initial_conditions.angles,
+            compression=COMPRESSION
+        ),
     )
 
 
@@ -340,13 +385,19 @@ def _solution_dumper(solution):
             "flag": solution.flag,
             "coordinate_system": solution.coordinate_system,
         },
-        angles=solution.angles,
-        solution=solution.solution,
+        angles=DatasetContainer(
+            data=solution.angles,
+            compression=COMPRESSION
+        ),
+        solution=DatasetContainer(
+            data=solution.solution,
+            compression=COMPRESSION
+        ),
         internal_data=solution.internal_data,
         initial_conditions=solution.initial_conditions,
-        t_roots=solution.t_roots,
-        y_roots=solution.y_roots,
-        solution_input=solution.solution_input
+        t_roots=compress_if_not_None(solution.t_roots),
+        y_roots=compress_if_not_None(solution.y_roots),
+        solution_input=solution.solution_input,
     )
 
 
@@ -657,7 +708,7 @@ def _run_dumper(run):
         config_filename=run.config_filename,
         config_input=run.config_input,
         final_solution=run.final_solution,
-        solutions=run.solutions,
+        solutions=GroupContainer(**run.solutions),
     )
 
 
@@ -669,7 +720,9 @@ def _run_loader(group):
         config_filename=group["config_filename"],
         time=group["time"],
         final_solution=group["final_solution"],
-        solutions=group["solutions"],
+        solutions={
+            num: soln for num, soln in group["solutions"].items()
+        },
     )
 
 
@@ -678,9 +731,12 @@ def _problems_dumper(problems):
     # pylint: disable=missing-docstring
     group = GroupContainer()
     for key, item in problems.items():
-        group[key] = asarray([
-            s.encode("utf8") for s in item
-        ])
+        group[key] = DatasetContainer(
+            data=asarray([
+                s.encode("utf8") for s in item
+            ]),
+            compression=COMPRESSION,
+        )
     return group
 
 
