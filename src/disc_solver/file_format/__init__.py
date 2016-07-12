@@ -9,8 +9,10 @@ from numpy import asarray, concatenate, zeros
 
 from h5preserve import Registry, new_registry_list, GroupContainer
 
+from .old_dict_loading import dict_as_group_registry
+
 ds_registry = Registry("disc_solver")
-registries = new_registry_list(ds_registry)
+registries = new_registry_list(ds_registry, dict_as_group_registry)
 
 Solution = namedtuple("Solution", [
     "solution_input", "angles", "solution", "flag", "coordinate_system",
