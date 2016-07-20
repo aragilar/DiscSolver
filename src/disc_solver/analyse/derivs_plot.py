@@ -38,14 +38,15 @@ def derivs_main(soln, *, soln_range, common_plot_args):
 @analysis_func_wrapper
 def derivs_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
-    figargs=None, linestyle='.'
+    figargs=None, linestyle='.', title=None
 ):
     """
     Show derivatives
     """
-    # pylint: disable=too-many-function-args
+    # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_derivs_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
+        title=title,
     )
     if plot_filename is not None:
         savefig(fig, plot_filename)
