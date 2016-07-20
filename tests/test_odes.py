@@ -96,10 +96,10 @@ class ODE_Test(unittest.TestCase):
         self.assertAlmostEqual(0, eqn)
 
     def test_azimuthal_mometum(self):
-        eqn = (self.v_θ * self.deriv_v_φ + 1/2 * self.v_r * self.v_φ +
+        eqn = (self.v_θ * self.deriv_v_φ + 1/2 * self.v_r * self.v_φ -
             tan(self.angle) * self.v_θ * self.v_φ - 
             1 / (4 * pi * self.ρ) * (self.B_θ * self.deriv_B_φ +
-                (1 - self.β) * self.B_r * self.B_φ +
+                (1 - self.β) * self.B_r * self.B_φ -
                 tan(self.angle) * self.B_θ * self.B_φ
         ))
         print("azimuthal momentum", eqn)

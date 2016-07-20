@@ -133,11 +133,11 @@ def ode_system(
         deriv_v_φ_normal = (
             (
                 B_θ * B_φ_prime +
-                (1-β) * B_r * B_φ +
+                (1-β) * B_r * B_φ -
                 tan(θ) * B_θ * B_φ
             ) / (
                 4 * pi * ρ
-            ) - tan(θ) * v_φ * v_θ -
+            ) + tan(θ) * v_φ * v_θ -
             (v_φ * v_r) / 2
         ) / v_θ
         deriv_v_φ = (
