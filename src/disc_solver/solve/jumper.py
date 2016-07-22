@@ -19,7 +19,7 @@ from ..utils import ODEIndex
 log = logbook.Logger(__name__)
 
 
-def solver(inp, run):
+def solver(inp, run, store_internal=False):
     """
     Find solution by jumping over sonic point
     """
@@ -37,6 +37,7 @@ def solver(inp, run):
         absolute_tolerance=inp.absolute_tolerance,
         max_steps=inp.max_steps, taylor_stop_angle=inp.taylor_stop_angle,
         tstop=jump_point, η_derivs=inp.η_derivs,
+        store_internal=store_internal,
     )
 
     if not validate_solution(Solution(
@@ -88,6 +89,7 @@ def solver(inp, run):
         absolute_tolerance=inp.absolute_tolerance,
         max_steps=inp.max_steps, taylor_stop_angle=0,
         find_sonic_point=False,
+        store_internal=store_internal,
     )
 
     if not validate_solution(Solution(

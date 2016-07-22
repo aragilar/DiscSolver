@@ -145,7 +145,7 @@ def create_soln_splitter(method):
     return method_dict.get(method) or v_θ_deriv
 
 
-def solver_generator():
+def solver_generator(store_internal=True):
     """
     Generate solver func
     """
@@ -161,7 +161,7 @@ def solver_generator():
             absolute_tolerance=inp.absolute_tolerance,
             max_steps=inp.max_steps, taylor_stop_angle=inp.taylor_stop_angle,
             onroot_func=onroot_continue, find_sonic_point=True,
-            η_derivs=inp.η_derivs,
+            η_derivs=inp.η_derivs, store_internal=store_internal,
         )
         soln = Solution(
             solution_input=inp, initial_conditions=cons, flag=soln.flag,

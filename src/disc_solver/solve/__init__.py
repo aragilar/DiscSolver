@@ -46,7 +46,7 @@ def solve(
         writer = writer_generator(run)
         cleanup = cleanup_generator(run, writer)
         binary_searcher(
-            solver_generator(), cleanup,
+            solver_generator(store_internal=store_internal), cleanup,
             stepper_creator(
                 writer, step_func,
                 create_soln_splitter("v_θ_deriv")
@@ -54,7 +54,10 @@ def solve(
             config_input_to_soln_input(config_input),
         )
     elif sonic_method == "jump":
-        jumper_solver(config_input_to_soln_input(config_input), run)
+        jumper_solver(
+            config_input_to_soln_input(config_input), run,
+            store_internal=store_internal,
+        )
     elif sonic_method == "single":
         single_solver(
             config_input_to_soln_input(config_input), run,
@@ -83,7 +86,13 @@ def main():
     parser.add_argument(
         "--output-dir", default=".",
     )
-    parser.add_argument("--store-internal")
+    internal_store_group = parser.add_mutually_exclusive_group()
+    internal_store_group.add_argument(
+        "--store-internal", action='store_true', default=True
+    )
+    internal_store_group.add_argument(
+        "--no-store-internal", action='store_false', dest="store_internal",
+    )
     logging_options(parser)
     args = vars(parser.parse_args())
 
