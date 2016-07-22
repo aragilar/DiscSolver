@@ -149,6 +149,9 @@ def solver_generator(store_internal=True):
     """
     Generate solver func
     """
+    if store_internal is False:
+        raise RuntimeError("Stepper needs internal data to function")
+
     def solver(inp):
         """
         solver
