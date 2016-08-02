@@ -39,21 +39,21 @@ def define_conditions(inp):
     η_A = inp.η_A
     η_H = inp.η_H
 
-    # solution for A * v_φ**2 + B * v_φ + C = 0
-    A_v_φ = 1
-    B_v_φ = (v_r * η_H) / (2 * (η_O + η_A))
+    # solution for v_φ**2 + B * v_φ + C = 0
+    B_v_φ = (inp.v_rin_on_c_s * η_H) / (2 * (η_O + η_A))
     C_v_φ = (
-        v_r**2 / 2 + 2 * β * c_s**2 -
-        norm_kepler_sq - B_θ**2 * (
-            v_r / (η_O + η_A)
-        ) / (4 * pi * ρ)
+        inp.v_rin_on_c_s**2 / 2 + 2 * β - norm_kepler_sq -
+        inp.v_a_on_c_s**2 * inp.v_rin_on_c_s / (η_O + η_A)
     )
-    log.debug("A_v_φ: {}".format(A_v_φ))
     log.debug("B_v_φ: {}".format(B_v_φ))
     log.debug("C_v_φ: {}".format(C_v_φ))
 
-    v_φ = - 1 / (2 * A_v_φ) * (
-        B_v_φ - sqrt(B_v_φ**2 - 4 * A_v_φ * C_v_φ)
+    v_φ = (
+        (inp.v_rin_on_c_s * η_H) / (4 * (η_O + η_A)) + sqrt(
+            norm_kepler_sq - inp.v_rin_on_c_s**2 / 2 * (
+                1 - η_H**2 / (8 * (η_O + η_A)**2)
+            ) - inp.v_rin_on_c_s * inp.v_a_on_c_s**2 / (η_O + η_A) - 2 * β
+        )
     )
 
     B_φ_prime = (
