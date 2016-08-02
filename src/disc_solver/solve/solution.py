@@ -4,10 +4,11 @@ The system of odes
 """
 
 from math import pi, sqrt, tan, degrees, radians
+from collections import namedtuple
 
 import logbook
 
-from numpy import copy
+from numpy import concatenate, copy, insert
 
 from scikits.odes import ode
 from scikits.odes.sundials import (
@@ -17,17 +18,25 @@ from scikits.odes.sundials import (
 from .deriv_funcs import dderiv_B_φ_soln, taylor_series
 from .utils import gen_sonic_point_rootfn, ode_error_handler
 
-from ..file_format import InternalData
+from ..file_format import InternalData, Solution
 from ..utils import ODEIndex
 
 INTEGRATOR = "cvode"
+LINSOLVER = "lapackdense"
 COORDS = "spherical midplane 0"
 
 log = logbook.Logger(__name__)
 
+TaylorSolution = namedtuple(
+    "TaylorSolution", [
+        "angles", "params", "new_angles", "internal_data",
+        "new_initial_conditions", "angle_stopped",
+    ]
+)
+
 
 def ode_system(
-    β, c_s, central_mass, taylor_stop_angle, init_con, *, η_derivs=True,
+    β, c_s, central_mass, init_con, *, with_taylor=False, η_derivs=True,
     store_internal=True
 ):
     """
@@ -126,7 +135,7 @@ def ode_system(
             )
         ) / v_θ
         deriv_v_r = (
-            deriv_v_r_taylor if θ < taylor_stop_angle else deriv_v_r_normal
+            deriv_v_r_taylor if with_taylor else deriv_v_r_normal
         )
 
         deriv_v_φ_taylor = θ * dderiv_v_φM
@@ -141,7 +150,7 @@ def ode_system(
             (v_φ * v_r) / 2
         ) / v_θ
         deriv_v_φ = (
-            deriv_v_φ_taylor if θ < taylor_stop_angle else deriv_v_φ_normal
+            deriv_v_φ_taylor if with_taylor else deriv_v_φ_normal
         )
 
         deriv_v_θ = (
@@ -161,7 +170,7 @@ def ode_system(
                 (5/2 - 2 * β) * v_r + deriv_v_θ
             ) / v_θ - tan(θ)
         )
-        deriv_ρ = deriv_ρ_taylor if θ < taylor_stop_angle else deriv_ρ_normal
+        deriv_ρ = deriv_ρ_taylor if with_taylor else deriv_ρ_normal
 
         deriv_ρ_scale = deriv_ρ / sqrt(ρ) / 2
         deriv_η_O = deriv_ρ_scale * η_O_scale
@@ -212,12 +221,59 @@ def ode_system(
     return rhs_equation, internal_data
 
 
-def solution(
-        angles, initial_conditions, β, c_s, central_mass, *,
-        relative_tolerance=1e-6, absolute_tolerance=1e-10,
-        max_steps=500, taylor_stop_angle=0, onroot_func=None,
-        find_sonic_point=False, tstop=None, ontstop_func=None,
-        η_derivs=True, store_internal=True
+def taylor_solution(
+    angles, initial_conditions, β, c_s, central_mass, *, taylor_stop_angle,
+    relative_tolerance=1e-6, absolute_tolerance=1e-10, max_steps=500,
+    η_derivs=True, store_internal=True
+):
+    """
+    Compute solution using taylor series
+    """
+    system, internal_data = ode_system(
+        β, c_s, central_mass, initial_conditions, with_taylor=True,
+        η_derivs=η_derivs, store_internal=store_internal,
+    )
+
+    solver = ode(
+        INTEGRATOR, system,
+        linsolver=LINSOLVER,
+        rtol=relative_tolerance,
+        atol=absolute_tolerance,
+        max_steps=max_steps,
+        validate_flags=True,
+        old_api=False,
+        err_handler=ode_error_handler,
+        tstop=taylor_stop_angle
+    )
+
+    try:
+        soln = solver.solve(angles, initial_conditions)
+    except CVODESolveFailed as e:
+        RuntimeError(
+            "Taylor solver stopped in at {} with flag {!s}.\n{}".format(
+                degrees(soln.errors.t), soln.flag, soln.message
+            )
+        )
+    except CVODESolveReachedTSTOP as e:
+        soln = e.soln
+    else:
+        raise RuntimeError("Taylor solver did not find taylor_stop_angle")
+
+    new_angles = angles[angles > taylor_stop_angle]
+    insert(new_angles, 0, taylor_stop_angle)
+
+    return TaylorSolution(
+        angles=soln.values.t, params=soln.values.y, new_angles=new_angles,
+        internal_data=internal_data, new_initial_conditions=soln.tstop.y[0],
+        angle_stopped=soln.tstop.t[0],
+    )
+
+
+def main_solution(
+    angles, system_initial_conditions, ode_initial_conditions, β, c_s,
+    central_mass, *, relative_tolerance=1e-6, absolute_tolerance=1e-10,
+    max_steps=500, onroot_func=None, find_sonic_point=False, tstop=None,
+    ontstop_func=None, η_derivs=True, store_internal=True
 ):
     """
     Find solution
@@ -228,12 +284,12 @@ def solution(
         extra_args["nr_rootfns"] = 1
 
     system, internal_data = ode_system(
-        β, c_s, central_mass, radians(taylor_stop_angle), initial_conditions,
-        η_derivs=η_derivs, store_internal=store_internal
+        β, c_s, central_mass, system_initial_conditions,
+        η_derivs=η_derivs, store_internal=store_internal, with_taylor=False,
     )
     solver = ode(
         INTEGRATOR, system,
-        linsolver="lapackdense",
+        linsolver=LINSOLVER,
         rtol=relative_tolerance,
         atol=absolute_tolerance,
         max_steps=max_steps,
@@ -247,7 +303,7 @@ def solution(
     )
 
     try:
-        soln = solver.solve(angles, initial_conditions)
+        soln = solver.solve(angles, ode_initial_conditions)
     except CVODESolveFailed as e:
         soln = e.soln
         log.warn(
@@ -264,9 +320,68 @@ def solution(
         for tstop in soln.tstop.t:
             log.notice("Stopped at {}".format(degrees(tstop)))
 
+    return soln, internal_data
+
+
+def solution(
+    input, initial_conditions, *,
+    onroot_func=None, find_sonic_point=False, tstop=None,
+    ontstop_func=None, store_internal=True
+):
+    """
+    Find solution
+    """
+    angles = initial_conditions.angles
+    init_con = initial_conditions.init_con
+    β = initial_conditions.β
+    c_s = initial_conditions.c_s
+    central_mass = initial_conditions.norm_kepler_sq
+    absolute_tolerance = input.absolute_tolerance
+    relative_tolerance = input.relative_tolerance
+    max_steps = input.max_steps
+    taylor_stop_angle = radians(input.taylor_stop_angle)
+    η_derivs = input.η_derivs
+
+    if taylor_stop_angle is None:
+        post_taylor_angles = angles
+        post_taylor_initial_conditions = init_con
+    else:
+        taylor_soln = taylor_solution(
+            angles, init_con, β, c_s, central_mass,
+            relative_tolerance=relative_tolerance,
+            absolute_tolerance=absolute_tolerance, max_steps=max_steps,
+            taylor_stop_angle=taylor_stop_angle, η_derivs=η_derivs,
+            store_internal=store_internal
+        )
+        post_taylor_angles = taylor_soln.new_angles
+        post_taylor_initial_conditions = taylor_soln.new_initial_conditions
+        taylor_internal = taylor_soln.internal_data
+
+    soln, internal_data = main_solution(
+        post_taylor_angles, init_con, post_taylor_initial_conditions, β, c_s,
+        central_mass, relative_tolerance=relative_tolerance,
+        absolute_tolerance=absolute_tolerance, max_steps=max_steps,
+        onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
+        η_derivs=η_derivs, store_internal=store_internal,
+        find_sonic_point=find_sonic_point
+    )
+
     if store_internal:
         internal_data.finalise()
+        if taylor_stop_angle is not None:
+            taylor_internal.finalise()
+            internal_data = taylor_internal + internal_data
 
-    return (
-        soln, internal_data, COORDS,
+    if taylor_stop_angle is None:
+        joined_angles = soln.values.t
+        joined_solution = soln.values.y
+    else:
+        joined_angles = concatenate((taylor_soln.angles, soln.values.t))
+        joined_solution = concatenate((taylor_soln.params, soln.values.y))
+
+    return Solution(
+        solution_input=input, initial_conditions=initial_conditions,
+        flag=soln.flag, coordinate_system=COORDS, internal_data=internal_data,
+        angles=joined_angles, solution=joined_solution, t_roots=soln.roots.t,
+        y_roots=soln.roots.y
     )

@@ -2,6 +2,7 @@
 """
 Get around sonic point by jumping
 """
+# pylint: skip-file
 from math import degrees, radians
 import logbook
 
@@ -23,6 +24,7 @@ def solver(inp, run, store_internal=False):
     """
     Find solution by jumping over sonic point
     """
+    raise RuntimeError("Broken by changes, needs fixing")
     cons = define_conditions(inp)
     sonic_point = find_sonic_point(inp, cons)
     log.notice("sonic point: {}".format(degrees(sonic_point)))

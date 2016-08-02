@@ -29,7 +29,7 @@ class ODE_Test(unittest.TestCase):
         derivs = np.zeros(ODE_NUMBER)
         with logbook.NullHandler().applicationbound():
             self.rhs, internal_data = ode_system(
-                self.β, self.c_s, self.central_mass, 0, params
+                self.β, self.c_s, self.central_mass, params, with_taylor=False
             )
             self.rhs(self.angle, params, derivs)
 

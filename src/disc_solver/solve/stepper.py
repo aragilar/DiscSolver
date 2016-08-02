@@ -10,7 +10,7 @@ from numpy import diff
 from .config import define_conditions
 from .solution import solution
 from .utils import validate_solution, onroot_continue
-from ..file_format import Solution, SolutionInput
+from ..file_format import SolutionInput
 from ..utils import allvars as vars, ODEIndex
 
 log = logbook.Logger(__name__)
@@ -157,20 +157,9 @@ def solver_generator(store_internal=True):
         solver
         """
         inp = SolutionInput(**vars(inp))
-        cons = define_conditions(inp)
-        soln, internal_data, coords = solution(
-            cons.angles, cons.init_con, cons.β, cons.c_s, cons.norm_kepler_sq,
-            relative_tolerance=inp.relative_tolerance,
-            absolute_tolerance=inp.absolute_tolerance,
-            max_steps=inp.max_steps, taylor_stop_angle=inp.taylor_stop_angle,
-            onroot_func=onroot_continue, find_sonic_point=True,
-            η_derivs=inp.η_derivs, store_internal=store_internal,
-        )
-        soln = Solution(
-            solution_input=inp, initial_conditions=cons, flag=soln.flag,
-            coordinate_system=coords, internal_data=internal_data,
-            angles=soln.values.t, solution=soln.values.y,
-            t_roots=soln.roots.t, y_roots=soln.roots.y,
+        soln = solution(
+            inp, define_conditions(inp), onroot_func=onroot_continue,
+            find_sonic_point=True, store_internal=store_internal
         )
         return validate_solution(soln)
 
