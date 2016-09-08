@@ -113,7 +113,7 @@ def generate_plot(
     zero_soln = np_zeros(len(solution))
     v = np_array([zero_soln, zero_soln, solution[:, ODEIndex.v_θ]])
     wave_speeds = np_sqrt(mhd_wave_speeds(
-        v.T, solution[:, MAGNETIC_INDEXES], solution[:, 6], cons.c_s
+        v.T, solution[:, MAGNETIC_INDEXES], solution[:, 6], 1
     ))
 
     indexes = degrees(angles) <= stop

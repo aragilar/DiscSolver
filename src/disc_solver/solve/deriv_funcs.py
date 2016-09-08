@@ -3,7 +3,7 @@
 Computing derivatives
 """
 
-from math import pi, sqrt, tan
+from math import sqrt, tan
 
 import logbook
 
@@ -112,258 +112,174 @@ def dderiv_B_φ_soln(
     )
 
 
+def Y_1_func(v_r, v_φ, deriv_B_r, deriv_B_φ, β, a_0):
+    """
+    Compute Y_1
+    """
+    return v_r ** 2 * (β - 1) * (4 * β - 5) / 2 + v_φ ** 2 + a_0 * (
+        deriv_B_r * (β - 1 + deriv_B_r) + deriv_B_φ ** 2
+    )
+
+
+def Y_2_func(
+    v_r, v_φ, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, η_O, η_A, η_H, η_P,
+    η_perp_sq, dderiv_η_P, dderiv_η_H,
+):
+    """
+    Compute Y_2
+    """
+    return (
+        deriv_B_φ * (
+            v_r * η_P * (6 * β - 11) / (2 * β - 1) - (β - 2) * η_P ** 2 +
+            η_perp_sq * (1 - dderiv_η_P / η_P)
+        ) - v_r * (
+            dderiv_η_H - dderiv_η_P * η_H / η_P
+        ) + deriv_B_r * deriv_B_φ * (
+            (β - 1 + 2 * deriv_B_r) * η_A * η_P + η_H ** 2 * (
+                β - 1 - 2 * deriv_B_r
+            ) - 2 * η_A * v_r
+        ) - η_H * deriv_B_φ ** 2 / η_P * (
+            (4 * β - 5) * η_P ** 2 + η_O * (
+                2 * deriv_B_φ * η_H - v_r - 2 * (β - 1) * η_P
+            )
+        ) + deriv_B_r * (
+            (β - 1) * η_H * η_P + v_φ * η_P - v_r * (4 * β - 5) * η_H
+        ) + η_H * deriv_B_r ** 2 * (
+            η_P + v_r
+        ) + dderiv_B_θ * (
+            v_r * η_H - 2 * η_P * v_φ / (2 * β - 1)
+        )
+    ) / η_perp_sq
+
+
+def Y_3_func(
+    v_r, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, η_P, η_A, η_H, dderiv_η_P,
+    dderiv_η_H,
+):
+    """
+    Compute Y_3
+    """
+    return - (
+        v_r * (
+            dderiv_B_θ - (4 * β - 5) * deriv_B_r - dderiv_η_P / η_P
+        ) - dderiv_η_H * deriv_B_φ + η_H * deriv_B_φ * (
+            2 + dderiv_η_P / η_P + deriv_B_r * (
+                2 * (β-1) + deriv_B_r
+            ) + deriv_B_φ ** 2 * (
+                1 - 2 * η_A / η_P
+            )
+        ) + 2 * η_A * deriv_B_φ ** 2 * (
+            1 - β + deriv_B_r + v_r / η_P
+        )
+    ) / η_P - dderiv_B_θ * (β - 1)
+
+
+def Y_4_func(a_0, v_r, v_φ, deriv_B_r, deriv_B_φ, β, Y_2, Y_1):
+    """
+    Compute Y_4
+    """
+    return 2 * a_0 * (
+        Y_2 - deriv_B_φ * (deriv_B_r * β - Y_1 + 1)
+    ) + 2 * v_r * v_φ * (4 * β - 5)
+
+
+def Y_5_func(a_0, v_r, β, η_perp_sq):
+    """
+    Compute Y_5
+    """
+    return v_r * (8 * β - 9) + 4 * a_0 / (η_perp_sq * (2 * β - 1))
+
+
+def Y_6_func(a_0, v_r, v_φ, β, η_perp_sq, η_P, η_H, Y_5):
+    """
+    Compute Y_6
+    """
+    return (2 * β - 3) * v_r + v_φ ** 2 / Y_5 - a_0 / η_perp_sq * (
+        v_φ * η_H * (4 * β - 1) / ((2 * β - 1) * Y_5) - 1 / (2 * η_P) * (
+            η_perp_sq - η_H * η_P + 4 * η_H ** 2 * η_P * a_0 / (
+                (2 * β - 1) * Y_5 * η_perp_sq
+            )
+        )
+    )
+
+
 def dderiv_v_r_midplane(
-    ρ, B_θ, v_r, v_φ, deriv_B_r, deriv_B_φ, dderiv_B_θ,
-    β, η_O, η_H, η_A, Y6, Y5, Y4, Y3, Y2, Y1
+    a_0, v_r, v_φ, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, η_perp_sq, η_H, η_P,
+    Y_6, Y_5, Y_4, Y_3, Y_2, Y_1
 ):
     """
     Compute v_r'' around the midplane
     """
-    return Y6 / (v_r * (4 * β - 6)) * (
-        2 * v_φ * Y5 * Y4 + (
-            v_r**2 * (4 * β - 5)**2
-        ) / 2 + 1 / (4 * pi * ρ) * (
-            dderiv_B_θ * deriv_B_r +
-            B_θ * Y3 + (
-                Y2 * η_H * B_θ
-            ) / (
-                η_O + η_A
-            ) - (
-                2 * η_H * B_θ**2 * Y5 * Y4
-            ) / (
-                (2 * β - 1) * (
-                    (η_O + η_A)**2 + η_H**2
-                )
-            ) + 2 * (β - 1) * (
-                B_θ * dderiv_B_θ + deriv_B_φ**2
-            ) - Y1 * B_θ * (
-                deriv_B_r + (β - 1) * B_θ
-            )
-        )
-    )
-
-
-def Y1_func(
-    ρ, B_θ, v_r, v_φ, deriv_B_r, deriv_B_φ, β, c_s
-):
-    """
-    Compute Y1
-    """
-    return - (
-        v_r**2 * (β-1) * (4*β-5) / 2 +
-        v_φ**2 + 1 / (4 * pi * ρ) * (
-            (β-1) * B_θ * deriv_B_r + deriv_B_r**2 + deriv_B_φ**2
-        )
-    ) / (c_s**2)
-
-
-def Y2_func(
-    B_θ, v_r, v_φ, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, η_O, η_A, η_H,
-    dderiv_η_O, dderiv_η_A, dderiv_η_H,
-):
-    """
-    Compute Y2
-    """
-    return 1 / (η_O + η_A + (η_H ** 2) / (η_A + η_O)) * (
-        deriv_B_φ * (
-            v_r * (6 * β - 11) / (2 * β - 1) -
-            (β - 3) * (η_O + η_A) +
-            (η_H ** 2) / (η_A + η_O)
-        ) - v_r * dderiv_η_H * B_θ / (η_A + η_O) +
-        deriv_B_r * deriv_B_φ / (B_θ) * (
-            η_A * (β - 1 + 2 * deriv_B_r / B_θ) +
-            1 / (η_A + η_O) * (
-                η_H ** 2 * (β - 1 - 2 * deriv_B_r / B_θ) -
-                2 * η_A * v_r
-            )
-        ) - η_H * deriv_B_φ ** 2 / B_θ * (
-            (2 * β - 3) +
-            1 / (η_O + η_A) * (
-                2 * (β - 1) * η_A + (
-                    2 * deriv_B_φ * η_H / B_θ -
-                    v_r
-                ) * (
-                    1 - η_A / (η_A + η_O)
-                )
-            )
-        ) - (dderiv_η_A + dderiv_η_O) * (
-            deriv_B_φ +
-            η_H ** 2 * deriv_B_φ / ((η_A + η_O) ** 2) -
-            η_H * v_r * B_θ / (η_A + η_O)
-        ) + deriv_B_r * (
-            (β - 1) * η_H +
-            v_φ -
-            v_r * (4 * β - 5) * η_H / (η_A + η_O)
-        ) + η_H * deriv_B_r ** 2 / B_θ * (
-            1 + v_r / (η_A + η_O)
-        ) + dderiv_B_θ * (
-            v_r * η_H / (η_A + η_O) -
-            2 * v_φ / (2 * β - 1)
-        )
-    )
-
-
-def Y3_func(
-    B_θ, v_r, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, η_O, η_A, η_H, dderiv_η_O,
-    dderiv_η_A,
-):
-    """
-    Compute Y3
-    """
-    return - 1 / (η_A + η_O) * (
-        v_r * (
-            dderiv_B_θ - (4 * β - 5) * deriv_B_r - B_θ * (
-                dderiv_η_O + dderiv_η_A
-            )
-        ) + (
-            2 * η_A * deriv_B_φ**2
-        ) / B_θ * (
-            1 - β +
-            deriv_B_r / B_θ +
-            v_r / (η_O + η_A)
-        ) + η_H * deriv_B_φ * (
-            2 + dderiv_η_O + dderiv_η_A + deriv_B_r / B_θ * (
-                2 * (β - 1) +
-                deriv_B_r / B_θ
-            ) + (
-                deriv_B_φ**2
-            ) / (
-                B_θ**2
-            ) * (
-                1 - (2 * η_A) / (η_O + η_A)
-            )
-        )
-    ) - B_θ * (β - 1)
-
-
-def Y4_func(ρ, B_θ, v_r, v_φ, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, Y2, Y1):
-    """
-    Compute Y4
-    """
     return (
-        1 / (2 * pi * ρ) * (
-            Y2 * B_θ + deriv_B_φ * (
-                dderiv_B_θ +
-                2 * deriv_B_r * (1-β) -
-                B_θ * (Y1 + 1)
-            )
-        ) + 2 * v_r * v_φ * (4 * β - 5)
-    )
-
-
-def Y5_func(ρ, B_θ, v_r, β, η_O, η_A, η_H):
-    """
-    Compute Y5
-    """
-    return (
-        pi * ρ * (2 * β - 1) * (
-            η_O + η_A + (η_H**2) / (η_O + η_A)
+        v_φ * Y_4 / Y_5 + ((2 * β - 5 / 2) * v_r) ** 2 + a_0 / 2 * (
+            dderiv_B_θ * (deriv_B_r + 2 * (β - 1)) +
+            2 * deriv_B_φ ** 2 * (β - 1) + Y_3 + Y_2 * η_H / η_P -
+            2 * η_H * Y_4 / ((2 * β - 1) * η_perp_sq * Y_5) +
+            Y_1 * (deriv_B_r + β - 1)
         )
-    ) / (
-        B_θ**2 + v_r * pi * ρ * (8 * β - 9) * (2 * β - 1) * (
-            η_O + η_A + (η_H**2) / (η_O + η_A)
-        )
-    )
+    ) / Y_6
 
 
-def Y6_func(ρ, B_θ, v_r, v_φ, β, η_O, η_A, η_H, Y5):
-    """
-    Compute Y6
-    """
-    return (
-        1 - 1 / (
-            v_r * (4 * β - 6)
-        ) * (
-            2 * Y5 * (
-                (B_θ**2 * η_H) / (
-                    2 * pi * ρ * (
-                        η_O + η_A + (η_H**2) / (η_O + η_A)
-                    )
-                ) - v_φ
-            ) * (
-                v_φ - (
-                    η_H * B_θ**2
-                ) / (
-                    4 * pi * ρ * (2 * β - 1) * (
-                        (η_O + η_A)**2 + η_H**2
-                    )
-                )
-            ) + (B_θ**2) / (4 * pi * ρ) * (
-                1 / (η_O + η_A) -
-                η_H / (
-                    (η_O + η_A)**2 + η_H**2
-                )
-            )
-        )
-    ) ** -1
-
-
-def dderiv_v_φ_midplane(ρ, B_θ, v_φ, dderiv_v_rM, η_O, η_H, η_A, Y5, Y4):
+def dderiv_v_φ_midplane(a_0, v_φ, dderiv_v_r, η_perp_sq, η_H, Y_5, Y_4):
     """
     Compute v_φ'' around the midplane
     """
-    return (
-        Y5 * dderiv_v_rM * (
-            (B_θ**2 * η_H) / (
-                2 * pi * ρ * (
-                    η_O + η_A +
-                    (η_H**2) / (η_O + η_A)
-                )
-            ) - v_φ
-        ) + Y5 * Y4
-    )
+    return dderiv_v_r / Y_5 * (a_0 * η_H / η_perp_sq - v_φ) + Y_4 / Y_5
 
 
-def taylor_series(β, c_s, init_con, η_derivs=True):
+def taylor_series(β, a_0, init_con, η_derivs):
     """
     Compute taylor series of v_r'', ρ'' and v_φ''
     """
-    B_θ = init_con[ODEIndex.B_θ]
     v_r = init_con[ODEIndex.v_r]
     v_φ = init_con[ODEIndex.v_φ]
-    ρ = init_con[ODEIndex.ρ]
     deriv_B_φ = init_con[ODEIndex.B_φ_prime]
     η_O = init_con[ODEIndex.η_O]
     η_A = init_con[ODEIndex.η_A]
     η_H = init_con[ODEIndex.η_H]
+
+    η_P = η_O + η_A
+    η_perp_sq = η_P ** 2 + η_H ** 2
+
     deriv_B_r = - (
-        B_θ * (1 - β) + (v_r * B_θ + deriv_B_φ * η_H) / (η_O + η_A)
+        1 - β + (v_r + deriv_B_φ * η_H) / η_P
     )
 
-    dderiv_B_θ = (β - 2) * deriv_B_r + B_θ
+    dderiv_B_θ = (β - 2) * deriv_B_r
 
-    Y1 = Y1_func(ρ, B_θ, v_r, v_φ, deriv_B_r, deriv_B_φ, β, c_s)
+    Y_1 = Y_1_func(v_r, v_φ, deriv_B_r, deriv_B_φ, β, a_0)
 
-    dderiv_ρ = ρ * Y1
+    dderiv_ρ = - Y_1
 
     if η_derivs:
-        dderiv_η_scale = dderiv_ρ / ρ / 2
+        dderiv_η_scale = dderiv_ρ / 2
     else:
         dderiv_η_scale = 0
 
     dderiv_η_O = dderiv_η_scale * η_O
     dderiv_η_A = dderiv_η_scale * η_A
     dderiv_η_H = dderiv_η_scale * η_H
+    dderiv_η_P = dderiv_η_O + dderiv_η_A
 
-    Y2 = Y2_func(
-        B_θ, v_r, v_φ, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, η_O, η_A,
-        η_H, dderiv_η_O, dderiv_η_A, dderiv_η_H,
+    Y_2 = Y_2_func(
+        v_r, v_φ, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, η_O, η_A, η_H, η_P,
+        η_perp_sq, dderiv_η_P, dderiv_η_H,
     )
-    Y3 = Y3_func(
-        B_θ, v_r, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, η_O, η_A, η_H,
-        dderiv_η_O, dderiv_η_A,
+    Y_3 = Y_3_func(
+        v_r, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, η_P, η_A, η_H, dderiv_η_P,
+        dderiv_η_H
     )
-    Y4 = Y4_func(ρ, B_θ, v_r, v_φ, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, Y2, Y1)
-    Y5 = Y5_func(ρ, B_θ, v_r, β, η_O, η_A, η_H)
-    Y6 = Y6_func(ρ, B_θ, v_r, v_φ, β, η_O, η_A, η_H, Y5)
+    Y_4 = Y_4_func(a_0, v_r, v_φ, deriv_B_r, deriv_B_φ, β, Y_2, Y_1)
+    Y_5 = Y_5_func(a_0, v_r, β, η_perp_sq)
+    Y_6 = Y_6_func(a_0, v_r, v_φ, β, η_perp_sq, η_P, η_H, Y_5)
 
     dderiv_v_r = dderiv_v_r_midplane(
-        ρ, B_θ, v_r, v_φ, deriv_B_r, deriv_B_φ, dderiv_B_θ,
-        β, η_O, η_H, η_A, Y6, Y5, Y4, Y3, Y2, Y1
+        a_0, v_r, v_φ, deriv_B_r, deriv_B_φ, dderiv_B_θ, β, η_perp_sq, η_H,
+        η_P, Y_6, Y_5, Y_4, Y_3, Y_2, Y_1
     )
 
     dderiv_v_φ = dderiv_v_φ_midplane(
-        ρ, B_θ, v_φ, dderiv_v_r, η_O, η_H, η_A, Y5, Y4
+        a_0, v_φ, dderiv_v_r, η_perp_sq, η_H, Y_5, Y_4
     )
 
     log.info("B_θ'': {}".format(dderiv_B_θ))

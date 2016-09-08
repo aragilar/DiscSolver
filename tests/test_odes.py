@@ -16,10 +16,10 @@ ODE_NUMBER = 11
 class ODE_Test(unittest.TestCase):
     def setUp(self):
         # These are all arbitrary values, this should not affect the result
-        params = np.array([1 for i in range(ODE_NUMBER)])
+        params = np.array([7 for i in range(ODE_NUMBER)])
         self.β = 2
-        self.c_s = 2
-        self.central_mass = 2
+        self.norm_kepler_sq = 2
+        self.a_0 = 2
 
         # This is slightly off the plane, this should mean we don't get
         # cancellation
@@ -29,7 +29,7 @@ class ODE_Test(unittest.TestCase):
         derivs = np.zeros(ODE_NUMBER)
         with logbook.NullHandler().applicationbound():
             self.rhs, internal_data = ode_system(
-                self.β, self.c_s, self.central_mass, params, with_taylor=False
+                self.β, self.a_0, self.norm_kepler_sq, params, with_taylor=False
             )
             self.rhs(self.angle, params, derivs)
 
@@ -85,8 +85,8 @@ class ODE_Test(unittest.TestCase):
 
     def test_radial_momentum(self):
         eqn = (self.v_θ * self.deriv_v_r - 1/2 * self.v_r**2 -
-            self.v_θ**2 - self.v_φ**2 + self.central_mass -
-            self.c_s**2 * 2 * self.β - 1/(4 * pi * self.ρ) * (
+            self.v_θ**2 - self.v_φ**2 + self.norm_kepler_sq -
+            2 * self.β - self.a_0 / self.ρ * (
                 self.B_θ * self.deriv_B_r + (self.β - 1) * (
                     self.B_θ**2 + self.B_φ**2
                 )
@@ -97,23 +97,24 @@ class ODE_Test(unittest.TestCase):
 
     def test_azimuthal_mometum(self):
         eqn = (self.v_θ * self.deriv_v_φ + 1/2 * self.v_r * self.v_φ -
-            tan(self.angle) * self.v_θ * self.v_φ - 
-            1 / (4 * pi * self.ρ) * (self.B_θ * self.deriv_B_φ +
+            tan(self.angle) * self.v_θ * self.v_φ - self.a_0 / self.ρ * (
+                self.B_θ * self.deriv_B_φ +
                 (1 - self.β) * self.B_r * self.B_φ -
                 tan(self.angle) * self.B_θ * self.B_φ
-        ))
+            )
+        )
         print("azimuthal momentum", eqn)
         self.assertAlmostEqual(0, eqn)
 
     def test_polar_momentum(self):
         eqn = (self.v_r * self.v_θ / 2 + self.v_θ * self.deriv_v_θ +
-            tan(self.angle) * self.v_φ ** 2 +
-            self.c_s ** 2 * self.deriv_ρ / self.ρ +
-            1 / (4 * pi * self.ρ) * (
+            tan(self.angle) * self.v_φ ** 2 + self.deriv_ρ / self.ρ +
+            self.a_0 / self.ρ * (
                 (self.β - 1) * self.B_θ * self.B_r +
                 self.B_r * self.deriv_B_r + self.B_φ * self.deriv_B_φ -
                 self.B_φ ** 2 * tan(self.angle)
-        ))
+            )
+        )
         print("polar momentum", eqn)
         self.assertAlmostEqual(0, eqn)
 
@@ -141,7 +142,7 @@ class ODE_Test(unittest.TestCase):
         self.assertAlmostEqual(0, eqn)
 
     def test_azimuthal_induction_numeric(self):
-        step = - 1e-4
+        step = 1e-4
         new_params = self.params + self.derivs * step
         new_angle = self.angle + step
         new_derivs = np.zeros(ODE_NUMBER)

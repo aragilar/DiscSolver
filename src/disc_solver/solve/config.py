@@ -3,7 +3,7 @@
 Define input and environment for ode system
 """
 
-from math import pi, sqrt
+from math import sqrt
 
 import logbook
 
@@ -23,42 +23,32 @@ def define_conditions(inp):
     """
     Compute initial conditions based on input
     """
-    ρ = 1  # ρ is always normalised by itself
-    c_s = 1  # velocities normalised by c_s, so c_s = 1
+    ρ = 1
+    B_θ = 1
+    v_θ = 0
+    B_r = 0
+    B_φ = 0
 
-    v_θ = 0  # symmetry across disc
-    B_r = 0  # symmetry across disc
-    B_φ = 0  # symmetry across disc
-
-    v_r = - inp.v_rin_on_c_s  # velocities normalised by c_s
-    B_θ = inp.v_a_on_c_s
+    v_r = - inp.v_rin_on_c_s
+    a_0 = inp.v_a_on_c_s ** 2
+    norm_kepler_sq = 1 / inp.c_s_on_v_k ** 2
 
     β = inp.β
-    norm_kepler_sq = 1 / inp.c_s_on_v_k ** 2
     η_O = inp.η_O
     η_A = inp.η_A
     η_H = inp.η_H
 
-    # solution for v_φ**2 + B * v_φ + C = 0
-    B_v_φ = (inp.v_rin_on_c_s * η_H) / (2 * (η_O + η_A))
-    C_v_φ = (
-        inp.v_rin_on_c_s**2 / 2 + 2 * β - norm_kepler_sq -
-        inp.v_a_on_c_s**2 * inp.v_rin_on_c_s / (η_O + η_A)
-    )
-    log.debug("B_v_φ: {}".format(B_v_φ))
-    log.debug("C_v_φ: {}".format(C_v_φ))
-
     v_φ = (
-        (inp.v_rin_on_c_s * η_H) / (4 * (η_O + η_A)) + sqrt(
-            norm_kepler_sq - inp.v_rin_on_c_s**2 / 2 * (
-                1 - η_H**2 / (8 * (η_O + η_A)**2)
-            ) - inp.v_rin_on_c_s * inp.v_a_on_c_s**2 / (η_O + η_A) - 2 * β
+        - v_r * η_H / (4 * (η_O + η_A)) + sqrt(
+            norm_kepler_sq - 2 * β + v_r * (
+                a_0 / (η_O + η_A) + v_r / 2 * (
+                    η_H ** 2 / (8 * (η_O + η_A) ** 2) - 1
+                )
+            )
         )
     )
 
-    B_φ_prime = (
-        v_φ * v_r * 2 * pi * ρ
-    ) / B_θ
+    B_φ_prime = v_φ * v_r / (2 * a_0)
 
     init_con = np.zeros(11)
 
@@ -77,7 +67,7 @@ def define_conditions(inp):
     angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
 
     return InitialConditions(
-        norm_kepler_sq=norm_kepler_sq, c_s=c_s, init_con=init_con,
+        norm_kepler_sq=norm_kepler_sq, a_0=a_0, init_con=init_con,
         angles=angles, β=β
     )
 

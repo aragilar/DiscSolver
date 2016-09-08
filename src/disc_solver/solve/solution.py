@@ -3,7 +3,7 @@
 The system of odes
 """
 
-from math import pi, sqrt, tan, degrees, radians
+from math import sqrt, tan, degrees, radians
 from collections import namedtuple
 
 import logbook
@@ -36,14 +36,14 @@ TaylorSolution = namedtuple(
 
 
 def ode_system(
-    β, c_s, central_mass, init_con, *, with_taylor=False, η_derivs=True,
+    β, a_0, norm_kepler_sq, init_con, *, with_taylor=False, η_derivs=True,
     store_internal=True
 ):
     """
     Set up the system we are solving for.
     """
     dderiv_ρ_M, dderiv_v_rM, dderiv_v_φM = taylor_series(
-        β, c_s, init_con
+        β, a_0, init_con, η_derivs=η_derivs
     )
     if η_derivs:
         η_O_scale = init_con[ODEIndex.η_O] / sqrt(init_con[ODEIndex.ρ])
@@ -125,44 +125,34 @@ def ode_system(
 
         deriv_v_r_taylor = θ * dderiv_v_rM
         deriv_v_r_normal = (
-            v_r**2 / 2 +
-            v_θ**2 + v_φ**2 +
-            (2 * β * c_s**2) - central_mass +
-            (
-                B_θ * deriv_B_r + (β - 1)*(B_θ**2 + B_φ**2)
-            ) / (
-                4 * pi * ρ
+            v_r ** 2 / 2 + v_θ ** 2 + v_φ ** 2 + 2 * β - norm_kepler_sq +
+            a_0 / ρ * (
+                B_θ * deriv_B_r + (β - 1) * (B_θ ** 2 + B_φ ** 2)
             )
         ) / v_θ
+
         deriv_v_r = (
             deriv_v_r_taylor if with_taylor else deriv_v_r_normal
         )
 
         deriv_v_φ_taylor = θ * dderiv_v_φM
         deriv_v_φ_normal = (
-            (
-                B_θ * B_φ_prime +
-                (1-β) * B_r * B_φ -
-                tan(θ) * B_θ * B_φ
-            ) / (
-                4 * pi * ρ
-            ) + tan(θ) * v_φ * v_θ -
-            (v_φ * v_r) / 2
+            v_φ * v_θ * tan(θ) - v_φ * v_r / 2 + a_0 / ρ * (
+                B_θ * deriv_B_φ + (1 - β) * B_r * B_φ - B_θ * B_φ * tan(θ)
+            )
         ) / v_θ
         deriv_v_φ = (
             deriv_v_φ_taylor if with_taylor else deriv_v_φ_normal
         )
 
         deriv_v_θ = (
-            v_r * (
-                v_θ**2 / 2 + c_s**2 * (2 * β - 5/2)
-            ) + v_θ * (
-                tan(θ) * (v_φ**2 + c_s**2) + (
-                    (β-1) * B_θ * B_r + B_r * deriv_B_r + B_φ * B_φ_prime -
-                    B_φ**2 * tan(θ)
-                ) / (4*pi * ρ)
+            v_r / 2 * (v_θ ** 2 + 4 * β - 5) + v_θ * (
+                tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
+                    (β - 1) * B_θ * B_r + B_r * deriv_B_r + B_φ * deriv_B_φ -
+                    B_φ ** 2 * tan(θ)
+                )
             )
-        ) / ((c_s - v_θ) * (c_s + v_θ))
+        ) / (1 - v_θ ** 2)
 
         deriv_ρ_taylor = θ * dderiv_ρ_M
         deriv_ρ_normal = - ρ * (
@@ -222,7 +212,7 @@ def ode_system(
 
 
 def taylor_solution(
-    angles, initial_conditions, β, c_s, central_mass, *, taylor_stop_angle,
+    angles, initial_conditions, β, a_0, norm_kepler_sq, *, taylor_stop_angle,
     relative_tolerance=1e-6, absolute_tolerance=1e-10, max_steps=500,
     η_derivs=True, store_internal=True
 ):
@@ -230,7 +220,7 @@ def taylor_solution(
     Compute solution using taylor series
     """
     system, internal_data = ode_system(
-        β, c_s, central_mass, initial_conditions, with_taylor=True,
+        β, a_0, norm_kepler_sq, initial_conditions, with_taylor=True,
         η_derivs=η_derivs, store_internal=store_internal,
     )
 
@@ -270,8 +260,8 @@ def taylor_solution(
 
 
 def main_solution(
-    angles, system_initial_conditions, ode_initial_conditions, β, c_s,
-    central_mass, *, relative_tolerance=1e-6, absolute_tolerance=1e-10,
+    angles, system_initial_conditions, ode_initial_conditions, β, a_0,
+    norm_kepler_sq, *, relative_tolerance=1e-6, absolute_tolerance=1e-10,
     max_steps=500, onroot_func=None, find_sonic_point=False, tstop=None,
     ontstop_func=None, η_derivs=True, store_internal=True
 ):
@@ -280,11 +270,11 @@ def main_solution(
     """
     extra_args = {}
     if find_sonic_point:
-        extra_args["rootfn"] = gen_sonic_point_rootfn(c_s)
+        extra_args["rootfn"] = gen_sonic_point_rootfn(1)
         extra_args["nr_rootfns"] = 1
 
     system, internal_data = ode_system(
-        β, c_s, central_mass, system_initial_conditions,
+        β, a_0, norm_kepler_sq, system_initial_conditions,
         η_derivs=η_derivs, store_internal=store_internal, with_taylor=False,
     )
     solver = ode(
@@ -334,8 +324,8 @@ def solution(
     angles = initial_conditions.angles
     init_con = initial_conditions.init_con
     β = initial_conditions.β
-    c_s = initial_conditions.c_s
-    central_mass = initial_conditions.norm_kepler_sq
+    a_0 = initial_conditions.a_0
+    norm_kepler_sq = initial_conditions.norm_kepler_sq
     absolute_tolerance = input.absolute_tolerance
     relative_tolerance = input.relative_tolerance
     max_steps = input.max_steps
@@ -347,7 +337,7 @@ def solution(
         post_taylor_initial_conditions = init_con
     else:
         taylor_soln = taylor_solution(
-            angles, init_con, β, c_s, central_mass,
+            angles, init_con, β, a_0, norm_kepler_sq,
             relative_tolerance=relative_tolerance,
             absolute_tolerance=absolute_tolerance, max_steps=max_steps,
             taylor_stop_angle=taylor_stop_angle, η_derivs=η_derivs,
@@ -358,8 +348,8 @@ def solution(
         taylor_internal = taylor_soln.internal_data
 
     soln, internal_data = main_solution(
-        post_taylor_angles, init_con, post_taylor_initial_conditions, β, c_s,
-        central_mass, relative_tolerance=relative_tolerance,
+        post_taylor_angles, init_con, post_taylor_initial_conditions, β, a_0,
+        norm_kepler_sq, relative_tolerance=relative_tolerance,
         absolute_tolerance=absolute_tolerance, max_steps=max_steps,
         onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
         η_derivs=η_derivs, store_internal=store_internal,

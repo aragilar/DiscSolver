@@ -86,7 +86,7 @@ def info(soln_file, *, group, soln_range, output_file):
         inp = soln_instance.solution_input
         init_con = soln_instance.initial_conditions
         v_norm = get_normalisation(inp)["v_norm"]  # need to fix config here
-        c_s = init_con.c_s * v_norm
+        c_s = v_norm
         if group == "input":
             print("input settings:", file=output_file)
             for name, value in vars(inp).items():

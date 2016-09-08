@@ -188,15 +188,15 @@ class InitialConditions:
     # pylint: disable=missing-docstring,too-few-public-methods
     # pylint: disable=too-many-branches,too-many-instance-attributes
     def __init__(
-        self, *, norm_kepler_sq=None, c_s=None, η_O=None, η_A=None, η_H=None,
-        β=None, init_con=None, angles=None
+        self, *, norm_kepler_sq=None, η_O=None, η_A=None, η_H=None,
+        β=None, init_con=None, angles=None, a_0=None
     ):
         if norm_kepler_sq is None:
             raise TypeError("norm_kepler_sq required")
         self.norm_kepler_sq = norm_kepler_sq
-        if c_s is None:
-            raise TypeError("c_s required")
-        self.c_s = c_s
+        if a_0 is None:
+            raise TypeError("a_0 required")
+        self.a_0 = a_0
         if β is None:
             raise TypeError("β required")
         self.β = β
@@ -303,13 +303,13 @@ def _internal_load2(group):
     )
 
 
-@ds_registry.dumper(InitialConditions, "InitialConditions", version=1)
+@ds_registry.dumper(InitialConditions, "InitialConditions", version=2)
 def _initial_dump(initial_conditions):
     # pylint: disable=missing-docstring
     return GroupContainer(
         attrs={
             "norm_kepler_sq": initial_conditions.norm_kepler_sq,
-            "c_s": initial_conditions.c_s,
+            "a_0": initial_conditions.a_0,
             "η_O": initial_conditions.η_O,
             "η_A": initial_conditions.η_A,
             "η_H": initial_conditions.η_H,
@@ -319,12 +319,27 @@ def _initial_dump(initial_conditions):
     )
 
 
-@ds_registry.loader("InitialConditions", version=1)
+@ds_registry.loader("InitialConditions", version=2)
 def _initial_load(group):
     # pylint: disable=missing-docstring
     return InitialConditions(
         norm_kepler_sq=group.attrs["norm_kepler_sq"],
-        c_s=group.attrs["c_s"],
+        a_0=group.attrs["a_0"],
+        η_O=group.attrs["η_O"],
+        η_A=group.attrs["η_A"],
+        η_H=group.attrs["η_H"],
+        β=group.attrs["β"],
+        init_con=group.attrs["init_con"],
+        angles=group["angles"]["data"],
+    )
+
+
+@ds_registry.loader("InitialConditions", version=1)
+def _initial_load_old(group):
+    # pylint: disable=missing-docstring
+    return InitialConditions(
+        norm_kepler_sq=group.attrs["norm_kepler_sq"],
+        a_0=float('nan'),
         η_O=group.attrs["η_O"],
         η_A=group.attrs["η_A"],
         η_H=group.attrs["η_H"],
