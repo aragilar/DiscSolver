@@ -282,6 +282,12 @@ def taylor_series(β, a_0, init_con, η_derivs):
         a_0, v_φ, dderiv_v_r, η_perp_sq, η_H, Y_5, Y_4
     )
 
+    log.info("Y_1: {}".format(Y_1))
+    log.info("Y_2: {}".format(Y_2))
+    log.info("Y_3: {}".format(Y_3))
+    log.info("Y_4: {}".format(Y_4))
+    log.info("Y_5: {}".format(Y_5))
+    log.info("Y_6: {}".format(Y_6))
     log.info("B_θ'': {}".format(dderiv_B_θ))
     log.info("v_r'': {}".format(dderiv_v_r))
     log.info("v_φ'': {}".format(dderiv_v_φ))
