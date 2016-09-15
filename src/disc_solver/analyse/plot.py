@@ -10,10 +10,9 @@ from numpy import (
 )
 import matplotlib.pyplot as plt
 
-from ..constants import KM
 from ..utils import (
-    better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX, get_normalisation,
-    ODEIndex, MAGNETIC_INDEXES,
+    better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX, ODEIndex,
+    MAGNETIC_INDEXES,
 )
 
 from .utils import (
@@ -104,65 +103,46 @@ def generate_plot(
     solution = soln.solution
     angles = soln.angles
     cons = soln.initial_conditions
-    inp = soln.solution_input
     y_roots = soln.y_roots
     t_roots = soln.t_roots
 
-    norms = get_normalisation(inp)  # need to allow config here
-    B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
     zero_soln = np_zeros(len(solution))
     v = np_array([zero_soln, zero_soln, solution[:, ODEIndex.v_θ]])
     wave_speeds = np_sqrt(mhd_wave_speeds(
-        v.T, solution[:, MAGNETIC_INDEXES], solution[:, 6], 1
+        v.T, solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1
     ))
 
     indexes = degrees(angles) <= stop
 
     param_names = [
         {
-            "name": "B_r",
-            "y_label": "Magnetic Field (Gauss)",
-            "normalisation": B_norm,
+            "name": "$B_r/B_0$",
         },
         {
-            "name": "B_φ",
-            "y_label": "Magnetic Field (Gauss)",
-            "normalisation": B_norm,
+            "name": "$B_φ/B_0$",
         },
         {
-            "name": "B_θ",
-            "y_label": "Magnetic Field (Gauss)",
-            "normalisation": B_norm,
+            "name": "$B_θ/B_0$",
         },
         {
-            "name": "v_r",
-            "y_label": "Velocity Field (km/s)",
-            "normalisation": v_norm / KM,  # km/s
+            "name": "$v_r/c_s$",
         },
         {
-            "name": "v_φ",
-            "y_label": "Velocity Field (km/s)",
-            "normalisation": v_norm / KM,  # km/s
-            "offset": sqrt(cons.norm_kepler_sq) * v_norm / KM
+            "name": "$(v_φ - v_k)/c_s$",
+            "offset": sqrt(cons.norm_kepler_sq)
         },
         {
-            "name": "v_θ",
-            "y_label": "Velocity Field (km/s)",
-            "normalisation": v_norm / KM,  # km/s
+            "name": "$v_θ/c_s$",
             "legend": True,
             "scale": v_θ_scale,
             "extras": []
         },
         {
-            "name": "ρ",
-            "y_label": "Density ($g cm^{-3}$)",
-            "normalisation": ρ_norm,
+            "name": "$ρ/ρ_0$",
             "scale": "log",
         },
         {
-            "name": "B_φ_prime",
-            "y_label": "Magnetic Field (Gauss)",
-            "normalisation": B_norm,
+            "name": "$B_φ'/B_0$",
         },
     ]
 
@@ -170,25 +150,21 @@ def generate_plot(
         param_names[ODEIndex.v_θ]["extras"].append({
             "label": "slow",
             "data": wave_speeds[MHD_WAVE_INDEX["slow"]],
-            "normalisation": v_norm / KM,
         })
     if with_alfven:
         param_names[ODEIndex.v_θ]["extras"].append({
             "label": "alfven",
             "data": wave_speeds[MHD_WAVE_INDEX["alfven"]],
-            "normalisation": v_norm / KM,
         })
     if with_fast:
         param_names[ODEIndex.v_θ]["extras"].append({
             "label": "fast",
             "data": wave_speeds[MHD_WAVE_INDEX["fast"]],
-            "normalisation": v_norm / KM,
         })
     if with_sonic:
         param_names[ODEIndex.v_θ]["extras"].append({
             "label": "sound",
             "data": np_ones(len(solution)),
-            "normalisation": v_norm / KM,
         })
 
     fig, axes = plt.subplots(
@@ -200,20 +176,18 @@ def generate_plot(
         ax.plot(
             degrees(angles[indexes]),
             (
-                solution[:, i] * settings["normalisation"] -
-                settings.get("offset", 0)
+                solution[:, i] - settings.get("offset", 0)
             )[indexes], linestyle,
         )
         for extra in settings.get("extras", []):
             ax.plot(
                 degrees(angles[indexes]),
-                (extra["data"] * extra["normalisation"])[indexes],
+                extra["data"][indexes],
                 label=extra.get("label")
             )
         ax.set_xlabel("angle from plane (°)")
-        ax.set_ylabel(settings["y_label"])
+        ax.set_ylabel(settings["name"])
         ax.set_yscale(settings.get("scale", "linear"))
-        ax.set_title(settings["name"])
         if settings.get("legend"):
             ax.legend(loc=0)
         better_sci_format(ax.yaxis)
