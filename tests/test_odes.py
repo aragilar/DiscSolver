@@ -25,11 +25,14 @@ class ODE_Test(unittest.TestCase):
         # cancellation
         self.angle = 0.1
 
+        γ = 5/4 - self.β
+
         # Here's the action computation
         derivs = np.zeros(ODE_NUMBER)
         with logbook.NullHandler().applicationbound():
             self.rhs, internal_data = ode_system(
-                self.β, self.a_0, self.norm_kepler_sq, params, with_taylor=False
+                γ=γ, a_0=self.a_0, norm_kepler_sq=self.norm_kepler_sq,
+                init_con=params, with_taylor=False
             )
             self.rhs(self.angle, params, derivs)
 

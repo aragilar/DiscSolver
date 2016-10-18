@@ -33,14 +33,14 @@ def define_conditions(inp):
     a_0 = inp.v_a_on_c_s ** 2
     norm_kepler_sq = 1 / inp.c_s_on_v_k ** 2
 
-    β = inp.β
+    γ = inp.γ
     η_O = inp.η_O
     η_A = inp.η_A
     η_H = inp.η_H
 
     v_φ = (
         - v_r * η_H / (4 * (η_O + η_A)) + sqrt(
-            norm_kepler_sq - 2 * β + v_r * (
+            norm_kepler_sq - 5/2 + 2 * γ + v_r * (
                 a_0 / (η_O + η_A) + v_r / 2 * (
                     η_H ** 2 / (8 * (η_O + η_A) ** 2) - 1
                 )
@@ -68,7 +68,7 @@ def define_conditions(inp):
 
     return InitialConditions(
         norm_kepler_sq=norm_kepler_sq, a_0=a_0, init_con=init_con,
-        angles=angles, β=β
+        angles=angles, γ=γ
     )
 
 
@@ -100,7 +100,7 @@ def get_input_from_conffile(*, config_file):
             "config", "jump_before_sonic", fallback="None"
         ),
         η_derivs=config.get("config", "η_derivs", fallback="True"),
-        β=config.get("initial", "β", fallback="1.249"),
+        γ=config.get("initial", "γ", fallback="0.001"),
         v_rin_on_c_s=config.get("initial", "v_rin_on_c_s", fallback="1"),
         v_a_on_c_s=config.get("initial", "v_a_on_c_s", fallback="1"),
         c_s_on_v_k=config.get("initial", "c_s_on_v_k", fallback="0.03"),
@@ -127,7 +127,7 @@ def config_input_to_soln_input(inp):
             else str_to_float(inp.jump_before_sonic)
         ),
         η_derivs=str_to_bool(inp.η_derivs),
-        β=str_to_float(inp.β),
+        γ=str_to_float(inp.γ),
         v_rin_on_c_s=str_to_float(inp.v_rin_on_c_s),
         v_a_on_c_s=str_to_float(inp.v_a_on_c_s),
         c_s_on_v_k=str_to_float(inp.c_s_on_v_k),

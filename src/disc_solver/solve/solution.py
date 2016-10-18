@@ -36,14 +36,14 @@ TaylorSolution = namedtuple(
 
 
 def ode_system(
-    β, a_0, norm_kepler_sq, init_con, *, with_taylor=False, η_derivs=True,
+    *, γ, a_0, norm_kepler_sq, init_con, with_taylor=False, η_derivs=True,
     store_internal=True
 ):
     """
     Set up the system we are solving for.
     """
     dderiv_ρ_M, dderiv_v_rM, dderiv_v_φM = taylor_series(
-        β, a_0, init_con, η_derivs=η_derivs
+        γ=γ, a_0=a_0, init_con=init_con, η_derivs=η_derivs
     )
     if η_derivs:
         η_O_scale = init_con[ODEIndex.η_O] / sqrt(init_con[ODEIndex.ρ])
@@ -102,32 +102,31 @@ def ode_system(
 
         deriv_B_φ = B_φ_prime
         deriv_B_r = (
-            B_θ * (1 - β) +
             (
                 v_θ * B_r - v_r * B_θ + deriv_B_φ * (
                     η_H * norm_B_θ -
                     η_A * norm_B_r * norm_B_φ
                 ) + B_φ * (
-                    η_H * (
-                        norm_B_r * (1 - β) -
-                        norm_B_θ * tan(θ)
-                    ) - η_A * norm_B_φ * (
-                        norm_B_θ * (1 - β) -
+                    η_A * norm_B_φ * (
+                        norm_B_θ * (1/4 - γ) +
                         norm_B_r * tan(θ)
+                    ) - η_H * (
+                        norm_B_r * (1/4 - γ) +
+                        norm_B_θ * tan(θ)
                     )
                 )
             ) / (
                 η_O + η_A * (1 - norm_B_φ**2)
-            )
+            ) - B_θ * (1/4 - γ)
         )
 
-        deriv_B_θ = (β - 2) * B_r + B_θ * tan(θ)
+        deriv_B_θ = B_θ * tan(θ) - (γ + 3/4) * B_r
 
         deriv_v_r_taylor = θ * dderiv_v_rM
         deriv_v_r_normal = (
-            v_r ** 2 / 2 + v_θ ** 2 + v_φ ** 2 + 2 * β - norm_kepler_sq +
+            v_r ** 2 / 2 + v_θ ** 2 + v_φ ** 2 + 5/2 - 2 * γ - norm_kepler_sq +
             a_0 / ρ * (
-                B_θ * deriv_B_r + (β - 1) * (B_θ ** 2 + B_φ ** 2)
+                B_θ * deriv_B_r + (1/4 - γ) * (B_θ ** 2 + B_φ ** 2)
             )
         ) / v_θ
 
@@ -138,7 +137,7 @@ def ode_system(
         deriv_v_φ_taylor = θ * dderiv_v_φM
         deriv_v_φ_normal = (
             v_φ * v_θ * tan(θ) - v_φ * v_r / 2 + a_0 / ρ * (
-                B_θ * deriv_B_φ + (1 - β) * B_r * B_φ - B_θ * B_φ * tan(θ)
+                B_θ * deriv_B_φ - (1/4 - γ) * B_r * B_φ - B_θ * B_φ * tan(θ)
             )
         ) / v_θ
         deriv_v_φ = (
@@ -146,9 +145,9 @@ def ode_system(
         )
 
         deriv_v_θ = (
-            v_r / 2 * (v_θ ** 2 + 4 * β - 5) + v_θ * (
+            v_r / 2 * (v_θ ** 2 - 4 * γ) + v_θ * (
                 tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
-                    (β - 1) * B_θ * B_r + B_r * deriv_B_r + B_φ * deriv_B_φ -
+                    (1/4 - γ) * B_θ * B_r + B_r * deriv_B_r + B_φ * deriv_B_φ -
                     B_φ ** 2 * tan(θ)
                 )
             )
@@ -157,7 +156,7 @@ def ode_system(
         deriv_ρ_taylor = θ * dderiv_ρ_M
         deriv_ρ_normal = - ρ * (
             (
-                (5/2 - 2 * β) * v_r + deriv_v_θ
+                2 * γ * v_r + deriv_v_θ
             ) / v_θ - tan(θ)
         )
         deriv_ρ = deriv_ρ_taylor if with_taylor else deriv_ρ_normal
@@ -168,10 +167,11 @@ def ode_system(
         deriv_η_H = deriv_ρ_scale * η_H_scale
 
         dderiv_B_φ = dderiv_B_φ_soln(
-            B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r,
-            v_θ, v_φ, deriv_v_r, deriv_v_θ, deriv_v_φ,
-            deriv_B_r, deriv_B_θ, deriv_B_φ, β, deriv_η_O, deriv_η_A,
-            deriv_η_H
+            B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r,
+            v_θ=v_θ, v_φ=v_φ, deriv_v_r=deriv_v_r, deriv_v_θ=deriv_v_θ,
+            deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
+            deriv_B_φ=deriv_B_φ, γ=γ, deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A,
+            deriv_η_H=deriv_η_H
         )
 
         derivs[ODEIndex.B_r] = deriv_B_r
@@ -212,7 +212,7 @@ def ode_system(
 
 
 def taylor_solution(
-    angles, initial_conditions, β, a_0, norm_kepler_sq, *, taylor_stop_angle,
+    *, angles, init_con, γ, a_0, norm_kepler_sq, taylor_stop_angle,
     relative_tolerance=1e-6, absolute_tolerance=1e-10, max_steps=500,
     η_derivs=True, store_internal=True
 ):
@@ -220,8 +220,9 @@ def taylor_solution(
     Compute solution using taylor series
     """
     system, internal_data = ode_system(
-        β, a_0, norm_kepler_sq, initial_conditions, with_taylor=True,
-        η_derivs=η_derivs, store_internal=store_internal,
+        γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,
+        init_con=init_con, with_taylor=True, η_derivs=η_derivs,
+        store_internal=store_internal,
     )
 
     solver = ode(
@@ -237,7 +238,7 @@ def taylor_solution(
     )
 
     try:
-        soln = solver.solve(angles, initial_conditions)
+        soln = solver.solve(angles, init_con)
     except CVODESolveFailed as e:
         RuntimeError(
             "Taylor solver stopped in at {} with flag {!s}.\n{}".format(
@@ -260,8 +261,8 @@ def taylor_solution(
 
 
 def main_solution(
-    angles, system_initial_conditions, ode_initial_conditions, β, a_0,
-    norm_kepler_sq, *, relative_tolerance=1e-6, absolute_tolerance=1e-10,
+    *, angles, system_initial_conditions, ode_initial_conditions, γ, a_0,
+    norm_kepler_sq, relative_tolerance=1e-6, absolute_tolerance=1e-10,
     max_steps=500, onroot_func=None, find_sonic_point=False, tstop=None,
     ontstop_func=None, η_derivs=True, store_internal=True
 ):
@@ -274,8 +275,9 @@ def main_solution(
         extra_args["nr_rootfns"] = 1
 
     system, internal_data = ode_system(
-        β, a_0, norm_kepler_sq, system_initial_conditions,
-        η_derivs=η_derivs, store_internal=store_internal, with_taylor=False,
+        γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,
+        init_con=system_initial_conditions, η_derivs=η_derivs,
+        store_internal=store_internal, with_taylor=False,
     )
     solver = ode(
         INTEGRATOR, system,
@@ -323,7 +325,7 @@ def solution(
     """
     angles = initial_conditions.angles
     init_con = initial_conditions.init_con
-    β = initial_conditions.β
+    γ = initial_conditions.γ
     a_0 = initial_conditions.a_0
     norm_kepler_sq = initial_conditions.norm_kepler_sq
     absolute_tolerance = input.absolute_tolerance
@@ -337,7 +339,8 @@ def solution(
         post_taylor_initial_conditions = init_con
     else:
         taylor_soln = taylor_solution(
-            angles, init_con, β, a_0, norm_kepler_sq,
+            angles=angles, init_con=init_con, γ=γ, a_0=a_0,
+            norm_kepler_sq=norm_kepler_sq,
             relative_tolerance=relative_tolerance,
             absolute_tolerance=absolute_tolerance, max_steps=max_steps,
             taylor_stop_angle=taylor_stop_angle, η_derivs=η_derivs,
@@ -348,8 +351,9 @@ def solution(
         taylor_internal = taylor_soln.internal_data
 
     soln, internal_data = main_solution(
-        post_taylor_angles, init_con, post_taylor_initial_conditions, β, a_0,
-        norm_kepler_sq, relative_tolerance=relative_tolerance,
+        angles=post_taylor_angles, system_initial_conditions=init_con,
+        ode_initial_conditions=post_taylor_initial_conditions, γ=γ, a_0=a_0,
+        norm_kepler_sq=norm_kepler_sq, relative_tolerance=relative_tolerance,
         absolute_tolerance=absolute_tolerance, max_steps=max_steps,
         onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
         η_derivs=η_derivs, store_internal=store_internal,
