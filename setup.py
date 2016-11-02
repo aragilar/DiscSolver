@@ -21,6 +21,7 @@ setuptools.setup(
         "h5preserve>=0.8",
         "stringtopy",
         "corner",
+        "attrs",
     ],
     author = "James Tocknell",
     author_email = "aragilar@gmail.com",
