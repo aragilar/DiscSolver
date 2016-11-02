@@ -12,7 +12,7 @@ from ..utils import sec, ODEIndex
 log = logbook.Logger(__name__)
 
 
-def B_unit_derivs(B_r, B_φ, B_θ, deriv_B_r, deriv_B_φ, deriv_B_θ):
+def B_unit_derivs(*, B_r, B_φ, B_θ, deriv_B_r, deriv_B_φ, deriv_B_θ):
     """
     Compute the derivatives of the unit vector of B.
     """
@@ -33,6 +33,34 @@ def B_unit_derivs(B_r, B_φ, B_θ, deriv_B_r, deriv_B_φ, deriv_B_θ):
     ]
 
 
+def A_func(
+    *, η_O, η_A, η_H, b_θ, b_r, b_φ, deriv_η_O, deriv_η_A, deriv_η_H,
+    deriv_b_θ, deriv_b_r, deriv_b_φ
+):
+    """
+    Compute the value of the variable A
+    """
+    return (
+        (
+            deriv_η_O + deriv_η_A * (1 - b_φ ** 2) - 2 * η_A * b_φ * deriv_b_φ
+        ) * (η_H * b_θ + η_A * b_r * b_φ)
+    ) / (
+        (η_O + η_A * (1 - b_φ ** 2)) ** 2
+    ) - (
+        deriv_η_H * b_θ + η_H * deriv_b_θ + deriv_η_A * b_r * b_φ +
+        η_A * deriv_b_r * b_φ + η_A * b_r * deriv_b_φ
+    ) / (
+        η_O + η_A * (1 - b_φ ** 2)
+    )
+
+
+def C_func(*, η_O, η_A, η_H, b_θ, b_r, b_φ):
+    """
+    Compute the value of the variable C
+    """
+    return (η_H * b_θ + η_A * b_r * b_φ) / (η_O + η_A * (1 - b_φ ** 2))
+
+
 def dderiv_B_φ_soln(
     *, B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r, v_θ,
     v_φ, deriv_v_r, deriv_v_θ, deriv_v_φ, deriv_B_r, deriv_B_θ,
@@ -44,22 +72,16 @@ def dderiv_B_φ_soln(
     B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
     b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
     deriv_b_r, deriv_b_φ, deriv_b_θ = B_unit_derivs(
-        B_r, B_φ, B_θ, deriv_B_r, deriv_B_φ, deriv_B_θ
+        B_r=B_r, B_φ=B_φ, B_θ=B_θ, deriv_B_r=deriv_B_r, deriv_B_φ=deriv_B_φ,
+        deriv_B_θ=deriv_B_θ
     )
 
-    C = (η_H * b_θ + η_A * b_r * b_φ) / (η_O + η_A * (1 - b_φ ** 2))
+    C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
 
-    A = (
-        (
-            deriv_η_O + deriv_η_A * (1 - b_φ ** 2) - 2 * η_A * b_φ * deriv_b_φ
-        ) * (η_H * b_θ + η_A * b_r * b_φ)
-    )/(
-        (η_O + η_A * (1 - b_φ ** 2)) ** 2
-    ) - (
-        deriv_η_H * b_θ + η_H * deriv_b_θ + deriv_η_A * b_r * b_φ +
-        η_A * deriv_b_r * b_φ + η_A * b_r * deriv_b_φ
-    ) / (
-        η_O + η_A * (1 - b_φ ** 2)
+    A = A_func(
+        η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ,
+        deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H,
+        deriv_b_θ=deriv_b_θ, deriv_b_r=deriv_b_r, deriv_b_φ=deriv_b_φ
     )
 
     return (
