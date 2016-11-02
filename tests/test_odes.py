@@ -9,6 +9,7 @@ import logbook
 import numpy as np
 
 from disc_solver.constants import G
+from disc_solver.utils import ODEIndex
 from disc_solver.solve.solution import ode_system
 
 ODE_NUMBER = 11
@@ -37,27 +38,27 @@ class ODE_Test(unittest.TestCase):
             self.rhs(self.angle, params, derivs)
 
         # Assign useful names to params, derivs
-        self.B_r = params[0]
-        self.B_φ = params[1]
-        self.B_θ = params[2]
-        self.v_r = params[3]
-        self.v_φ = params[4]
-        self.v_θ = params[5]
-        self.ρ = params[6]
-        self.η_O = params[8]
-        self.η_A = params[9]
-        self.η_H = params[10]
-        self.deriv_B_r = derivs[0]
-        self.deriv_B_φ = derivs[1]
-        self.deriv_B_θ = derivs[2]
-        self.deriv_v_r = derivs[3]
-        self.deriv_v_φ = derivs[4]
-        self.deriv_v_θ = derivs[5]
-        self.deriv_ρ = derivs[6]
-        self.dderiv_B_φ = derivs[7]
-        self.deriv_η_O = derivs[8]
-        self.deriv_η_A = derivs[9]
-        self.deriv_η_H = derivs[10]
+        self.B_r = params[ODEIndex.B_r]
+        self.B_φ = params[ODEIndex.B_φ]
+        self.B_θ = params[ODEIndex.B_θ]
+        self.v_r = params[ODEIndex.v_r]
+        self.v_φ = params[ODEIndex.v_φ]
+        self.v_θ = params[ODEIndex.v_θ]
+        self.ρ = params[ODEIndex.ρ]
+        self.η_O = params[ODEIndex.η_O]
+        self.η_A = params[ODEIndex.η_A]
+        self.η_H = params[ODEIndex.η_H]
+        self.deriv_B_r = derivs[ODEIndex.B_r]
+        self.deriv_B_φ = derivs[ODEIndex.B_φ]
+        self.deriv_B_θ = derivs[ODEIndex.B_θ]
+        self.deriv_v_r = derivs[ODEIndex.v_r]
+        self.deriv_v_φ = derivs[ODEIndex.v_φ]
+        self.deriv_v_θ = derivs[ODEIndex.v_θ]
+        self.deriv_ρ = derivs[ODEIndex.ρ]
+        self.dderiv_B_φ = derivs[ODEIndex.B_φ_prime]
+        self.deriv_η_O = derivs[ODEIndex.η_O]
+        self.deriv_η_A = derivs[ODEIndex.η_A]
+        self.deriv_η_H = derivs[ODEIndex.η_H]
 
 
         B_mag = sqrt(self.B_r**2 + self.B_φ**2 + self.B_θ **2)
