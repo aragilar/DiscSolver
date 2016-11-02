@@ -88,10 +88,12 @@ def ode_system(
         # check sanity of input values
         if ρ < 0:
             if store_internal:
+                # pylint: disable=unsubscriptable-object
                 problems[θ].append("negative density")
             return 1
         if v_θ < 0:
             if store_internal:
+                # pylint: disable=unsubscriptable-object
                 problems[θ].append("negative velocity")
             return -1
 
@@ -360,11 +362,8 @@ def solution(
         find_sonic_point=find_sonic_point
     )
 
-    if store_internal:
-        internal_data.finalise()
-        if taylor_stop_angle is not None:
-            taylor_internal.finalise()
-            internal_data = taylor_internal + internal_data
+    if store_internal and taylor_stop_angle is not None:
+        internal_data = taylor_internal + internal_data
 
     if taylor_stop_angle is None:
         joined_angles = soln.values.t
