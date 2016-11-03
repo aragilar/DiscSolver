@@ -89,15 +89,17 @@ def dderiv_B_φ_soln(
     ) ** -1 * (
         v_φ * B_r - 4 / (3 - 4 * γ) * (
             deriv_v_φ * B_θ + v_φ * deriv_B_θ
-        ) + (B_θ * (1/4 - γ) - deriv_B_r) * (
+        ) + (B_θ * (1/4 - γ) + deriv_B_r) * (
             η_H * b_r - η_A * b_θ * b_φ
-        ) + deriv_B_φ * (
+        ) - A * v_θ * B_r - C * deriv_v_θ * B_r - C * v_θ * deriv_B_r +
+        A * v_r * B_θ + C * deriv_v_r * B_θ + C * v_r * deriv_B_θ +
+        deriv_B_φ * (
             v_θ * 4 / (3 - 4 * γ) + η_O * tan(θ) - deriv_η_O -
             deriv_η_H * C * b_θ - deriv_η_A * (
                 1 - b_r ** 2 - C * b_r * b_φ
             ) + η_H * (
-                b_φ * (γ + 3/4) - C * (
-                    b_r * (1/4 - γ) - b_θ * tan(θ) - deriv_b_θ
+                b_φ * (γ + 3/4) + C * (
+                    b_r * (1/4 - γ) + b_θ * tan(θ) + deriv_b_θ
                 ) - A * b_θ
             ) + η_A * (
                 tan(θ) * (1 - b_r ** 2) + (1/4 - γ) * b_r * b_φ - C * b_φ * (
@@ -105,10 +107,10 @@ def dderiv_B_φ_soln(
                 ) + 2 * b_r * deriv_b_r - A * b_r * b_φ -
                 C * deriv_b_r * b_φ - C * b_r * deriv_b_φ + b_r * b_θ
             )
-        ) - A * v_θ * B_r - C * deriv_v_θ * B_r - C * v_θ * deriv_B_r +
-        A * v_r * B_θ + C * deriv_v_r * B_θ + C * v_r * deriv_B_θ + B_φ * (
-            deriv_η_O * tan(θ) + η_O * (sec(θ) ** 2 + γ - 1/4) - v_r +
-            4 / (3 - 4 * γ) * deriv_v_θ + η_H * (
+        ) + B_φ * (
+            deriv_η_O * tan(θ) + η_O * (
+                sec(θ) ** 2 + γ - 1/4
+            ) - v_r + 4 / (3 - 4 * γ) * deriv_v_θ + η_H * (
                 A * (
                     b_r * (1/4 - γ) + b_θ * tan(θ)
                 ) + C * b_φ * (
@@ -126,10 +128,10 @@ def dderiv_B_φ_soln(
                 ) - C * b_φ * (
                     deriv_b_θ * (1/4 - γ) + deriv_b_r * tan(θ) +
                     b_r * sec(θ) ** 2
-                ) + (1/4 - γ) * (1 - b_θ ** 2) - tan(θ) * b_r * b_θ
+                ) - (1/4 - γ) * (1 - b_θ ** 2) - tan(θ) * b_r * b_θ
             ) + deriv_η_A * (
                 tan(θ) * (1 - b_r ** 2) + (1/4 - γ) * b_r * b_θ - C * b_φ * (
-                    b_θ * (1/4 - γ) - b_r * tan(θ)
+                    b_θ * (1/4 - γ) + b_r * tan(θ)
                 )
             )
         )
