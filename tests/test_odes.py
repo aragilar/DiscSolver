@@ -1,12 +1,17 @@
 
 # -*- coding: utf-8 -*-
 
-from math import pi, sqrt, tan
+from math import pi, sqrt, tan, isinf
 from types import SimpleNamespace
 import unittest
 
 import pytest
 from pytest import approx
+
+import hypothesis
+from hypothesis import assume
+import hypothesis.strategies as st
+from hypothesis.extra.numpy import arrays
 
 import logbook
 
@@ -18,26 +23,93 @@ from disc_solver.solve.solution import ode_system
 from disc_solver.solve.dae_solution import dae_system
 
 ODE_NUMBER = len(ODEIndex)
+CONTINUTY_MAX_ERROR = 2.3283064365386963e-10
+SOLENOID_MAX_ERROR = 7.2759576141834259e-12
+
+add_initial_conditions = hypothesis.given(
+    params=st.tuples(
+        st.floats(allow_nan=False, allow_infinity=False),
+        st.floats(allow_nan=False, allow_infinity=False),
+        st.floats(allow_nan=False, allow_infinity=False),
+        st.floats(allow_nan=False, allow_infinity=False),
+        st.floats(allow_nan=False, allow_infinity=False),
+        st.floats(allow_nan=False, allow_infinity=False),
+        st.floats(allow_nan=False, allow_infinity=False),
+        st.floats(allow_nan=False, allow_infinity=False),
+        st.floats(allow_nan=False, allow_infinity=False),
+        st.floats(allow_nan=False, allow_infinity=False),
+        st.floats(allow_nan=False, allow_infinity=False),
+    ),
+    β=st.floats(allow_nan=False, allow_infinity=False),
+    norm_kepler_sq=st.floats(allow_nan=False, allow_infinity=False),
+    a_0=st.floats(allow_nan=False, allow_infinity=False),
+    angle=st.floats(allow_nan=False, allow_infinity=False),
+)
 
 
-@pytest.fixture(scope='module')
-def initial_conditions():
+def initial_conditions_func(params, β, norm_kepler_sq, a_0, angle):
     values = SimpleNamespace()
-    # These are all arbitrary values, this should not affect the result
-    values.params = np.array([7 for i in range(ODE_NUMBER)], dtype=float)
-    values.β = 2
-    values.norm_kepler_sq = 2
-    values.a_0 = 2
+
+    values.params = np.array(params, dtype=float)
+    values.β = β
+    values.norm_kepler_sq = norm_kepler_sq
+    values.a_0 = a_0
+    values.angle = angle
     values.γ = 5/4 - values.β
 
-    # This is slightly off the plane, this should mean we don't get
-    # cancellation
-    values.angle = 0.1
     return values
 
 
-@pytest.fixture(scope='module')
-def rhs_func(initial_conditions):
+def validate_initial_conditions(initial_conditions):
+    norm_kepler_sq = initial_conditions.norm_kepler_sq
+    a_0 = initial_conditions.a_0
+    β = initial_conditions.β
+    γ = initial_conditions.γ
+    angle = initial_conditions.angle
+    B_r = initial_conditions.params[ODEIndex.B_r]
+    B_φ = initial_conditions.params[ODEIndex.B_φ]
+    B_θ = initial_conditions.params[ODEIndex.B_θ]
+    v_r = initial_conditions.params[ODEIndex.v_r]
+    v_φ = initial_conditions.params[ODEIndex.v_φ]
+    v_θ = initial_conditions.params[ODEIndex.v_θ]
+    ρ = initial_conditions.params[ODEIndex.ρ]
+    B_φ_prime = initial_conditions.params[ODEIndex.B_φ_prime]
+    η_O = initial_conditions.params[ODEIndex.η_O]
+    η_A = initial_conditions.params[ODEIndex.η_A]
+    η_H = initial_conditions.params[ODEIndex.η_H]
+
+    assume(norm_kepler_sq > 0)
+    assume(a_0 > 0)
+
+    assume(ρ > 0)
+    assume(v_θ > 0)
+    assume(η_O > 0)
+    assume(η_A >= 0)
+
+    assume(B_r ** 2 + B_φ ** 2 + B_θ ** 2 > 0)
+
+    assume(isinf(1 / ρ) is False)
+    assume(isinf(1 / v_θ) is False)
+
+    assume(isinf(β * β) is False)
+
+    assume(isinf(B_r ** 2) is False)
+    assume(isinf(B_θ ** 2) is False)
+    assume(isinf(B_φ ** 2) is False)
+    assume(isinf(v_r ** 2) is False)
+    assume(isinf(v_θ ** 2) is False)
+    assume(isinf(v_φ ** 2) is False)
+    assume(isinf(ρ ** 2) is False)
+    assume(isinf(B_φ_prime ** 2) is False)
+    assume(isinf(η_O ** 2) is False)
+    assume(isinf(η_A ** 2) is False)
+    assume(isinf(η_H ** 2) is False)
+
+    for q in initial_conditions.params:
+        assume(isinf(q ** 2 / ρ) is False)
+        assume(isinf(q ** 2/ v_θ) is False)
+
+def rhs_func_func(initial_conditions):
     with logbook.NullHandler().applicationbound():
         rhs, internal_data = ode_system(
             γ=initial_conditions.γ,
@@ -49,8 +121,7 @@ def rhs_func(initial_conditions):
     return rhs
 
 
-@pytest.fixture(scope='module')
-def derivs(initial_conditions, rhs_func):
+def derivs_func(rhs_func, initial_conditions):
     derivs = np.zeros(ODE_NUMBER)
     with logbook.NullHandler().applicationbound():
         rhs_func(
@@ -61,8 +132,7 @@ def derivs(initial_conditions, rhs_func):
     return derivs
 
 
-@pytest.fixture(scope='module')
-def solution(initial_conditions, derivs):
+def solution_func(derivs, initial_conditions):
     values = SimpleNamespace(deriv=SimpleNamespace())
 
     values.B_r = initial_conditions.params[ODEIndex.B_r]
@@ -93,8 +163,7 @@ def solution(initial_conditions, derivs):
     return values
 
 
-@pytest.fixture(scope='module')
-def residual(initial_conditions, derivs):
+def residual_func(derivs, initial_conditions):
     residual = np.zeros(ODE_NUMBER)
     with logbook.NullHandler().applicationbound():
         dae_rhs, internal_data = dae_system(
@@ -111,8 +180,16 @@ def residual(initial_conditions, derivs):
         )
     return residual
 
-
-def test_continuity(initial_conditions, solution, regtest, test_info):
+@add_initial_conditions
+def test_continuity(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    solution = solution_func(
+        derivs_func(rhs_func_func(initial_conditions), initial_conditions),
+        initial_conditions
+    )
     eqn = (
         (5/2 - 2 * initial_conditions.β) * solution.v_r +
         solution.deriv.v_θ + (
@@ -123,19 +200,37 @@ def test_continuity(initial_conditions, solution, regtest, test_info):
     )
     test_info(eqn)
     print(eqn, file=regtest)
-    assert eqn == approx(0)
+    assert eqn == approx(0, abs=CONTINUTY_MAX_ERROR)
 
 
-def test_solenoid(initial_conditions, solution, regtest, test_info):
+@add_initial_conditions
+def test_solenoid(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    solution = solution_func(
+        derivs_func(rhs_func_func(initial_conditions), initial_conditions),
+        initial_conditions
+    )
     eqn = solution.deriv.B_θ - (
         (initial_conditions.β - 2) * solution.B_r + solution.B_θ * tan(initial_conditions.angle)
     )
     test_info(eqn)
     print(eqn, file=regtest)
-    assert eqn == approx(0)
+    assert eqn == approx(0, abs=SOLENOID_MAX_ERROR)
 
 
-def test_radial_momentum(initial_conditions, solution, regtest, test_info):
+@add_initial_conditions
+def test_radial_momentum(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    solution = solution_func(
+        derivs_func(rhs_func_func(initial_conditions), initial_conditions),
+        initial_conditions
+    )
     eqn = (solution.v_θ * solution.deriv.v_r - 1/2 * solution.v_r**2 -
         solution.v_θ**2 - solution.v_φ**2 + initial_conditions.norm_kepler_sq -
         2 * initial_conditions.β - initial_conditions.a_0 / solution.ρ * (
@@ -149,7 +244,16 @@ def test_radial_momentum(initial_conditions, solution, regtest, test_info):
     assert eqn == approx(0)
 
 
-def test_azimuthal_mometum(initial_conditions, solution, regtest, test_info):
+@add_initial_conditions
+def test_azimuthal_mometum(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    solution = solution_func(
+        derivs_func(rhs_func_func(initial_conditions), initial_conditions),
+        initial_conditions
+    )
     eqn = (solution.v_θ * solution.deriv.v_φ + 1/2 * solution.v_r * solution.v_φ -
         tan(initial_conditions.angle) * solution.v_θ * solution.v_φ - initial_conditions.a_0 / solution.ρ * (
             solution.B_θ * solution.deriv.B_φ +
@@ -162,7 +266,16 @@ def test_azimuthal_mometum(initial_conditions, solution, regtest, test_info):
     assert eqn == approx(0)
 
 
-def test_polar_momentum(initial_conditions, solution, regtest, test_info):
+@add_initial_conditions
+def test_polar_momentum(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    solution = solution_func(
+        derivs_func(rhs_func_func(initial_conditions), initial_conditions),
+        initial_conditions
+    )
     eqn = (solution.v_r * solution.v_θ / 2 + solution.v_θ * solution.deriv.v_θ +
         tan(initial_conditions.angle) * solution.v_φ ** 2 + solution.deriv.ρ / solution.ρ +
         initial_conditions.a_0 / solution.ρ * (
@@ -176,7 +289,16 @@ def test_polar_momentum(initial_conditions, solution, regtest, test_info):
     assert eqn == approx(0)
 
 
-def test_polar_induction(initial_conditions, solution, regtest, test_info):
+@add_initial_conditions
+def test_polar_induction(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    solution = solution_func(
+        derivs_func(rhs_func_func(initial_conditions), initial_conditions),
+        initial_conditions
+    )
     eqn = (
         solution.v_θ * solution.B_r -
         solution.v_r * solution.B_θ + (
@@ -201,8 +323,14 @@ def test_polar_induction(initial_conditions, solution, regtest, test_info):
     assert eqn == approx(0)
 
 
-def test_azimuthal_induction_numeric(initial_conditions, derivs, rhs_func,
-        solution, regtest, test_info):
+@add_initial_conditions
+def test_azimuthal_induction_numeric(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    rhs_func = rhs_func_func(initial_conditions)
+    derivs(rhs_func, initial_conditions)
     step = 1e-4
     new_params = initial_conditions.params + derivs * step
     new_angle = initial_conditions.angle + step
@@ -215,49 +343,105 @@ def test_azimuthal_induction_numeric(initial_conditions, derivs, rhs_func,
     assert eqn == approx(0, abs=2e-12)
 
 
-def test_dae_continuity(residual, regtest, test_info):
+@add_initial_conditions
+def test_dae_continuity(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    derivs = derivs_func(rhs_func_func(initial_conditions), initial_conditions)
+    solution = solution_func(derivs, initial_conditions)
+    residual = residual_func(derivs, initial_conditions)
     res = residual[ODEIndex.ρ]
     test_info(res)
     print(res, file=regtest)
     assert res == approx(0)
 
 
-def test_dae_solenoid(residual, regtest, test_info):
+@add_initial_conditions
+def test_dae_solenoid(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    derivs = derivs_func(rhs_func_func(initial_conditions), initial_conditions)
+    solution = solution_func(derivs, initial_conditions)
+    residual = residual_func(derivs, initial_conditions)
     res = residual[ODEIndex.B_θ]
     test_info(res)
     print(res, file=regtest)
     assert res == approx(0)
 
 
-def test_dae_radial_momentum(residual, regtest, test_info):
+@add_initial_conditions
+def test_dae_radial_momentum(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    derivs = derivs_func(rhs_func_func(initial_conditions), initial_conditions)
+    solution = solution_func(derivs, initial_conditions)
+    residual = residual_func(derivs, initial_conditions)
     res = residual[ODEIndex.v_r]
     test_info(res)
     print(res, file=regtest)
     assert res == approx(0)
 
 
-def test_dae_azimuthal_mometum(residual, regtest, test_info):
+@add_initial_conditions
+def test_dae_azimuthal_mometum(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    derivs = derivs_func(rhs_func_func(initial_conditions), initial_conditions)
+    solution = solution_func(derivs, initial_conditions)
+    residual = residual_func(derivs, initial_conditions)
     res = residual[ODEIndex.v_φ]
     test_info(res)
     print(res, file=regtest)
     assert res == approx(0)
 
 
-def test_dae_polar_momentum(residual, regtest, test_info):
+@add_initial_conditions
+def test_dae_polar_momentum(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    derivs = derivs_func(rhs_func_func(initial_conditions), initial_conditions)
+    solution = solution_func(derivs, initial_conditions)
+    residual = residual_func(derivs, initial_conditions)
     res = residual[ODEIndex.v_θ]
     test_info(res)
     print(res, file=regtest)
     assert res == approx(0)
 
 
-def test_dae_polar_induction(residual, regtest, test_info):
+@add_initial_conditions
+def test_dae_polar_induction(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    derivs = derivs_func(rhs_func_func(initial_conditions), initial_conditions)
+    solution = solution_func(derivs, initial_conditions)
+    residual = residual_func(derivs, initial_conditions)
     res = residual[ODEIndex.B_r]
     test_info(res)
     print(res, file=regtest)
     assert res == approx(0)
 
 
-def test_dae_azimuthal_induction(residual, regtest, test_info):
+@add_initial_conditions
+def test_dae_azimuthal_induction(params, β, norm_kepler_sq, a_0, angle, regtest, test_info):
+    initial_conditions = initial_conditions_func(
+        params, β, norm_kepler_sq, a_0, angle
+    )
+    validate_initial_conditions(initial_conditions)
+    derivs = derivs_func(rhs_func_func(initial_conditions), initial_conditions)
+    solution = solution_func(derivs, initial_conditions)
+    residual = residual_func(derivs, initial_conditions)
     res = residual[ODEIndex.B_φ_prime]
     test_info(res)
     print(res, file=regtest)
