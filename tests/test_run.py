@@ -37,6 +37,18 @@ class TestSolve:
             config_file=None, output_file=None, store_internal=False,
         )
 
+    def test_dae_single_default(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="dae_single",
+            config_file=None, output_file=None, store_internal=True,
+        )
+
+    def test_dae_single_no_internal(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="dae_single",
+            config_file=None, output_file=None, store_internal=False,
+        )
+
     def test_step_default(self, tmpdir):
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="step",

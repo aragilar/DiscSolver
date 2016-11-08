@@ -15,7 +15,7 @@ from scikits.odes.sundials import (
 )
 
 from .deriv_funcs import B_unit_derivs, C_func, A_func
-from .utils import gen_sonic_point_rootfn, ode_error_handler
+from .utils import gen_sonic_point_rootfn
 
 from ..file_format import DAEInternalData, Solution
 from ..utils import ODEIndex, sec
@@ -48,6 +48,7 @@ def dae_system(
         derivs_list = internal_data.derivs
         params_list = internal_data.params
         angles_list = internal_data.angles
+        res_list = internal_data.residuals
         problems = internal_data.problems
     else:
         internal_data = None
@@ -209,6 +210,7 @@ def dae_system(
         if store_internal:
             params_list.append(copy(params))
             derivs_list.append(copy(derivs))
+            res_list.append(copy(residual))
             angles_list.append(θ)
 
             if len(params_list) != len(angles_list):
@@ -259,7 +261,6 @@ def solution(
         max_steps=max_steps,
         validate_flags=True,
         old_api=False,
-        err_handler=ode_error_handler,
         onroot=onroot_func,
         tstop=tstop,
         ontstop=ontstop_func,

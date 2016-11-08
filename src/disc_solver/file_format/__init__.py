@@ -32,7 +32,7 @@ class Solution:
     initial_conditions = attr.ib()
     t_roots = attr.ib()
     y_roots = attr.ib()
-    derivs = attr.ib(default=None)
+    derivatives = attr.ib(default=None)
 
 
 @attr.s
@@ -174,6 +174,7 @@ class DAEInternalData:
     derivs = attr.ib(default=attr.Factory(list))
     params = attr.ib(default=attr.Factory(list))
     angles = attr.ib(default=attr.Factory(list))
+    residuals = attr.ib(default=attr.Factory(list))
     problems = attr.ib(default=attr.Factory(Problems))
 
     def _finalise(self):
@@ -183,6 +184,7 @@ class DAEInternalData:
         self.derivs = asarray(self.derivs)
         self.params = asarray(self.params)
         self.angles = asarray(self.angles)
+        self.residuals = asarray(self.residuals)
 
     def __add__(self, other):
         self._finalise()
@@ -197,6 +199,7 @@ class DAEInternalData:
             derivs=concatenate((self.derivs, other.derivs)),
             params=concatenate((self.params, other.params)),
             angles=concatenate((self.angles, other.angles)),
+            residuals=concatenate((self.residuals, other.residuals)),
             problems=problems,
         )
 
@@ -281,6 +284,31 @@ def _str_β_to_γ(β):
 
 
 # pylint: disable=missing-docstring
+@ds_registry.dumper(DAEInternalData, "DAEInternalData", version=1)
+def _dae_internal_dump(internal_data):
+    # pylint: disable=protected-access
+    internal_data._finalise()
+    # pylint: enable=protected-access
+    return GroupContainer(
+        derivs=internal_data.derivs,
+        params=internal_data.params,
+        angles=internal_data.angles,
+        residuals=internal_data.residuals,
+        problems=internal_data.problems,
+    )
+
+
+@ds_registry.loader("DAEInternalData", version=1)
+def _dae_internal_load(group):
+    return DAEInternalData(
+        derivs=group["derivs"]["data"],
+        params=group["params"]["data"],
+        angles=group["angles"]["data"],
+        residuals=group["residuals"]["data"],
+        problems=group["problems"]
+    )
+
+
 @ds_registry.dumper(InternalData, "InternalData", version=2)
 def _internal_dump2(internal_data):
     # pylint: disable=protected-access
@@ -328,6 +356,31 @@ def _internal_load2(group):
         v_φ_taylor=group["v_φ_taylor"]["data"],
         ρ_taylor=group["ρ_taylor"]["data"],
         problems=group["problems"]
+    )
+
+
+@ds_registry.dumper(DAEInitialConditions, "DAEInitialConditions", version=1)
+def _dae_initial_dump(initial_conditions):
+    return GroupContainer(
+        attrs={
+            "norm_kepler_sq": initial_conditions.norm_kepler_sq,
+            "a_0": initial_conditions.a_0,
+            "γ": initial_conditions.γ,
+            "init_con": initial_conditions.init_con,
+            "deriv_init_con": initial_conditions.deriv_init_con,
+        }, angles=initial_conditions.angles,
+    )
+
+
+@ds_registry.loader("DAEInitialConditions", version=1)
+def _dae_initial_load(group):
+    return DAEInitialConditions(
+        norm_kepler_sq=group.attrs["norm_kepler_sq"],
+        a_0=group.attrs["a_0"],
+        γ=group.attrs["γ"],
+        init_con=group.attrs["init_con"],
+        deriv_init_con=group.attrs["deriv_init_con"],
+        angles=group["angles"]["data"],
     )
 
 
@@ -388,7 +441,7 @@ def _initial_load_old(group):
     )
 
 
-@ds_registry.dumper(Solution, "Solution", version=1)
+@ds_registry.dumper(Solution, "Solution", version=2)
 def _solution_dumper(solution):
     return GroupContainer(
         attrs={
@@ -401,7 +454,8 @@ def _solution_dumper(solution):
         initial_conditions=solution.initial_conditions,
         t_roots=solution.t_roots,
         y_roots=solution.y_roots,
-        solution_input=solution.solution_input
+        solution_input=solution.solution_input,
+        derivatives=solution.derivatives,
     )
 
 
@@ -426,6 +480,31 @@ def _solution_loader(group):
         solution_input=group["solution_input"],
         t_roots=t_roots,
         y_roots=y_roots,
+    )
+
+
+@ds_registry.loader("Solution", version=2)
+def _solution_loader_2(group):
+    if group["t_roots"] is None:
+        t_roots = None
+    else:
+        t_roots = group["t_roots"]["data"]
+    if group["y_roots"] is None:
+        y_roots = None
+    else:
+        y_roots = group["y_roots"]["data"]
+
+    return Solution(
+        flag=group.attrs["flag"],
+        coordinate_system=group.attrs["coordinate_system"],
+        angles=group["angles"]["data"],
+        solution=group["solution"]["data"],
+        internal_data=group["internal_data"],
+        initial_conditions=group["initial_conditions"],
+        solution_input=group["solution_input"],
+        t_roots=t_roots,
+        y_roots=y_roots,
+        derivatives=group["derivatives"],
     )
 
 
@@ -690,5 +769,6 @@ def _problems_loader(group):
             s.decode("utf8") for s in item["data"]
         ]
     return problems
+
 
 # pylint: enable=missing-docstring
