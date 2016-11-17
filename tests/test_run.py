@@ -11,6 +11,7 @@ from disc_solver.analyse.params_plot import params_plot
 from disc_solver.analyse.taylor_plot import taylor_plot
 #from disc_solver.analyse.combine_plot import combine_plot
 #from disc_solver.analyse.acc_plot import acc_plot
+from disc_solver.analyse.jacobian_plot import jacobian_plot
 from disc_solver.solve import solve
 from disc_solver.filter_files import filter_files
 
@@ -141,6 +142,12 @@ class TestAnalysis:
 
     #def test_acc_file(self, solution, plot_file):
     #    acc_plot(soln_file=solution, plot_filename=plot_file)
+
+    def test_jacobian_show(self, solution, mpl_interactive):
+        plot(solution, show=True)
+
+    def test_jacobian_file(self, solution, plot_file):
+        plot(solution, plot_filename=plot_file)
 
 class TestFilter:
     pass
