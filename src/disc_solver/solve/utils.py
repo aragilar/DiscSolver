@@ -13,8 +13,8 @@ from scikits.odes.sundials.cvode import StatusEnum
 from ..utils import ODEIndex
 
 
-def ode_error_handler(error_code, module, func, msg, user_data):
-    """ drop all CVODE messages """
+def error_handler(error_code, module, func, msg, user_data):
+    """ drop all CVODE/IDA messages """
     # pylint: disable=unused-argument
     pass
 

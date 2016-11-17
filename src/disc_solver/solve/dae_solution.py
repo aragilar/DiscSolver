@@ -15,7 +15,7 @@ from scikits.odes.sundials import (
 )
 
 from .deriv_funcs import B_unit_derivs, C_func, A_func
-from .utils import gen_sonic_point_rootfn
+from .utils import gen_sonic_point_rootfn, error_handler
 
 from ..file_format import DAEInternalData, Solution
 from ..utils import ODEIndex, sec
@@ -261,6 +261,7 @@ def solution(
         max_steps=max_steps,
         validate_flags=True,
         old_api=False,
+        err_handler=error_handler,
         onroot=onroot_func,
         tstop=tstop,
         ontstop=ontstop_func,

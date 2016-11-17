@@ -8,6 +8,7 @@ from h5preserve import GroupContainer
 from ._containers import (
     Solution, SolutionInput, ConfigInput, Problems, InternalData,
     DAEInternalData, DAEInitialConditions, Run, InitialConditions,
+    JacobianData,
 )
 from ._utils import ds_registry
 
@@ -28,7 +29,7 @@ def _dae_internal_dump(internal_data):
     )
 
 
-@ds_registry.dumper(InternalData, "InternalData", version=2)
+@ds_registry.dumper(InternalData, "InternalData", version=3)
 def _internal_dump2(internal_data):
     # pylint: disable=protected-access
     internal_data._finalise()
@@ -37,6 +38,7 @@ def _internal_dump2(internal_data):
         derivs=internal_data.derivs,
         params=internal_data.params,
         angles=internal_data.angles,
+        jacobian_data=internal_data.jacobian_data,
         v_r_normal=internal_data.v_r_normal,
         v_φ_normal=internal_data.v_φ_normal,
         ρ_normal=internal_data.ρ_normal,
@@ -159,5 +161,19 @@ def _problems_dumper(problems):
             s.encode("utf8") for s in item
         ])
     return group
+
+
+@ds_registry.dumper(JacobianData, "JacobianData", version=1)
+def _jacobian_data_dumper(jacobian_data):
+    # pylint: disable=protected-access
+    jacobian_data._finalise()
+    # pylint: enable=protected-access
+    return GroupContainer(
+        derivs=jacobian_data.derivs,
+        params=jacobian_data.params,
+        angles=jacobian_data.angles,
+        jacobians=jacobian_data.jacobians,
+    )
+
 
 # pylint: enable=missing-docstring

@@ -5,6 +5,7 @@ Defines the loaders for the data strutures
 from ._containers import (
     Solution, SolutionInput, ConfigInput, Problems, InternalData,
     DAEInternalData, DAEInitialConditions, Run, InitialConditions,
+    JacobianData,
 )
 from ._utils import ds_registry, _str_β_to_γ
 
@@ -34,6 +35,7 @@ def _internal_load(group):
         v_r_taylor=group["v_r_taylor"]["data"],
         v_φ_taylor=group["v_φ_taylor"]["data"],
         ρ_taylor=group["ρ_taylor"]["data"],
+        jacobians=None,
     )
 
 
@@ -49,7 +51,25 @@ def _internal_load2(group):
         v_r_taylor=group["v_r_taylor"]["data"],
         v_φ_taylor=group["v_φ_taylor"]["data"],
         ρ_taylor=group["ρ_taylor"]["data"],
-        problems=group["problems"]
+        problems=group["problems"],
+        jacobians=None,
+    )
+
+
+@ds_registry.loader("InternalData", version=3)
+def _internal_load3(group):
+    return InternalData(
+        derivs=group["derivs"]["data"],
+        params=group["params"]["data"],
+        angles=group["angles"]["data"],
+        v_r_normal=group["v_r_normal"]["data"],
+        v_φ_normal=group["v_φ_normal"]["data"],
+        ρ_normal=group["ρ_normal"]["data"],
+        v_r_taylor=group["v_r_taylor"]["data"],
+        v_φ_taylor=group["v_φ_taylor"]["data"],
+        ρ_taylor=group["ρ_taylor"]["data"],
+        problems=group["problems"],
+        jacobian_data=group["jacobian_data"],
     )
 
 
@@ -349,5 +369,15 @@ def _problems_loader(group):
             s.decode("utf8") for s in item["data"]
         ]
     return problems
+
+
+@ds_registry.loader("JacobianData", version=1)
+def _jacobian_data_loader(group):
+    return JacobianData(
+        derivs=group["derivs"]["data"],
+        params=group["params"]["data"],
+        angles=group["angles"]["data"],
+        jacobians=group["jacobians"]["data"],
+    )
 
 # pylint: enable=missing-docstring
