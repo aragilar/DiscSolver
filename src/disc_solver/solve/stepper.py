@@ -145,16 +145,16 @@ def create_soln_splitter(method):
     return method_dict.get(method) or v_θ_deriv
 
 
-def solver_generator(store_internal=True):
+def solution_generator(store_internal=True):
     """
-    Generate solver func
+    Generate solution func
     """
     if store_internal is False:
         raise RuntimeError("Stepper needs internal data to function")
 
-    def solver(inp):
+    def solution_func(inp):
         """
-        solver
+        solution func
         """
         inp = SolutionInput(**vars(inp))
         soln = solution(
@@ -163,7 +163,7 @@ def solver_generator(store_internal=True):
         )
         return validate_solution(soln)
 
-    return solver
+    return solution_func
 
 
 def step_input():
@@ -186,3 +186,19 @@ def step_input():
             raise StepperError("Hit numerical limit")
         return SolutionInput(**inp_dict)
     return step_func
+
+
+def solver(soln_input, run, store_internal=True):
+    """
+    Stepping solver
+    """
+    step_func = step_input()
+    writer = writer_generator(run)
+    cleanup = cleanup_generator(run, writer)
+    binary_searcher(
+        solution_generator(store_internal=store_internal), cleanup,
+        stepper_creator(
+            writer, step_func,
+            create_soln_splitter("v_θ_deriv")
+        ), soln_input,
+    )

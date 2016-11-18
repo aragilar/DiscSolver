@@ -14,10 +14,7 @@ from h5preserve import open
 from .config import (
     get_input_from_conffile, config_input_to_soln_input
 )
-from .stepper import (
-    binary_searcher, stepper_creator, writer_generator, cleanup_generator,
-    create_soln_splitter, solver_generator, step_input,
-)
+from .stepper import solver as stepper_solver
 from .jumper import solver as jumper_solver
 from .single import solver as single_solver
 from .dae_single import solver as dae_single_solver
@@ -43,16 +40,9 @@ def solve(
     output_file = expanded_path(output_dir / output_file)
 
     if sonic_method == "step":
-        step_func = step_input()
-        writer = writer_generator(run)
-        cleanup = cleanup_generator(run, writer)
-        binary_searcher(
-            solver_generator(store_internal=store_internal), cleanup,
-            stepper_creator(
-                writer, step_func,
-                create_soln_splitter("v_θ_deriv")
-            ),
-            config_input_to_soln_input(config_input),
+        stepper_solver(
+            config_input_to_soln_input(config_input), run,
+            store_internal=store_internal,
         )
     elif sonic_method == "jump":
         jumper_solver(
