@@ -95,7 +95,7 @@ def _solution_dumper(solution):
     )
 
 
-@ds_registry.dumper(ConfigInput, "ConfigInput", version=4)
+@ds_registry.dumper(ConfigInput, "ConfigInput", version=5)
 def _config_dumper(config_input):
     return GroupContainer(
         attrs={
@@ -108,6 +108,9 @@ def _config_dumper(config_input):
             "relative_tolerance": config_input.relative_tolerance,
             "absolute_tolerance": config_input.absolute_tolerance,
             "γ": config_input.γ,
+            "nwalkers": config_input.nwalkers,
+            "iterations": config_input.iterations,
+            "threads": config_input.threads,
             "v_rin_on_c_s": config_input.v_rin_on_c_s,
             "v_a_on_c_s": config_input.v_a_on_c_s,
             "c_s_on_v_k": config_input.c_s_on_v_k,
@@ -119,7 +122,7 @@ def _config_dumper(config_input):
     )
 
 
-@ds_registry.dumper(SolutionInput, "SolutionInput", version=4)
+@ds_registry.dumper(SolutionInput, "SolutionInput", version=5)
 def _input_dumper(solution_input):
     return GroupContainer(
         attrs={
@@ -130,6 +133,9 @@ def _input_dumper(solution_input):
             "num_angles": solution_input.num_angles,
             "relative_tolerance": solution_input.relative_tolerance,
             "absolute_tolerance": solution_input.absolute_tolerance,
+            "nwalkers": solution_input.nwalkers,
+            "iterations": solution_input.iterations,
+            "threads": solution_input.threads,
             "γ": solution_input.γ,
             "v_rin_on_c_s": solution_input.v_rin_on_c_s,
             "v_a_on_c_s": solution_input.v_a_on_c_s,

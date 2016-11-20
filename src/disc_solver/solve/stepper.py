@@ -11,7 +11,7 @@ from .config import define_conditions
 from .solution import solution
 from .utils import validate_solution, onroot_continue
 from ..file_format import SolutionInput
-from ..utils import allvars as vars, ODEIndex
+from ..utils import ODEIndex
 
 log = logbook.Logger(__name__)
 

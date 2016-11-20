@@ -70,6 +70,18 @@ class TestSolve:
             config_file=None, output_file=None, store_internal=False,
         )
 
+    def test_mcmc_default(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="mcmc",
+            config_file=None, output_file=None, store_internal=True,
+        )
+
+    def test_mcmc_no_internal(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="mcmc",
+            config_file=None, output_file=None, store_internal=False,
+        )
+
 class TestAnalysis:
     def test_info_run(self, solution, tmp_text_stream):
         info(

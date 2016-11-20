@@ -22,6 +22,7 @@ setuptools.setup(
         "stringtopy",
         "corner",
         "attrs",
+        "emcee",
     ],
     author = "James Tocknell",
     author_email = "aragilar@gmail.com",

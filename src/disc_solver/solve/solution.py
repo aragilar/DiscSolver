@@ -275,7 +275,8 @@ def taylor_solution(
     try:
         soln = solver.solve(angles, init_con)
     except CVODESolveFailed as e:
-        RuntimeError(
+        soln = e.soln
+        raise RuntimeError(
             "Taylor solver stopped in at {} with flag {!s}.\n{}".format(
                 degrees(soln.errors.t), soln.flag, soln.message
             )

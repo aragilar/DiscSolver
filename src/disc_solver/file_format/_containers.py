@@ -40,6 +40,9 @@ class ConfigInput:
     relative_tolerance = attr.ib()
     absolute_tolerance = attr.ib()
     γ = attr.ib()
+    nwalkers = attr.ib()
+    iterations = attr.ib()
+    threads = attr.ib()
     v_rin_on_c_s = attr.ib()
     v_a_on_c_s = attr.ib()
     c_s_on_v_k = attr.ib()
@@ -63,6 +66,9 @@ class SolutionInput:
     relative_tolerance = attr.ib()
     absolute_tolerance = attr.ib()
     γ = attr.ib()
+    nwalkers = attr.ib()
+    iterations = attr.ib()
+    threads = attr.ib()
     v_rin_on_c_s = attr.ib()
     v_a_on_c_s = attr.ib()
     c_s_on_v_k = attr.ib()
@@ -85,7 +91,10 @@ class Problems(MutableMapping):
         return self._problems[str(key)]
 
     def __setitem__(self, key, val):
-        self._problems[str(key)].append(val)
+        if isinstance(val, str):
+            self._problems[str(key)].append(val)
+        else:
+            self._problems[str(key)].extend(val)
 
     def __delitem__(self, key):
         del self._problems[key]

@@ -18,6 +18,7 @@ from .stepper import solver as stepper_solver
 from .jumper import solver as jumper_solver
 from .single import solver as single_solver
 from .dae_single import solver as dae_single_solver
+from .mcmc import solver as mcmc_solver
 
 from ..file_format import registries, Run
 from ..logging import logging_options, log_handler
@@ -59,6 +60,11 @@ def solve(
             config_input_to_soln_input(config_input), run,
             store_internal=store_internal,
         )
+    elif sonic_method == "mcmc":
+        mcmc_solver(
+            config_input_to_soln_input(config_input), run,
+            store_internal=store_internal,
+        )
     else:
         raise RuntimeError("No method chosen to cross sonic point")
 
@@ -75,8 +81,9 @@ def main():
     parser = argparse.ArgumentParser(description='Solver for DiscSolver')
     parser.add_argument("config_file")
     parser.add_argument(
-        "--sonic-method", choices=("step", "jump", "single", "dae_single"),
-        default="single",
+        "--sonic-method", choices=(
+            "step", "jump", "single", "dae_single", "mcmc"
+        ), default="single",
     )
     parser.add_argument("--output-file")
     parser.add_argument(

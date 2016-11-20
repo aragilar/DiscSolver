@@ -100,6 +100,9 @@ def get_input_from_conffile(*, config_file):
             "config", "jump_before_sonic", fallback="None"
         ),
         η_derivs=config.get("config", "η_derivs", fallback="True"),
+        nwalkers=config.get("config", "nwalkers", fallback="10"),
+        iterations=config.get("config", "iterations", fallback="10"),
+        threads=config.get("config", "threads", fallback="1"),
         γ=config.get("initial", "γ", fallback="0.001"),
         v_rin_on_c_s=config.get("initial", "v_rin_on_c_s", fallback="1"),
         v_a_on_c_s=config.get("initial", "v_a_on_c_s", fallback="1"),
@@ -127,6 +130,9 @@ def config_input_to_soln_input(inp):
             else str_to_float(inp.jump_before_sonic)
         ),
         η_derivs=str_to_bool(inp.η_derivs),
+        nwalkers=str_to_int(inp.nwalkers),
+        iterations=str_to_int(inp.iterations),
+        threads=str_to_int(inp.threads),
         γ=str_to_float(inp.γ),
         v_rin_on_c_s=str_to_float(inp.v_rin_on_c_s),
         v_a_on_c_s=str_to_float(inp.v_a_on_c_s),
