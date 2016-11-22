@@ -78,6 +78,8 @@ def logprobgenerator(soln_input, *, store_internal):
         log probability function
         """
         new_soln_input = sys_vars_to_solution_input(sys_vars, soln_input)
+        if not solution_input_valid(new_soln_input):
+            return - float("inf"), None
         try:
             cons = define_conditions(new_soln_input)
         except ValueError:
@@ -119,3 +121,18 @@ def write_solutions(sampler, run):
         )
     )
     run.final_solution = run.solutions[str(argmax(sampler.flatlnprobability))]
+
+
+def solution_input_valid(soln_input):
+    """
+    Check whether the solution input is valid.
+    """
+    if soln_input.v_rin_on_c_s <= 0:
+        return False
+    if soln_input.γ <= 0:
+        return False
+    if soln_input.v_a_on_c_s <= 0:
+        return False
+    if soln_input.c_s_on_v_k <= 0:
+        return False
+    return True
