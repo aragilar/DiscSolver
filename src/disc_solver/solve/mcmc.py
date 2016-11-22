@@ -10,7 +10,7 @@ import logbook
 
 import emcee
 
-from numpy import argmax
+from numpy import argmax, all as np_all
 from numpy.random import randn
 
 from .config import define_conditions
@@ -100,6 +100,10 @@ def get_logprob_of_soln(soln):
     """
     Return log probability of solution
     """
+    if np_all((
+        soln.solution[1:, ODEIndex.v_θ] - soln.solution[:-1, ODEIndex.v_θ]
+    ) < 0):
+        return - float("inf")
     return - (IDEAL_VELOCITY - soln.solution[-1, ODEIndex.v_θ]) ** 2
 
 
