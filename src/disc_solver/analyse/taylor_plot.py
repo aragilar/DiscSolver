@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
-    get_common_plot_args, analysis_func_wrapper, savefig
+    get_common_plot_args, analysis_func_wrapper, savefig, AnalysisError
 )
 
 
@@ -77,6 +77,8 @@ def generate_taylor_plot(
     """
     Compare derivatives from taylor series to full version
     """
+    if soln.internal_data is None:
+        raise AnalysisError("Internal data required to generate plot")
     v_r_normal = soln.internal_data.v_r_normal
     v_φ_normal = soln.internal_data.v_φ_normal
     ρ_normal = soln.internal_data.ρ_normal

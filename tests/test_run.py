@@ -148,13 +148,19 @@ class TestAnalysis:
         with pytest.raises(AnalysisError):
             params_plot(solution_no_internal, plot_filename=plot_file)
 
-    @pytest.mark.xfail
-    def test_taylor_show(self, solution, mpl_interactive):
-        taylor_plot(soln_file=solution, show=True)
+    def test_taylor_show(self, solution_default, mpl_interactive):
+        taylor_plot(solution_default, show=True)
 
-    @pytest.mark.xfail
-    def test_taylor_file(self, solution, plot_file):
-        taylor_plot(soln_file=solution, plot_filename=plot_file)
+    def test_taylor_file(self, solution_default, plot_file):
+        taylor_plot(solution_default, plot_filename=plot_file)
+
+    def test_taylor_show(self, solution_no_internal, mpl_interactive):
+        with pytest.raises(AnalysisError):
+            taylor_plot(solution_no_internal, show=True)
+
+    def test_taylor_file(self, solution_no_internal, plot_file):
+        with pytest.raises(AnalysisError):
+            taylor_plot(solution_no_internal, plot_filename=plot_file)
 
     #def test_combine_show(self, solution, mpl_interactive):
     #    combine_plot(soln_file=solution, show=True)
