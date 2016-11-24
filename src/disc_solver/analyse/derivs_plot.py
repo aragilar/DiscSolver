@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from ..utils import better_sci_format
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
-    get_common_plot_args, analysis_func_wrapper, savefig
+    get_common_plot_args, analysis_func_wrapper, savefig, AnalysisError
 )
 
 
@@ -92,6 +92,8 @@ def generate_derivs_plot(
     ]
 
     internal_data = soln.internal_data
+    if internal_data is None:
+        raise AnalysisError("Internal data required to generate plot")
     deriv_angles = internal_data.angles
     derivs = internal_data.derivs
     npnot = np.logical_not

@@ -12,6 +12,7 @@ from disc_solver.analyse.taylor_plot import taylor_plot
 #from disc_solver.analyse.combine_plot import combine_plot
 #from disc_solver.analyse.acc_plot import acc_plot
 from disc_solver.analyse.jacobian_plot import jacobian_plot
+from disc_solver.analyse.utils import AnalysisError
 from disc_solver.solve import solve
 from disc_solver.filter_files import filter_files
 
@@ -119,21 +120,33 @@ class TestAnalysis:
     def test_plot_file(self, solution, plot_file):
         plot(solution, plot_filename=plot_file)
 
-    @pytest.mark.xfail
-    def test_derivs_show(self, solution, mpl_interactive):
-        derivs_plot(soln_file=solution, show=True)
+    def test_derivs_show(self, solution_default, mpl_interactive):
+        derivs_plot(solution_default, show=True)
 
-    @pytest.mark.xfail
-    def test_derivs_file(self, solution, plot_file):
-        derivs_plot(soln_file=solution, plot_filename=plot_file)
+    def test_derivs_file(self, solution_default, plot_file):
+        derivs_plot(solution_default, plot_filename=plot_file)
 
-    @pytest.mark.xfail
-    def test_params_show(self, solution, mpl_interactive):
-        params_plot(soln_file=solution, show=True)
+    def test_derivs_show(self, solution_no_internal, mpl_interactive):
+        with pytest.raises(AnalysisError):
+            derivs_plot(solution_no_internal, show=True)
 
-    @pytest.mark.xfail
-    def test_params_file(self, solution, plot_file):
-        params_plot(soln_file=solution, plot_filename=plot_file)
+    def test_derivs_file(self, solution_no_internal, plot_file):
+        with pytest.raises(AnalysisError):
+            derivs_plot(solution_no_internal, plot_filename=plot_file)
+
+    def test_params_show(self, solution_default, mpl_interactive):
+        params_plot(solution_default, show=True)
+
+    def test_params_file(self, solution_default, plot_file):
+        params_plot(solution_default, plot_filename=plot_file)
+
+    def test_params_show(self, solution_no_internal, mpl_interactive):
+        with pytest.raises(AnalysisError):
+            params_plot(solution_no_internal, show=True)
+
+    def test_params_file(self, solution_no_internal, plot_file):
+        with pytest.raises(AnalysisError):
+            params_plot(solution_no_internal, plot_filename=plot_file)
 
     @pytest.mark.xfail
     def test_taylor_show(self, solution, mpl_interactive):

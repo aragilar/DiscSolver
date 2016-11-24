@@ -167,3 +167,10 @@ def get_sonic_point(solution):
         solution.angles,
     )
     return fit(1.0)
+
+
+class AnalysisError(RuntimeError):
+    """
+    Error class for problems with analysis routines
+    """
+    pass

@@ -6,15 +6,18 @@ import pytest
 from disc_solver.solve import solve
 
 PLOT_FILE = "plot.png"
-ALL_SOLUTIONS = [
+DEFAULT_SOLUTIONS = [
     "single_solution_default",
     "dae_single_solution_default",
     #"jump_solution_default",
     "step_solution_default",
+]
+NO_INTERNAL_SOLUTIONS = [
     "single_solution_no_internal",
     "dae_single_solution_no_internal",
     #"jump_solution_no_internal",
 ]
+ALL_SOLUTIONS = DEFAULT_SOLUTIONS + NO_INTERNAL_SOLUTIONS
 
 @pytest.fixture(scope="session")
 def single_solution_default(tmpdir_factory):
@@ -81,6 +84,14 @@ def jump_solution_no_internal(tmpdir_factory):
 
 @pytest.fixture(scope="session", params=ALL_SOLUTIONS)
 def solution(request):
+    return request.getfuncargvalue(request.param)
+
+@pytest.fixture(scope="session", params=DEFAULT_SOLUTIONS)
+def solution_default(request):
+    return request.getfuncargvalue(request.param)
+
+@pytest.fixture(scope="session", params=NO_INTERNAL_SOLUTIONS)
+def solution_no_internal(request):
     return request.getfuncargvalue(request.param)
 
 @pytest.fixture()
