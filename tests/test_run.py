@@ -9,8 +9,8 @@ from disc_solver.analyse.plot import plot
 from disc_solver.analyse.derivs_plot import derivs_plot
 from disc_solver.analyse.params_plot import params_plot
 from disc_solver.analyse.taylor_plot import taylor_plot
-#from disc_solver.analyse.combine_plot import combine_plot
-#from disc_solver.analyse.acc_plot import acc_plot
+from disc_solver.analyse.combine_plot import combine_plot
+from disc_solver.analyse.acc_plot import acc_plot
 from disc_solver.analyse.jacobian_plot import jacobian_plot
 from disc_solver.analyse.utils import AnalysisError
 from disc_solver.solve import solve
@@ -162,17 +162,17 @@ class TestAnalysis:
         with pytest.raises(AnalysisError):
             taylor_plot(solution_no_internal, plot_filename=plot_file)
 
-    #def test_combine_show(self, solution, mpl_interactive):
-    #    combine_plot(soln_file=solution, show=True)
+    def test_combine_show(self, solution, mpl_interactive):
+        combine_plot(solution, show=True)
 
-    #def test_combine_file(self, solution, plot_file):
-    #    combine_plot(soln_file=solution, plot_filename=plot_file)
+    def test_combine_file(self, solution, plot_file):
+        combine_plot(solution, plot_filename=plot_file)
 
-    #def test_acc_show(self, solution, mpl_interactive):
-    #    acc_plot(soln_file=solution, show=True)
+    def test_acc_show(self, solution, mpl_interactive):
+        acc_plot(solution, show=True)
 
-    #def test_acc_file(self, solution, plot_file):
-    #    acc_plot(soln_file=solution, plot_filename=plot_file)
+    def test_acc_file(self, solution, plot_file):
+        acc_plot(solution, plot_filename=plot_file)
 
     def test_jacobian_show(self, solution, mpl_interactive):
         plot(solution, show=True)

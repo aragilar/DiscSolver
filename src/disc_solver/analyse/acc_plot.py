@@ -9,7 +9,10 @@ import matplotlib.pyplot as plt
 
 from ..constants import KM, AU, M_SUN, YEAR
 from ..utils import get_normalisation, ODEIndex
-from .utils import single_solution_plotter, common_plotting_options
+from .utils import (
+    single_solution_plotter, common_plotting_options, analyse_main_wrapper,
+    get_common_plot_args, analysis_func_wrapper, savefig
+)
 
 # AU^2 * Gauss^2 / 30 km/s in Msun/year
 ACC_CONSTANT = ((AU ** 2) / (30 * KM)) / (M_SUN / YEAR)
@@ -17,7 +20,7 @@ ACC_CONSTANT = ((AU ** 2) / (30 * KM)) / (M_SUN / YEAR)
 WIND_CONSTANT = (pi * AU ** 2) / (M_SUN / YEAR)
 
 
-def acc_plot_parser(parser):
+def plot_parser(parser):
     """
     Add arguments for acc-plot command to parser
     """
@@ -25,13 +28,47 @@ def acc_plot_parser(parser):
     return parser
 
 
+@analyse_main_wrapper(
+    "Plot derivs for DiscSolver",
+    plot_parser,
+    cmd_parser_splitters={
+        "common_plot_args": get_common_plot_args,
+    }
+)
+def acc_main(soln, *, soln_range, common_plot_args):
+    """
+    Entry point for ds-derivs-plot
+    """
+    return acc_plot(soln, soln_range=soln_range, **common_plot_args)
+
+
+@analysis_func_wrapper
+def acc_plot(
+    soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
+    figargs=None, linestyle='.', title=None
+):
+    """
+    Show derivatives
+    """
+    # pylint: disable=too-many-function-args,unexpected-keyword-arg
+    fig = generate_acc_plot(
+        soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
+        title=title,
+    )
+    if plot_filename is not None:
+        savefig(fig, plot_filename)
+    if show:
+        plt.show()
+
+
 @single_solution_plotter
-def plot_acc(
-    soln, *, figargs=None
+def generate_acc_plot(
+    soln, *, linestyle='.', figargs=None, stop=90
 ):
     """
     Friendlier plot for talks
     """
+    # pylint: disable=unused-variable
     if figargs is None:
         figargs = {}
 
