@@ -5,7 +5,7 @@ Defines the loaders for the data strutures
 from ._containers import (
     Solution, SolutionInput, ConfigInput, Problems, InternalData,
     DAEInternalData, DAEInitialConditions, Run, InitialConditions,
-    JacobianData,
+    JacobianData, Solutions
 )
 from ._utils import ds_registry, _str_β_to_γ
 
@@ -430,5 +430,10 @@ def _jacobian_data_loader(group):
         angles=group["angles"]["data"],
         jacobians=group["jacobians"]["data"],
     )
+
+
+@ds_registry.loader("Solutions", version=1)
+def _solutions_loader(group):
+    return Solutions(**group)
 
 # pylint: enable=missing-docstring

@@ -8,6 +8,8 @@ from collections.abc import MutableMapping
 import attr
 from numpy import asarray, concatenate, zeros
 
+from h5preserve import wrap_on_demand, OnDemandContainer
+
 
 @attr.s(cmp=False, hash=False)
 class Solution:
@@ -232,6 +234,47 @@ class DAEInternalData:
         )
 
 
+class Solutions(MutableMapping):
+    """
+    Container holding the different solutions generated
+    """
+    def __init__(self, **solutions):
+        self._solutions = {}
+        self.update(solutions)
+
+    def __getitem__(self, key):
+        value = self._solutions[key]
+        if isinstance(value, OnDemandContainer):
+            self._solutions[key] = value()
+        return value
+
+    def __setitem__(self, key, val):
+        self._solutions[key] = wrap_on_demand(self, key, val)
+
+    def __delitem__(self, key):
+        del self._solutions[key]
+
+    def __iter__(self):
+        for key in self._solutions:
+            yield key
+
+    def __len__(self):
+        return len(self._solutions)
+
+    def _h5preserve_update(self):
+        """
+        Support for h5preserve on demand use
+        """
+        for key, val in self.items():
+            self._solutions[key] = wrap_on_demand(self, key, val)
+
+    def __repr__(self):
+        return "Solutions(" + ', '.join(
+            "{key}={val}".format(key=key, val=val)
+            for key, val in self._solutions.items()
+        ) + ")"
+
+
 @attr.s(cmp=False, hash=False)
 class Run:
     """
@@ -241,7 +284,7 @@ class Run:
     config_filename = attr.ib()
     time = attr.ib(default=None)
     final_solution = attr.ib(default=None)
-    solutions = attr.ib(default=attr.Factory(dict))
+    solutions = attr.ib(default=attr.Factory(Solutions))
 
 
 @attr.s(

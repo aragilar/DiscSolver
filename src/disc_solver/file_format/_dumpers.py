@@ -3,12 +3,12 @@ Defines the dumpers for the data strutures
 """
 from numpy import asarray
 
-from h5preserve import GroupContainer
+from h5preserve import GroupContainer, OnDemandGroupContainer
 
 from ._containers import (
     Solution, SolutionInput, ConfigInput, Problems, InternalData,
     DAEInternalData, DAEInitialConditions, Run, InitialConditions,
-    JacobianData,
+    JacobianData, Solutions
 )
 from ._utils import ds_registry
 
@@ -181,5 +181,9 @@ def _jacobian_data_dumper(jacobian_data):
         jacobians=jacobian_data.jacobians,
     )
 
+
+@ds_registry.dumper(Solutions, "Solutions", version=1)
+def _solutions_dumper(solutions):
+    return OnDemandGroupContainer(**solutions)
 
 # pylint: enable=missing-docstring
