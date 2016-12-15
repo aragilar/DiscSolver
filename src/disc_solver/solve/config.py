@@ -100,8 +100,8 @@ def get_input_from_conffile(*, config_file):
             "config", "jump_before_sonic", fallback="None"
         ),
         η_derivs=config.get("config", "η_derivs", fallback="True"),
-        nwalkers=config.get("config", "nwalkers", fallback="10"),
-        iterations=config.get("config", "iterations", fallback="10"),
+        nwalkers=config.get("config", "nwalkers", fallback="8"),
+        iterations=config.get("config", "iterations", fallback="3"),
         threads=config.get("config", "threads", fallback="1"),
         γ=config.get("initial", "γ", fallback="0.001"),
         v_rin_on_c_s=config.get("initial", "v_rin_on_c_s", fallback="1"),

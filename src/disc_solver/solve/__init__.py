@@ -40,36 +40,35 @@ def solve(
         output_file = Path(config_input.label + str(arrow.now()) + ".hdf5")
     output_file = expanded_path(output_dir / output_file)
 
-    if sonic_method == "step":
-        stepper_solver(
-            config_input_to_soln_input(config_input), run,
-            store_internal=store_internal,
-        )
-    elif sonic_method == "jump":
-        jumper_solver(
-            config_input_to_soln_input(config_input), run,
-            store_internal=store_internal,
-        )
-    elif sonic_method == "single":
-        single_solver(
-            config_input_to_soln_input(config_input), run,
-            store_internal=store_internal,
-        )
-    elif sonic_method == "dae_single":
-        dae_single_solver(
-            config_input_to_soln_input(config_input), run,
-            store_internal=store_internal,
-        )
-    elif sonic_method == "mcmc":
-        mcmc_solver(
-            config_input_to_soln_input(config_input), run,
-            store_internal=store_internal,
-        )
-    else:
-        raise RuntimeError("No method chosen to cross sonic point")
-
     with open(output_file, registries) as f:
         f["run"] = run
+        if sonic_method == "step":
+            stepper_solver(
+                config_input_to_soln_input(config_input), run,
+                store_internal=store_internal,
+            )
+        elif sonic_method == "jump":
+            jumper_solver(
+                config_input_to_soln_input(config_input), run,
+                store_internal=store_internal,
+            )
+        elif sonic_method == "single":
+            single_solver(
+                config_input_to_soln_input(config_input), run,
+                store_internal=store_internal,
+            )
+        elif sonic_method == "dae_single":
+            dae_single_solver(
+                config_input_to_soln_input(config_input), run,
+                store_internal=store_internal,
+            )
+        elif sonic_method == "mcmc":
+            mcmc_solver(
+                config_input_to_soln_input(config_input), run,
+                store_internal=store_internal,
+            )
+        else:
+            raise RuntimeError("No method chosen to cross sonic point")
 
     return output_file
 
