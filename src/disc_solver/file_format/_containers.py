@@ -8,7 +8,7 @@ from collections.abc import MutableMapping
 import attr
 from numpy import asarray, concatenate, zeros
 
-from h5preserve import wrap_on_demand, OnDemandContainer
+from h5preserve import wrap_on_demand, OnDemandWrapper
 
 
 @attr.s(cmp=False, hash=False)
@@ -244,8 +244,9 @@ class Solutions(MutableMapping):
 
     def __getitem__(self, key):
         value = self._solutions[key]
-        if isinstance(value, OnDemandContainer):
-            self._solutions[key] = value()
+        if isinstance(value, OnDemandWrapper):
+            value = value()
+            self._solutions[key] = value
         return value
 
     def __setitem__(self, key, val):
