@@ -10,7 +10,7 @@ from numpy import diff
 from .config import define_conditions
 from .solution import solution
 from .utils import validate_solution, onroot_continue
-from ..file_format import SolutionInput
+from ..file_format import SolutionInput, Solution
 from ..utils import ODEIndex
 
 log = logbook.Logger(__name__)
@@ -202,3 +202,5 @@ def solver(soln_input, run, store_internal=True):
             create_soln_splitter("v_θ_deriv")
         ), soln_input,
     )
+    if not isinstance(run.final_solution, Solution):
+        run.final_solution = None

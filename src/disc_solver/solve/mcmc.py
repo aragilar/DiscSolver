@@ -4,13 +4,12 @@ Stepper related logic
 """
 
 from enum import IntEnum, unique
-from itertools import chain
 
 import logbook
 
 import emcee
 
-from numpy import argmax, all as np_all
+from numpy import all as np_all
 from numpy.random import randn
 
 from .config import define_conditions
@@ -20,7 +19,6 @@ from ..file_format import SolutionInput
 from ..utils import ODEIndex
 
 log = logbook.Logger(__name__)
-IDEAL_VELOCITY = 1000
 
 
 @unique
@@ -57,7 +55,9 @@ def solver(soln_input, run, store_internal=True):
     """
     MCMC solver
     """
-    logprobfunc = logprobgenerator(soln_input, store_internal=store_internal)
+    logprobfunc = LogProbGenerator(
+        soln_input, run, store_internal=store_internal
+    )
     sampler = emcee.EnsembleSampler(
         soln_input.nwalkers, len(SysVars), logprobfunc,
         threads=soln_input.threads,
@@ -66,37 +66,51 @@ def solver(soln_input, run, store_internal=True):
         generate_initial_positions(soln_input),
         soln_input.iterations
     )
-    write_solutions(sampler, run)
+    run.final_solution = logprobfunc.best_solution
 
 
-def logprobgenerator(soln_input, *, store_internal):
+class LogProbGenerator:
     """
     Generate log probability function
     """
-    def logprobfunc(sys_vars):
-        """
-        log probability function
-        """
-        new_soln_input = sys_vars_to_solution_input(sys_vars, soln_input)
+    def __init__(self, soln_input, run, *, store_internal):
+        self._soln_input = soln_input
+        self._run = run
+        self._store_internal = store_internal
+        self._best_logprob = - float("inf")
+        self._best_logprob_index = None
+
+    def __call__(self, sys_vars):
+        new_soln_input = sys_vars_to_solution_input(sys_vars, self._soln_input)
         if not solution_input_valid(new_soln_input):
-            return - float("inf"), None
+            return - float("inf")
         try:
             cons = define_conditions(new_soln_input)
         except ValueError:
-            return - float("inf"), None
+            return - float("inf")
         try:
             soln = solution(
                 new_soln_input, cons, onroot_func=onroot_continue,
-                find_sonic_point=True, store_internal=store_internal,
+                find_sonic_point=True, store_internal=self._store_internal,
             )
         except RuntimeError:
-            return - float("inf"), None
-        return get_logprob_of_soln(soln), soln
+            return - float("inf")
+        soln_index = self._run.solutions.add_solution(soln)
+        logprob = get_logprob_of_soln(new_soln_input, soln)
+        if logprob > self._best_logprob:
+            self._best_logprob = logprob
+            self._best_logprob_index = soln_index
+        return logprob
 
-    return logprobfunc
+    @property
+    def best_solution(self):
+        """
+        Return the solution with the highest probablity
+        """
+        return self._run.solutions[self._best_logprob_index]
 
 
-def get_logprob_of_soln(soln):
+def get_logprob_of_soln(new_soln_input, soln):
     """
     Return log probability of solution
     """
@@ -104,7 +118,9 @@ def get_logprob_of_soln(soln):
         soln.solution[1:, ODEIndex.v_θ] - soln.solution[:-1, ODEIndex.v_θ]
     ) < 0):
         return - float("inf")
-    return - (IDEAL_VELOCITY - soln.solution[-1, ODEIndex.v_θ]) ** 2
+    return - (
+        new_soln_input.target_velocity - soln.solution[-1, ODEIndex.v_θ]
+    ) ** 2
 
 
 def generate_initial_positions(soln_input):
@@ -112,19 +128,7 @@ def generate_initial_positions(soln_input):
     Generate initial positions of walkers
     """
     sys_vars = solution_input_to_sys_vars(soln_input)
-    return sys_vars * (randn(soln_input.nwalkers, len(SysVars)) + 1)
-
-
-def write_solutions(sampler, run):
-    """
-    Include solutions
-    """
-    run.solutions.update(
-        (str(i), soln) for i, soln in enumerate(
-            chain.from_iterable(sampler.blobs)
-        )
-    )
-    run.final_solution = run.solutions[str(argmax(sampler.flatlnprobability))]
+    return sys_vars * (0.01 * randn(soln_input.nwalkers, len(SysVars)) + 1)
 
 
 def solution_input_valid(soln_input):

@@ -8,7 +8,7 @@ from collections.abc import MutableMapping
 import attr
 from numpy import asarray, concatenate, zeros
 
-from h5preserve import wrap_on_demand, OnDemandWrapper
+from h5preserve import wrap_on_demand, OnDemandWrapper, DelayedContainer
 
 
 @attr.s(cmp=False, hash=False)
@@ -45,6 +45,7 @@ class ConfigInput:
     nwalkers = attr.ib()
     iterations = attr.ib()
     threads = attr.ib()
+    target_velocity = attr.ib()
     v_rin_on_c_s = attr.ib()
     v_a_on_c_s = attr.ib()
     c_s_on_v_k = attr.ib()
@@ -71,6 +72,7 @@ class SolutionInput:
     nwalkers = attr.ib()
     iterations = attr.ib()
     threads = attr.ib()
+    target_velocity = attr.ib()
     v_rin_on_c_s = attr.ib()
     v_a_on_c_s = attr.ib()
     c_s_on_v_k = attr.ib()
@@ -275,6 +277,23 @@ class Solutions(MutableMapping):
             for key, val in self._solutions.items()
         ) + ")"
 
+    def add_solution(self, soln):
+        """
+        Add a solution returning the index of the solution
+        """
+        index = self._get_next_index()
+        self[index] = soln
+        return index
+
+    def _get_next_index(self):
+        """
+        Get the next available index
+        """
+        if str(len(self._solutions)) not in self._solutions:
+            return str(len(self._solutions))
+        else:
+            raise RuntimeError("Failed to guess a solution location")
+
 
 @attr.s(cmp=False, hash=False)
 class Run:
@@ -284,8 +303,23 @@ class Run:
     config_input = attr.ib()
     config_filename = attr.ib()
     time = attr.ib(default=None)
-    final_solution = attr.ib(default=None)
+    _final_solution = attr.ib(default=attr.Factory(DelayedContainer))
     solutions = attr.ib(default=attr.Factory(Solutions))
+
+    @property
+    def final_solution(self):
+        """
+        The best solution found
+        """
+        return self._final_solution
+
+    @final_solution.setter
+    def final_solution(self, soln):
+        if isinstance(self._final_solution, DelayedContainer):
+            self._final_solution.write_container(soln)
+            self._final_solution = soln
+        else:
+            raise RuntimeError("Cannot change final solution")
 
 
 @attr.s(

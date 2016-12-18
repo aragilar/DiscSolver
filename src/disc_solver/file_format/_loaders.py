@@ -291,6 +291,33 @@ def _config_loader5(group):
     )
 
 
+@ds_registry.loader("ConfigInput", version=6)
+def _config_loader6(group):
+    return ConfigInput(
+        start=group.attrs["start"],
+        stop=group.attrs["stop"],
+        taylor_stop_angle=group.attrs["taylor_stop_angle"],
+        max_steps=group.attrs["max_steps"],
+        num_angles=group.attrs["num_angles"],
+        label=group.attrs["label"],
+        relative_tolerance=group.attrs["relative_tolerance"],
+        absolute_tolerance=group.attrs["absolute_tolerance"],
+        γ=group.attrs["γ"],
+        nwalkers=group.attrs["nwalkers"],
+        iterations=group.attrs["iterations"],
+        threads=group.attrs["threads"],
+        target_velocity=group.attrs["target_velocity"],
+        v_rin_on_c_s=group.attrs["v_rin_on_c_s"],
+        v_a_on_c_s=group.attrs["v_a_on_c_s"],
+        c_s_on_v_k=group.attrs["c_s_on_v_k"],
+        η_O=group.attrs["η_O"],
+        η_H=group.attrs["η_H"],
+        η_A=group.attrs["η_A"],
+        jump_before_sonic=group["jump_before_sonic"],
+        η_derivs=group.attrs["η_derivs"],
+    )
+
+
 @ds_registry.loader("SolutionInput", version=1)
 def _input_loader(group):
     return SolutionInput(
@@ -390,6 +417,32 @@ def _input_loader5(group):
         nwalkers=group.attrs["nwalkers"],
         iterations=group.attrs["iterations"],
         threads=group.attrs["threads"],
+        v_rin_on_c_s=group.attrs["v_rin_on_c_s"],
+        v_a_on_c_s=group.attrs["v_a_on_c_s"],
+        c_s_on_v_k=group.attrs["c_s_on_v_k"],
+        η_O=group.attrs["η_O"],
+        η_H=group.attrs["η_H"],
+        η_A=group.attrs["η_A"],
+        jump_before_sonic=group["jump_before_sonic"],
+        η_derivs=group.attrs["η_derivs"],
+    )
+
+
+@ds_registry.loader("SolutionInput", version=6)
+def _input_loader6(group):
+    return SolutionInput(
+        start=group.attrs["start"],
+        stop=group.attrs["stop"],
+        taylor_stop_angle=group.attrs["taylor_stop_angle"],
+        max_steps=group.attrs["max_steps"],
+        num_angles=group.attrs["num_angles"],
+        relative_tolerance=group.attrs["relative_tolerance"],
+        absolute_tolerance=group.attrs["absolute_tolerance"],
+        γ=group.attrs["γ"],
+        nwalkers=group.attrs["nwalkers"],
+        iterations=group.attrs["iterations"],
+        threads=group.attrs["threads"],
+        target_velocity=group.attrs["target_velocity"],
         v_rin_on_c_s=group.attrs["v_rin_on_c_s"],
         v_a_on_c_s=group.attrs["v_a_on_c_s"],
         c_s_on_v_k=group.attrs["c_s_on_v_k"],

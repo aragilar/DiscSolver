@@ -103,6 +103,9 @@ def get_input_from_conffile(*, config_file):
         nwalkers=config.get("config", "nwalkers", fallback="8"),
         iterations=config.get("config", "iterations", fallback="3"),
         threads=config.get("config", "threads", fallback="1"),
+        target_velocity=config.get(
+            "config", "target_velocity", fallback="0.9"
+        ),
         γ=config.get("initial", "γ", fallback="0.001"),
         v_rin_on_c_s=config.get("initial", "v_rin_on_c_s", fallback="1"),
         v_a_on_c_s=config.get("initial", "v_a_on_c_s", fallback="1"),
@@ -133,6 +136,7 @@ def config_input_to_soln_input(inp):
         nwalkers=str_to_int(inp.nwalkers),
         iterations=str_to_int(inp.iterations),
         threads=str_to_int(inp.threads),
+        target_velocity=str_to_float(inp.target_velocity),
         γ=str_to_float(inp.γ),
         v_rin_on_c_s=str_to_float(inp.v_rin_on_c_s),
         v_a_on_c_s=str_to_float(inp.v_a_on_c_s),
