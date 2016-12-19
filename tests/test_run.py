@@ -57,20 +57,6 @@ class TestSolve:
             config_file=None, output_file=None, store_internal=True,
         )
 
-    #@pytest.mark.xfail
-    #def test_jump_default(self, tmpdir):
-    #    solve(
-    #        output_dir=Path(str(tmpdir)), sonic_method="jump",
-    #        config_file=None, output_file=None, store_internal=True,
-    #    )
-
-    #@pytest.mark.xfail
-    #def test_jump_no_internal(self, tmpdir):
-    #    solve(
-    #        output_dir=Path(str(tmpdir)), sonic_method="jump",
-    #        config_file=None, output_file=None, store_internal=False,
-    #    )
-
     def test_mcmc_default(self, tmpdir):
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="mcmc",

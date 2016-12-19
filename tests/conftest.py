@@ -9,13 +9,11 @@ PLOT_FILE = "plot.png"
 DEFAULT_SOLUTIONS = [
     "single_solution_default",
     "dae_single_solution_default",
-    #"jump_solution_default",
     "step_solution_default",
 ]
 NO_INTERNAL_SOLUTIONS = [
     "single_solution_no_internal",
     "dae_single_solution_no_internal",
-    #"jump_solution_no_internal",
 ]
 ALL_SOLUTIONS = DEFAULT_SOLUTIONS + NO_INTERNAL_SOLUTIONS
 
@@ -31,15 +29,6 @@ def single_solution_default(tmpdir_factory):
 @pytest.fixture(scope="session")
 def dae_single_solution_default(tmpdir_factory):
     method = "dae_single"
-    tmpdir = tmpdir_factory.mktemp(method)
-    return solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=True,
-    )
-
-@pytest.fixture(scope="session")
-def jump_solution_default(tmpdir_factory):
-    method = "jump"
     tmpdir = tmpdir_factory.mktemp(method)
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
@@ -67,15 +56,6 @@ def single_solution_no_internal(tmpdir_factory):
 @pytest.fixture(scope="session")
 def dae_single_solution_no_internal(tmpdir_factory):
     method = "dae_single"
-    tmpdir = tmpdir_factory.mktemp(method)
-    return solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=False,
-    )
-
-@pytest.fixture(scope="session")
-def jump_solution_no_internal(tmpdir_factory):
-    method = "jump"
     tmpdir = tmpdir_factory.mktemp(method)
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),

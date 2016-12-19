@@ -15,7 +15,6 @@ from .config import (
     get_input_from_conffile, config_input_to_soln_input
 )
 from .stepper import solver as stepper_solver
-from .jumper import solver as jumper_solver
 from .single import solver as single_solver
 from .dae_single import solver as dae_single_solver
 from .mcmc import solver as mcmc_solver
@@ -44,11 +43,6 @@ def solve(
         f["run"] = run
         if sonic_method == "step":
             stepper_solver(
-                config_input_to_soln_input(config_input), run,
-                store_internal=store_internal,
-            )
-        elif sonic_method == "jump":
-            jumper_solver(
                 config_input_to_soln_input(config_input), run,
                 store_internal=store_internal,
             )
@@ -81,7 +75,7 @@ def main():
     parser.add_argument("config_file")
     parser.add_argument(
         "--sonic-method", choices=(
-            "step", "jump", "single", "dae_single", "mcmc"
+            "step", "single", "dae_single", "mcmc"
         ), default="single",
     )
     parser.add_argument("--output-file")
