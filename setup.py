@@ -18,7 +18,7 @@ setuptools.setup(
         "logbook",
         "arrow",
         "h5py>2.5",
-        "h5preserve>=0.13.1",
+        "h5preserve>=0.14",
         "stringtopy",
         "corner",
         "attrs",

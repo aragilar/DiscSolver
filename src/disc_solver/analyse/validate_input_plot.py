@@ -68,6 +68,7 @@ def validate_input_plot(soln, *, plot_filename=None, show=False, figargs):
         savefig(fig, plot_filename)
     if show:
         plt.show()
+    plt.close(fig)
 
 
 def generate_plot(files, figargs):

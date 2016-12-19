@@ -53,6 +53,7 @@ def jacobian_plot(
         savefig(fig, plot_filename)
     if show:
         plt.show()
+    plt.close(fig)
 
 
 @single_solution_plotter

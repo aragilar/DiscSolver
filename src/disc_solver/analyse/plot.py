@@ -86,6 +86,7 @@ def plot(
         savefig(fig, plot_filename)
     if show:
         plt.show()
+    plt.close(fig)
 
 
 @single_solution_plotter
@@ -177,7 +178,7 @@ def generate_plot(
             degrees(angles[indexes]),
             (
                 solution[:, i] - settings.get("offset", 0)
-            )[indexes], linestyle,
+            )[indexes], linestyle, label=settings["name"]
         )
         for extra in settings.get("extras", []):
             ax.plot(

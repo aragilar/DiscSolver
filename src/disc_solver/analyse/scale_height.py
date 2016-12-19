@@ -56,6 +56,7 @@ def scale_height(files, *, show, plot_filename, figargs):
         savefig(fig, plot_filename)
     if show:
         plt.show()
+    plt.close(fig)
 
 
 def generate_plot(files, *, figargs):
