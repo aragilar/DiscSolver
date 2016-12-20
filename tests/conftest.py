@@ -9,13 +9,13 @@ PLOT_FILE = "plot.png"
 DEFAULT_SOLUTIONS = [
     "single_solution_default",
     "dae_single_solution_default",
-    "mcmc_solution_default",
+    #"mcmc_solution_default",
     "step_solution_default",
 ]
 NO_INTERNAL_SOLUTIONS = [
     "single_solution_no_internal",
     "dae_single_solution_no_internal",
-    "mcmc_solution_no_internal",
+    #"mcmc_solution_no_internal",
 ]
 ALL_SOLUTIONS = DEFAULT_SOLUTIONS + NO_INTERNAL_SOLUTIONS
 

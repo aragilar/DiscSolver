@@ -107,6 +107,8 @@ class LogProbGenerator:
         """
         Return the solution with the highest probablity
         """
+        if self._best_logprob_index is None:
+            return None
         return self._run.solutions[self._best_logprob_index]
 
 
