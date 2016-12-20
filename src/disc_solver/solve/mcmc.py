@@ -98,11 +98,11 @@ class LogProbGenerator:
         try:
             soln = solution(
                 new_soln_input, cons, onroot_func=onroot_continue,
-                find_sonic_point=True, store_internal=self._store_internal,
-                root_func=self._root_func, root_func_args=self._root_func_args,
+                store_internal=self._store_internal, root_func=self._root_func,
+                root_func_args=self._root_func_args,
             )
-        except RuntimeError:
-            log.exception()
+        except RuntimeError as e:
+            log.exception(e)
             return - float("inf")
         soln_index = self._run.solutions.add_solution(soln)
         logprob = get_logprob_of_soln(new_soln_input, soln)
