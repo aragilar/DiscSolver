@@ -86,10 +86,14 @@ class LogProbGenerator:
     def __call__(self, sys_vars):
         new_soln_input = sys_vars_to_solution_input(sys_vars, self._soln_input)
         if not solution_input_valid(new_soln_input):
+            log.info("MCMC input invalid")
             return - float("inf")
         try:
             cons = define_conditions(new_soln_input)
         except ValueError:
+            log.info(
+                "MCMC input could not be converted to initial conditions."
+            )
             return - float("inf")
         try:
             soln = solution(
@@ -98,6 +102,7 @@ class LogProbGenerator:
                 root_func=self._root_func, root_func_args=self._root_func_args,
             )
         except RuntimeError:
+            log.exception()
             return - float("inf")
         soln_index = self._run.solutions.add_solution(soln)
         logprob = get_logprob_of_soln(new_soln_input, soln)
