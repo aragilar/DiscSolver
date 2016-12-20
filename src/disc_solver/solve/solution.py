@@ -300,15 +300,24 @@ def main_solution(
     *, angles, system_initial_conditions, ode_initial_conditions, γ, a_0,
     norm_kepler_sq, relative_tolerance=1e-6, absolute_tolerance=1e-10,
     max_steps=500, onroot_func=None, find_sonic_point=False, tstop=None,
-    ontstop_func=None, η_derivs=True, store_internal=True
+    ontstop_func=None, η_derivs=True, store_internal=True, root_func=None,
+    root_func_args=None
 ):
     """
     Find solution
     """
     extra_args = {}
-    if find_sonic_point:
+    if find_sonic_point and root_func is not None:
+        raise RuntimeError("Cannot use both sonic point finder and root_func")
+    elif find_sonic_point:
         extra_args["rootfn"] = gen_sonic_point_rootfn(1)
         extra_args["nr_rootfns"] = 1
+    elif root_func is not None:
+        extra_args["rootfn"] = root_func
+        if root_func_args is not None:
+            extra_args["nr_rootfns"] = root_func_args
+        else:
+            raise RuntimeError("Need to specify size of root array")
 
     system, internal_data = ode_system(
         γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,
@@ -359,7 +368,8 @@ def main_solution(
 def solution(
     input, initial_conditions, *,
     onroot_func=None, find_sonic_point=False, tstop=None,
-    ontstop_func=None, store_internal=True
+    ontstop_func=None, store_internal=True, root_func=None,
+    root_func_args=None
 ):
     """
     Find solution
@@ -398,7 +408,8 @@ def solution(
         absolute_tolerance=absolute_tolerance, max_steps=max_steps,
         onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
         η_derivs=η_derivs, store_internal=store_internal,
-        find_sonic_point=find_sonic_point
+        find_sonic_point=find_sonic_point, root_func=root_func,
+        root_func_args=root_func_args,
     )
 
     if store_internal and taylor_stop_angle is not None:

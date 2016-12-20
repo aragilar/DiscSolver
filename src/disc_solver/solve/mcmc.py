@@ -79,6 +79,9 @@ class LogProbGenerator:
         self._store_internal = store_internal
         self._best_logprob = - float("inf")
         self._best_logprob_index = None
+        self._root_func, self._root_func_args = velocity_stop_generator(
+            self._soln_input
+        )
 
     def __call__(self, sys_vars):
         new_soln_input = sys_vars_to_solution_input(sys_vars, self._soln_input)
@@ -92,6 +95,7 @@ class LogProbGenerator:
             soln = solution(
                 new_soln_input, cons, onroot_func=onroot_continue,
                 find_sonic_point=True, store_internal=self._store_internal,
+                root_func=self._root_func, root_func_args=self._root_func_args,
             )
         except RuntimeError:
             return - float("inf")
@@ -146,3 +150,17 @@ def solution_input_valid(soln_input):
     if soln_input.c_s_on_v_k <= 0:
         return False
     return True
+
+
+def velocity_stop_generator(soln_input):
+    """
+    return function to stop at target velocity
+    """
+    def rootfn(θ, params, out):
+        """
+        root function to stop at required velocity
+        """
+        # pylint: disable=unused-argument
+        out[0] = soln_input.target_velocity - params[ODEIndex.v_θ]
+        return 0
+    return rootfn, 1
