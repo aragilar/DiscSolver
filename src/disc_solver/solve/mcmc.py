@@ -4,6 +4,7 @@ Stepper related logic
 """
 
 from enum import IntEnum, unique
+from math import isfinite
 
 import logbook
 
@@ -104,8 +105,11 @@ class LogProbGenerator:
         except RuntimeError as e:
             log.exception(e)
             return - float("inf")
-        soln_index = self._run.solutions.add_solution(soln)
         logprob = get_logprob_of_soln(new_soln_input, soln)
+        if not isfinite(logprob):
+            log.info("Solution invalid")
+            return - float("inf")
+        soln_index = self._run.solutions.add_solution(soln)
         if logprob > self._best_logprob:
             self._best_logprob = logprob
             self._best_logprob_index = soln_index
