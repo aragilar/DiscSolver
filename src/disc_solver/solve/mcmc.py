@@ -129,6 +129,8 @@ def get_logprob_of_soln(new_soln_input, soln):
     """
     Return log probability of solution
     """
+    if soln.flag < 0:
+        return - float("inf")
     if np_all((
         soln.solution[1:, ODEIndex.v_θ] - soln.solution[:-1, ODEIndex.v_θ]
     ) < 0):
