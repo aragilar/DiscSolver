@@ -90,13 +90,31 @@ class TestAnalysis:
 
     def test_info_initial_conditions(self, solution, tmp_text_stream):
         info(
-            solution, group="initial_conditions", soln_range=None,
+            solution, group="initial-conditions", soln_range=None,
             output_file=tmp_text_stream,
         )
 
     def test_info_sonic_points(self, solution, tmp_text_stream):
         info(
-            solution, group="sonic_points", soln_range=None,
+            solution, group="sonic-points", soln_range=None,
+            output_file=tmp_text_stream,
+        )
+
+    def test_info_crosses_points(self, solution, tmp_text_stream):
+        info(
+            solution, group="crosses-points", soln_range=None,
+            output_file=tmp_text_stream,
+        )
+
+    #def test_info_sonic_on_scale(self, solution, tmp_text_stream):
+    #    info(
+    #        solution, group="sonic-on-scale", soln_range=None,
+    #        output_file=tmp_text_stream,
+    #    )
+
+    def test_info_solutions(self, solution, tmp_text_stream):
+        info(
+            solution, group="solutions", soln_range=None,
             output_file=tmp_text_stream,
         )
 

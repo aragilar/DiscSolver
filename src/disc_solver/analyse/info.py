@@ -139,4 +139,4 @@ def info(soln_file, *, group, soln_range, output_file):
                     degrees(angles[fast_index]) if fast_index else None
                 ), file=output_file)
             else:
-                print("Cannot find {}.".format(group), file=output_file)
+                raise RuntimeError("Cannot find {}.".format(group))
