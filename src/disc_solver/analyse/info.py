@@ -27,7 +27,7 @@ def info_parser(parser):
     """
     parser.add_argument("group", choices=[
         "run", "status", "input", "initial-conditions", "sonic-points",
-        "crosses-points", "sonic-on-scale",
+        "crosses-points", "sonic-on-scale", "solutions",
     ])
     return parser
 
@@ -82,6 +82,9 @@ def info(soln_file, *, group, soln_range, output_file):
             soln_file.config_input.label,
             get_sonic_point(soln_instance) / get_scale_height(soln_instance)
         ))
+    elif group == "solutions":
+        for name in soln_file.solutions.keys():
+            print(name, file=output_file)
     else:
         inp = soln_instance.solution_input
         init_con = soln_instance.initial_conditions
