@@ -135,7 +135,7 @@ def get_logprob_of_soln(new_soln_input, soln):
         return - float("inf")
     return - (
         new_soln_input.target_velocity - soln.solution[-1, ODEIndex.v_θ]
-    ) ** 2 - diff(diff(soln.solution[:, ODEIndex.v_θ])[0, -1])
+    ) ** 2 - diff(diff(soln.solution[:, ODEIndex.v_θ])[(0, -1)])
 
 
 def generate_initial_positions(soln_input):
