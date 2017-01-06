@@ -165,6 +165,7 @@ def get_sonic_point(solution):
     fit = interp1d(
         solution.solution[:, ODEIndex.v_θ],
         solution.angles,
+        fill_value="extrapolate",
     )
     return fit(1.0)
 
