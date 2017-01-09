@@ -106,11 +106,23 @@ class TestAnalysis:
             output_file=tmp_text_stream,
         )
 
-    #def test_info_sonic_on_scale(self, solution, tmp_text_stream):
-    #    info(
-    #        solution, group="sonic-on-scale", soln_range=None,
-    #        output_file=tmp_text_stream,
-    #    )
+    def test_info_sonic_on_scale(self, single_solution_default, tmp_text_stream):
+        info(
+            single_solution_default, group="sonic-on-scale", soln_range=None,
+            output_file=tmp_text_stream,
+        )
+
+    def test_info_sonic_on_scale(self, single_solution_no_internal, tmp_text_stream):
+        info(
+            single_solution_no_internal, group="sonic-on-scale", soln_range=None,
+            output_file=tmp_text_stream,
+        )
+
+    def test_info_sonic_on_scale(self, step_solution_default, tmp_text_stream):
+        info(
+            step_solution_default, group="sonic-on-scale", soln_range=None,
+            output_file=tmp_text_stream,
+        )
 
     def test_info_solutions(self, solution, tmp_text_stream):
         info(
