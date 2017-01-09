@@ -21,6 +21,10 @@ from ..utils import ODEIndex
 
 log = logbook.Logger(__name__)
 
+INITIAL_SPREAD = 0.01
+TARGETED_PROB_WEIGHTING = 1
+OUTFLOW_RATE_PROB_WEIGHTING = 1
+
 
 @unique
 class SysVars(IntEnum):
@@ -133,9 +137,14 @@ def get_logprob_of_soln(new_soln_input, soln):
         return - float("inf")
     if np_any(diff(soln.solution[:, ODEIndex.v_θ]) < 0):
         return - float("inf")
-    return - (
+    targeted_prob = - (
         new_soln_input.target_velocity - soln.solution[-1, ODEIndex.v_θ]
-    ) ** 2 - diff(diff(soln.solution[:, ODEIndex.v_θ])[(0, -1)])
+    ) ** 2
+    outflow_rate_prob = - diff(diff(soln.solution[:, ODEIndex.v_θ])[(0, -1)])
+    return (
+        targeted_prob * TARGETED_PROB_WEIGHTING +
+        outflow_rate_prob * OUTFLOW_RATE_PROB_WEIGHTING
+    )
 
 
 def generate_initial_positions(soln_input):
@@ -143,7 +152,9 @@ def generate_initial_positions(soln_input):
     Generate initial positions of walkers
     """
     sys_vars = solution_input_to_sys_vars(soln_input)
-    return sys_vars * (0.01 * randn(soln_input.nwalkers, len(SysVars)) + 1)
+    return sys_vars * (
+        INITIAL_SPREAD * randn(soln_input.nwalkers, len(SysVars)) + 1
+    )
 
 
 def solution_input_valid(soln_input):
