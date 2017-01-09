@@ -19,6 +19,7 @@ from .single import solver as single_solver
 from .dae_single import solver as dae_single_solver
 from .mcmc import solver as mcmc_solver
 
+from .. import __version__ as ds_version
 from ..file_format import registries, Run
 from ..logging import logging_options, log_handler
 from ..utils import allvars as vars, expanded_path
@@ -33,7 +34,11 @@ def solve(
     Main function to generate solution
     """
     config_input = get_input_from_conffile(config_file=config_file)
-    run = Run(config_input=config_input, config_filename=str(config_file))
+    run = Run(
+        config_input=config_input,
+        config_filename=str(config_file),
+        disc_solver_version=ds_version,
+    )
 
     if output_file is None:
         output_file = Path(config_input.label + str(arrow.now()) + ".hdf5")

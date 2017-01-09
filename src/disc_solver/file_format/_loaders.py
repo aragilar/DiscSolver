@@ -462,6 +462,19 @@ def _run_loader(group):
         time=group["time"],
         final_solution=group["final_solution"],
         solutions=group["solutions"],
+        disc_solver_version=None,
+    )
+
+
+@ds_registry.loader("Run", version=2)
+def _run_loader2(group):
+    return Run(
+        config_input=group["config_input"],
+        config_filename=group["config_filename"],
+        time=group["time"],
+        final_solution=group["final_solution"],
+        solutions=group["solutions"],
+        disc_solver_version=group["disc_solver_version"],
     )
 
 

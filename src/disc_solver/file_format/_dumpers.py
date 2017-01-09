@@ -150,7 +150,7 @@ def _input_dumper(solution_input):
     )
 
 
-@ds_registry.dumper(Run, "Run", version=1)
+@ds_registry.dumper(Run, "Run", version=2)
 def _run_dumper(run):
     return GroupContainer(
         time=run.time,
@@ -158,6 +158,7 @@ def _run_dumper(run):
         config_input=run.config_input,
         final_solution=run.final_solution,
         solutions=run.solutions,
+        disc_solver_version=run.disc_solver_version,
     )
 
 
