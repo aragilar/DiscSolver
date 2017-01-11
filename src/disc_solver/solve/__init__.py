@@ -77,6 +77,9 @@ def main():
     Entry point for ds-soln
     """
     parser = argparse.ArgumentParser(description='Solver for DiscSolver')
+    parser.add_argument(
+        '--version', action='version', version='%(prog)s ' + ds_version
+    )
     parser.add_argument("config_file")
     parser.add_argument(
         "--sonic-method", choices=(

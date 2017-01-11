@@ -10,6 +10,7 @@ from pathlib import Path
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
 
+from . import __version__ as ds_version
 from .logging import logging_options, log_handler
 from .utils import CaseDependentConfigParser, expanded_path, str_to_float
 
@@ -249,6 +250,9 @@ def main():
     """
     parser = argparse.ArgumentParser(
         description='Config Generator for DiscSolver'
+    )
+    parser.add_argument(
+        '--version', action='version', version='%(prog)s ' + ds_version
     )
     parser.add_argument("input_file")
     parser.add_argument("--output-path", default=".")

@@ -9,6 +9,7 @@ from logbook.compat import redirected_warnings, redirected_logging
 from h5preserve import open as h5open
 import matplotlib.pyplot as plt
 
+from .. import __version__ as ds_version
 from ..file_format import registries
 from ..logging import log_handler, logging_options
 from .utils import get_scale_height, get_sonic_point, savefig
@@ -21,6 +22,9 @@ def scale_height_main():
     parser = argparse.ArgumentParser(
         description="plot scale heights",
         argument_default=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        '--version', action='version', version='%(prog)s ' + ds_version
     )
     parser.add_argument("filenames")
     parser.add_argument("--show", action="store_true", default=False)

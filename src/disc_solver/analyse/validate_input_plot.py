@@ -10,6 +10,7 @@ from h5preserve import open as h5open
 import matplotlib.pyplot as plt
 from corner import corner
 
+from .. import __version__ as ds_version
 from ..file_format import registries
 from ..logging import log_handler, logging_options
 
@@ -32,6 +33,9 @@ def validate_input_plot_main():
     parser = argparse.ArgumentParser(
         description="plot inputs",
         argument_default=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        '--version', action='version', version='%(prog)s ' + ds_version
     )
     parser.add_argument("filenames")
     parser.add_argument("--show", action="store_true", default=False)

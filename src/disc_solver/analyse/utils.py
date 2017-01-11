@@ -10,6 +10,7 @@ from logbook.compat import redirected_warnings, redirected_logging
 from h5preserve import open
 from scipy.interpolate import interp1d
 
+from .. import __version__ as ds_version
 from ..file_format import registries
 from ..logging import log_handler, logging_options
 from ..utils import ODEIndex, fspath, str_to_float
@@ -114,6 +115,9 @@ def analyse_main_wrapper(
             parser = argparse.ArgumentParser(
                 description=cmd_description,
                 argument_default=argparse.SUPPRESS,
+            )
+            parser.add_argument(
+                '--version', action='version', version='%(prog)s ' + ds_version
             )
             parser.add_argument("soln_file")
             parser.add_argument("soln_range")

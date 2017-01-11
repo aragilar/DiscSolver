@@ -11,6 +11,7 @@ from logbook.compat import redirected_warnings, redirected_logging
 
 from h5preserve import open
 
+from . import __version__ as ds_version
 from .file_format import registries
 from .logging import logging_options, log_handler
 from .utils import ODEIndex
@@ -66,6 +67,9 @@ def main():
     """
     parser = argparse.ArgumentParser(
         description='Config Generator for DiscSolver'
+    )
+    parser.add_argument(
+        '--version', action='version', version='%(prog)s ' + ds_version
     )
     parser.add_argument("--output-path", default=".")
     parser.add_argument("--level", action="append", nargs=2)
