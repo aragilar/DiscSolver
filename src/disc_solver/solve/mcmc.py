@@ -21,7 +21,7 @@ from ..utils import ODEIndex
 
 log = logbook.Logger(__name__)
 
-INITIAL_SPREAD = 0.1
+INITIAL_SPREAD = 1
 TARGETED_PROB_WEIGHTING = 1
 OUTFLOW_RATE_PROB_WEIGHTING = 1
 
@@ -140,10 +140,10 @@ def get_logprob_of_soln(new_soln_input, soln):
     targeted_prob = - (
         new_soln_input.target_velocity - soln.solution[-1, ODEIndex.v_θ]
     ) ** 2
-    outflow_rate_prob = - diff(diff(soln.solution[:, ODEIndex.v_θ])[(0, -1)])
+    # outflow_rate_prob = - diff(diff(soln.solution[:, ODEIndex.v_θ])[(0, -1)])
     return (
-        targeted_prob * TARGETED_PROB_WEIGHTING +
-        outflow_rate_prob * OUTFLOW_RATE_PROB_WEIGHTING
+        targeted_prob * TARGETED_PROB_WEIGHTING
+        # outflow_rate_prob * OUTFLOW_RATE_PROB_WEIGHTING
     )
 
 
