@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Solver component of Disc Solver
+reSolver component of Disc Solver
 """
 import argparse
 from pathlib import Path
@@ -11,9 +11,6 @@ from logbook.compat import redirected_warnings, redirected_logging
 
 from h5preserve import open as h5open
 
-from .config import (
-    get_input_from_conffile, config_input_to_soln_input
-)
 from .stepper import solver as stepper_solver
 from .single import solver as single_solver
 from .dae_single import solver as dae_single_solver
@@ -23,48 +20,54 @@ from .utils import add_solver_arguments
 from .. import __version__ as ds_version
 from ..file_format import registries, Run
 from ..logging import log_handler
-from ..utils import expanded_path
+from ..utils import expanded_path, get_solutions
 
 log = logbook.Logger(__name__)
 
 
-def solve(
-    *, output_file, sonic_method, config_file, output_dir, store_internal
+def resolve(
+    *, output_file, sonic_method, soln_filename, soln_range, output_dir,
+    store_internal
 ):
     """
     Main function to generate solution
     """
-    config_input = get_input_from_conffile(config_file=config_file)
+    with h5open(soln_filename, registries) as soln_file:
+        old_run = soln_file["run"]
+        old_solution = get_solutions(old_run, soln_range)
+
     run = Run(
-        config_input=config_input,
-        config_filename=str(config_file),
+        config_input=old_run.config_input,
+        config_filename=old_run.config_filename,
         disc_solver_version=ds_version,
     )
 
     if output_file is None:
-        output_file = Path(config_input.label + str(arrow.now()) + ".hdf5")
+        output_file = Path(
+            old_run.config_input.label + str(arrow.now()) + ".hdf5"
+        )
     output_file = expanded_path(output_dir / output_file)
 
     with h5open(output_file, registries) as f:
         f["run"] = run
         if sonic_method == "step":
             stepper_solver(
-                config_input_to_soln_input(config_input), run,
+                old_solution.solution_input, run,
                 store_internal=store_internal,
             )
         elif sonic_method == "single":
             single_solver(
-                config_input_to_soln_input(config_input), run,
+                old_solution.solution_input, run,
                 store_internal=store_internal,
             )
         elif sonic_method == "dae_single":
             dae_single_solver(
-                config_input_to_soln_input(config_input), run,
+                old_solution.solution_input, run,
                 store_internal=store_internal,
             )
         elif sonic_method == "mcmc":
             mcmc_solver(
-                config_input_to_soln_input(config_input), run,
+                old_solution.solution_input, run,
                 store_internal=store_internal,
             )
         else:
@@ -75,23 +78,25 @@ def solve(
 
 def main():
     """
-    Entry point for ds-soln
+    Entry point for ds-resoln
     """
-    parser = argparse.ArgumentParser(description='Solver for DiscSolver')
+    parser = argparse.ArgumentParser(description='reSolver for DiscSolver')
     add_solver_arguments(parser)
-    parser.add_argument("config_file")
+    parser.add_argument("soln_filename")
+    parser.add_argument("soln_range")
 
     args = vars(parser.parse_args())
 
-    config_file = expanded_path(args["config_file"])
+    soln_filename = expanded_path(args["soln_filename"])
+    soln_range = expanded_path(args["soln_range"])
     output_dir = expanded_path(args["output_dir"])
     sonic_method = args["sonic_method"]
     output_file = args.get("output_file", None)
     store_internal = args.get("store_internal", True)
 
     with log_handler(args), redirected_warnings(), redirected_logging():
-        print(solve(
-            output_file=output_file, sonic_method=sonic_method,
-            config_file=config_file, output_dir=output_dir,
-            store_internal=store_internal,
+        print(resolve(
+            soln_filename=soln_filename, soln_range=soln_range,
+            sonic_method=sonic_method, output_dir=output_dir,
+            store_internal=store_internal, output_file=output_file,
         ))

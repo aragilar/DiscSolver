@@ -14,6 +14,7 @@ from disc_solver.analyse.acc_plot import acc_plot
 from disc_solver.analyse.jacobian_plot import jacobian_plot
 from disc_solver.analyse.utils import AnalysisError
 from disc_solver.solve import solve
+from disc_solver.solve.resolve import resolve
 from disc_solver.filter_files import filter_files
 
 
@@ -67,6 +68,49 @@ class TestSolve:
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="mcmc",
             config_file=None, output_file=None, store_internal=False,
+        )
+
+class TestReSolve:
+    def test_single_default(self, tmpdir, solution):
+        resolve(
+            output_dir=Path(str(tmpdir)), sonic_method="single",
+            soln_filename=solution, soln_range=None, output_file=None, store_internal=True,
+        )
+
+    def test_single_no_internal(self, tmpdir, solution):
+        resolve(
+            output_dir=Path(str(tmpdir)), sonic_method="single",
+            soln_filename=solution, soln_range=None, output_file=None, store_internal=False,
+        )
+
+    def test_dae_single_default(self, tmpdir, solution):
+        resolve(
+            output_dir=Path(str(tmpdir)), sonic_method="dae_single",
+            soln_filename=solution, soln_range=None, output_file=None, store_internal=True,
+        )
+
+    def test_dae_single_no_internal(self, tmpdir, solution):
+        resolve(
+            output_dir=Path(str(tmpdir)), sonic_method="dae_single",
+            soln_filename=solution, soln_range=None, output_file=None, store_internal=False,
+        )
+
+    def test_step_default(self, tmpdir, solution):
+        resolve(
+            output_dir=Path(str(tmpdir)), sonic_method="step",
+            soln_filename=solution, soln_range=None, output_file=None, store_internal=True,
+        )
+
+    def test_mcmc_default(self, tmpdir, solution):
+        resolve(
+            output_dir=Path(str(tmpdir)), sonic_method="mcmc",
+            soln_filename=solution, soln_range=None, output_file=None, store_internal=True,
+        )
+
+    def test_mcmc_no_internal(self, tmpdir, solution):
+        resolve(
+            output_dir=Path(str(tmpdir)), sonic_method="mcmc",
+            soln_filename=solution, soln_range=None, output_file=None, store_internal=False,
         )
 
 class TestAnalysis:

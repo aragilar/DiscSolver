@@ -10,6 +10,8 @@ from numpy import (
 
 from scikits.odes.sundials.cvode import StatusEnum
 
+from .. import __version__ as ds_version
+from ..logging import logging_options
 from ..utils import ODEIndex
 
 
@@ -110,3 +112,29 @@ def closest_less_than_index(a, max_val):
     """
     less_than = a < max_val
     return closest_index(a[less_than], max_val)
+
+
+def add_solver_arguments(parser):
+    """
+    Add common parser arguments for solver
+    """
+    parser.add_argument(
+        '--version', action='version', version='%(prog)s ' + ds_version
+    )
+    parser.add_argument(
+        "--sonic-method", choices=(
+            "step", "single", "dae_single", "mcmc"
+        ), default="single",
+    )
+    parser.add_argument("--output-file")
+    parser.add_argument(
+        "--output-dir", default=".",
+    )
+    internal_store_group = parser.add_mutually_exclusive_group()
+    internal_store_group.add_argument(
+        "--store-internal", action='store_true', default=True
+    )
+    internal_store_group.add_argument(
+        "--no-store-internal", action='store_false', dest="store_internal",
+    )
+    logging_options(parser)
