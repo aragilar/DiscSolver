@@ -8,11 +8,11 @@ import numpy as np
 from numpy import degrees
 
 from ..utils import (
-    is_supersonic, find_in_array, get_normalisation, allvars as vars, ODEIndex,
-    MAGNETIC_INDEXES,
+    is_supersonic, find_in_array, get_normalisation, ODEIndex,
+    MAGNETIC_INDEXES, get_solutions,
 )
 from .utils import (
-    get_solutions, analyse_main_wrapper, analysis_func_wrapper,
+    analyse_main_wrapper, analysis_func_wrapper,
     get_sonic_point, get_scale_height,
 )
 

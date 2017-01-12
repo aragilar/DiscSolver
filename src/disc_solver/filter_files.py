@@ -9,7 +9,7 @@ from sys import stdin
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
 
-from h5preserve import open
+from h5preserve import open as h5open
 
 from . import __version__ as ds_version
 from .file_format import registries
@@ -23,7 +23,7 @@ def get_level(file):
     """
     Get value for level
     """
-    with open(file, registries) as f:
+    with h5open(file, registries) as f:
         return max(f["run"].final_solution.solution[:, ODEIndex.v_θ])
 
 

@@ -141,19 +141,6 @@ def get_normalisation(inp, radius=AU, mass=M_SUN, density=1.5e-9):
     }
 
 
-def allvars(obj):
-    """
-    vars replacement to work on namedtuples
-    """
-    try:
-        return vars(obj)
-    except TypeError as e:
-        try:
-            return obj._asdict()
-        except AttributeError as f:
-            raise e from f  # maybe?
-
-
 def expanded_path(*path):
     """
     Return expanded pathlib.Path object
@@ -201,6 +188,17 @@ except ImportError:
                 "expected str, bytes or os.PathLike object, not " +
                 path_type.__name__
             )
+
+
+def get_solutions(run, soln_range):
+    """
+    Get solutions based on range
+    """
+    if soln_range is None:
+        soln_range = "0"
+    elif soln_range == "final":
+        return run.final_solution
+    return run.solutions[soln_range]
 
 
 class ODEIndex(IntEnum):

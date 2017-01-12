@@ -78,6 +78,7 @@ class LogProbGenerator:
     """
     Generate log probability function
     """
+    # pylint: disable=too-few-public-methods
     def __init__(self, soln_input, run, *, store_internal):
         self._soln_input = soln_input
         self._run = run

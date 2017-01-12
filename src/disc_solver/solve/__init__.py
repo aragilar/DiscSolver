@@ -9,7 +9,7 @@ import arrow
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
 
-from h5preserve import open
+from h5preserve import open as h5open
 
 from .config import (
     get_input_from_conffile, config_input_to_soln_input
@@ -22,7 +22,7 @@ from .mcmc import solver as mcmc_solver
 from .. import __version__ as ds_version
 from ..file_format import registries, Run
 from ..logging import logging_options, log_handler
-from ..utils import allvars as vars, expanded_path
+from ..utils import expanded_path
 
 log = logbook.Logger(__name__)
 
@@ -44,7 +44,7 @@ def solve(
         output_file = Path(config_input.label + str(arrow.now()) + ".hdf5")
     output_file = expanded_path(output_dir / output_file)
 
-    with open(output_file, registries) as f:
+    with h5open(output_file, registries) as f:
         f["run"] = run
         if sonic_method == "step":
             stepper_solver(

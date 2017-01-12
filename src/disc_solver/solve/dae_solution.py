@@ -34,6 +34,7 @@ def dae_system(
     """
     Set up the system we are solving for.
     """
+    # pylint: disable=too-many-statements
     if η_derivs:
         η_O_scale = init_con[ODEIndex.η_O] / sqrt(init_con[ODEIndex.ρ])
         η_A_scale = init_con[ODEIndex.η_A] / sqrt(init_con[ODEIndex.ρ])
@@ -57,6 +58,7 @@ def dae_system(
         """
         Compute the ODEs
         """
+        # pylint: disable=too-many-statements
         B_r = params[ODEIndex.B_r]
         B_φ = params[ODEIndex.B_φ]
         B_θ = params[ODEIndex.B_θ]
@@ -226,7 +228,7 @@ def dae_system(
 
 
 def solution(
-    input, initial_conditions, *,
+    soln_input, initial_conditions, *,
     onroot_func=None, find_sonic_point=False, tstop=None,
     ontstop_func=None, store_internal=True
 ):
@@ -239,10 +241,10 @@ def solution(
     γ = initial_conditions.γ
     a_0 = initial_conditions.a_0
     norm_kepler_sq = initial_conditions.norm_kepler_sq
-    absolute_tolerance = input.absolute_tolerance
-    relative_tolerance = input.relative_tolerance
-    max_steps = input.max_steps
-    η_derivs = input.η_derivs
+    absolute_tolerance = soln_input.absolute_tolerance
+    relative_tolerance = soln_input.relative_tolerance
+    max_steps = soln_input.max_steps
+    η_derivs = soln_input.η_derivs
 
     extra_args = {}
     if find_sonic_point:
@@ -287,7 +289,7 @@ def solution(
             log.notice("Stopped at {}".format(degrees(tstop)))
 
     return Solution(
-        solution_input=input, initial_conditions=initial_conditions,
+        solution_input=soln_input, initial_conditions=initial_conditions,
         flag=soln.flag, coordinate_system=COORDS, internal_data=internal_data,
         angles=soln.values.t, solution=soln.values.y,
         derivatives=soln.values.ydot, t_roots=soln.roots.t,

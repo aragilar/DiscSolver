@@ -11,6 +11,8 @@ from numpy import asarray, concatenate, zeros
 from h5preserve import wrap_on_demand, OnDemandWrapper, DelayedContainer
 
 
+# pylint: disable=too-few-public-methods
+
 @attr.s(cmp=False, hash=False)
 class Solution:
     """
@@ -154,6 +156,7 @@ class InternalData:
     """
     Container for values computed internally during the solution
     """
+    # pylint: disable=too-many-instance-attributes
     derivs = attr.ib(default=attr.Factory(list))
     params = attr.ib(default=attr.Factory(list))
     angles = attr.ib(default=attr.Factory(list))
@@ -334,6 +337,7 @@ class InitialConditions:
     """
     Container holding the initial conditions for the solver
     """
+    # pylint: disable=too-many-instance-attributes
     def __init__(
         self, *, norm_kepler_sq, η_O=None, η_A=None, η_H=None,
         γ, init_con, angles, a_0
@@ -381,3 +385,5 @@ class DAEInitialConditions:
     angles = attr.ib()
     init_con = attr.ib()
     deriv_init_con = attr.ib()
+
+# pylint: enable=too-few-public-methods

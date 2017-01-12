@@ -4,16 +4,16 @@ Utils for analysis code
 """
 import argparse
 from functools import wraps
-from sys import exit
+import sys
 
 from logbook.compat import redirected_warnings, redirected_logging
-from h5preserve import open
+from h5preserve import open as h5open
 from scipy.interpolate import interp1d
 
 from .. import __version__ as ds_version
 from ..file_format import registries
 from ..logging import log_handler, logging_options
-from ..utils import ODEIndex, fspath, str_to_float
+from ..utils import ODEIndex, fspath, str_to_float, get_solutions
 
 
 def single_solution_plotter(func):
@@ -38,17 +38,6 @@ def single_solution_plotter(func):
             fig.suptitle(title)
         return fig
     return plot_wrapper
-
-
-def get_solutions(soln_file, soln_range):
-    """
-    Get solutions based on range
-    """
-    if soln_range is None:
-        soln_range = "0"
-    elif soln_range == "final":
-        return soln_file.final_solution
-    return soln_file.solutions[soln_range]
 
 
 def common_plotting_options(parser):
@@ -128,7 +117,7 @@ def analyse_main_wrapper(
                 cmd_args[name] = func(args)
             with log_handler(args):
                 with redirected_warnings(), redirected_logging():
-                    exit(cmd(
+                    sys.exit(cmd(
                         args["soln_file"],
                         soln_range=args["soln_range"],
                         **cmd_args
@@ -148,7 +137,7 @@ def analysis_func_wrapper(func):
         """
         wrapper for analysis_func_wrapper
         """
-        with open(filename, registries) as soln_file:
+        with h5open(filename, registries) as soln_file:
             return func(soln_file["run"], *args, **kwargs)
     return wrapper
 

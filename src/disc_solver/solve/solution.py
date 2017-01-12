@@ -42,6 +42,7 @@ def ode_system(
     """
     Set up the system we are solving for.
     """
+    # pylint: disable=too-many-statements
     dderiv_ρ_M, dderiv_v_rM, dderiv_v_φM = taylor_series(
         γ=γ, a_0=a_0, init_con=init_con, η_derivs=η_derivs
     )
@@ -73,6 +74,7 @@ def ode_system(
         """
         Compute the ODEs
         """
+        # pylint: disable=too-many-statements
         B_r = params[ODEIndex.B_r]
         B_φ = params[ODEIndex.B_φ]
         B_θ = params[ODEIndex.B_θ]
@@ -366,7 +368,7 @@ def main_solution(
 
 
 def solution(
-    input, initial_conditions, *,
+    soln_input, initial_conditions, *,
     onroot_func=None, find_sonic_point=False, tstop=None,
     ontstop_func=None, store_internal=True, root_func=None,
     root_func_args=None
@@ -379,11 +381,11 @@ def solution(
     γ = initial_conditions.γ
     a_0 = initial_conditions.a_0
     norm_kepler_sq = initial_conditions.norm_kepler_sq
-    absolute_tolerance = input.absolute_tolerance
-    relative_tolerance = input.relative_tolerance
-    max_steps = input.max_steps
-    taylor_stop_angle = radians(input.taylor_stop_angle)
-    η_derivs = input.η_derivs
+    absolute_tolerance = soln_input.absolute_tolerance
+    relative_tolerance = soln_input.relative_tolerance
+    max_steps = soln_input.max_steps
+    taylor_stop_angle = radians(soln_input.taylor_stop_angle)
+    η_derivs = soln_input.η_derivs
 
     if taylor_stop_angle is None:
         post_taylor_angles = angles
@@ -423,7 +425,7 @@ def solution(
         joined_solution = concatenate((taylor_soln.params, soln.values.y))
 
     return Solution(
-        solution_input=input, initial_conditions=initial_conditions,
+        solution_input=soln_input, initial_conditions=initial_conditions,
         flag=soln.flag, coordinate_system=COORDS, internal_data=internal_data,
         angles=joined_angles, solution=joined_solution, t_roots=soln.roots.t,
         y_roots=soln.roots.y
