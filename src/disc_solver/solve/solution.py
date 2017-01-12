@@ -8,7 +8,7 @@ from collections import namedtuple
 
 import logbook
 
-from numpy import concatenate, copy, insert
+from numpy import concatenate, copy, insert, errstate
 
 from scikits.odes import ode
 from scikits.odes.sundials import (
@@ -100,9 +100,11 @@ def ode_system(
             return -1
 
         B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
-        norm_B_r, norm_B_φ, norm_B_θ = (
-            B_r/B_mag, B_φ/B_mag, B_θ/B_mag
-        )
+
+        with errstate(invalid="ignore"):
+            norm_B_r, norm_B_φ, norm_B_θ = (
+                B_r/B_mag, B_φ/B_mag, B_θ/B_mag
+            )
 
         deriv_B_φ = B_φ_prime
         deriv_B_r = (
@@ -127,23 +129,26 @@ def ode_system(
         deriv_B_θ = B_θ * tan(θ) - (γ + 3/4) * B_r
 
         deriv_v_r_taylor = θ * dderiv_v_rM
-        deriv_v_r_normal = (
-            v_r ** 2 / 2 + v_θ ** 2 + v_φ ** 2 + 5/2 - 2 * γ - norm_kepler_sq +
-            a_0 / ρ * (
-                B_θ * deriv_B_r + (1/4 - γ) * (B_θ ** 2 + B_φ ** 2)
-            )
-        ) / v_θ
+        with errstate(invalid="ignore", divide="ignore"):
+            deriv_v_r_normal = (
+                v_r ** 2 / 2 + v_θ ** 2 + v_φ ** 2 + 5/2 - 2 * γ -
+                norm_kepler_sq + a_0 / ρ * (
+                    B_θ * deriv_B_r + (1/4 - γ) * (B_θ ** 2 + B_φ ** 2)
+                )
+            ) / v_θ
 
         deriv_v_r = (
             deriv_v_r_taylor if with_taylor else deriv_v_r_normal
         )
 
         deriv_v_φ_taylor = θ * dderiv_v_φM
-        deriv_v_φ_normal = (
-            v_φ * v_θ * tan(θ) - v_φ * v_r / 2 + a_0 / ρ * (
-                B_θ * deriv_B_φ - (1/4 - γ) * B_r * B_φ - B_θ * B_φ * tan(θ)
-            )
-        ) / v_θ
+        with errstate(invalid="ignore", divide="ignore"):
+            deriv_v_φ_normal = (
+                v_φ * v_θ * tan(θ) - v_φ * v_r / 2 + a_0 / ρ * (
+                    B_θ * deriv_B_φ - (1/4 - γ) * B_r * B_φ -
+                    B_θ * B_φ * tan(θ)
+                )
+            ) / v_θ
         deriv_v_φ = (
             deriv_v_φ_taylor if with_taylor else deriv_v_φ_normal
         )
@@ -158,11 +163,12 @@ def ode_system(
         ) / (1 - v_θ ** 2)
 
         deriv_ρ_taylor = θ * dderiv_ρ_M
-        deriv_ρ_normal = - ρ * (
-            (
-                2 * γ * v_r + deriv_v_θ
-            ) / v_θ - tan(θ)
-        )
+        with errstate(invalid="ignore", divide="ignore"):
+            deriv_ρ_normal = - ρ * (
+                (
+                    2 * γ * v_r + deriv_v_θ
+                ) / v_θ - tan(θ)
+            )
         deriv_ρ = deriv_ρ_taylor if with_taylor else deriv_ρ_normal
 
         deriv_ρ_scale = deriv_ρ / sqrt(ρ) / 2

@@ -5,6 +5,7 @@ Computing derivatives
 
 from math import sqrt, tan
 
+from numpy import errstate
 import logbook
 
 from ..utils import sec, ODEIndex
@@ -70,7 +71,10 @@ def dderiv_B_φ_soln(
     Compute the derivative of B_φ
     """
     B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
-    b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
+
+    with errstate(invalid="ignore"):
+        b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
+
     deriv_b_r, deriv_b_φ, deriv_b_θ = B_unit_derivs(
         B_r=B_r, B_φ=B_φ, B_θ=B_θ, deriv_B_r=deriv_B_r, deriv_B_φ=deriv_B_φ,
         deriv_B_θ=deriv_B_θ

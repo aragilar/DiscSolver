@@ -10,7 +10,7 @@ import logbook
 
 import emcee
 
-from numpy import any as np_any, diff
+from numpy import any as np_any, diff, errstate
 from numpy.random import randn
 
 from .config import define_conditions
@@ -67,10 +67,12 @@ def solver(soln_input, run, store_internal=True):
         soln_input.nwalkers, len(SysVars), logprobfunc,
         threads=soln_input.threads,
     )
-    sampler.run_mcmc(
-        generate_initial_positions(soln_input),
-        soln_input.iterations
-    )
+
+    with errstate(invalid="ignore"):
+        sampler.run_mcmc(
+            generate_initial_positions(soln_input),
+            soln_input.iterations
+        )
     run.final_solution = logprobfunc.best_solution
 
 
