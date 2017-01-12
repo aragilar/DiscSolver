@@ -143,11 +143,18 @@ def get_logprob_of_soln(new_soln_input, soln):
     targeted_prob = - (
         new_soln_input.target_velocity - soln.solution[-1, ODEIndex.v_θ]
     ) ** 2
-    # outflow_rate_prob = - diff(diff(soln.solution[:, ODEIndex.v_θ])[(0, -1)])
     return (
-        targeted_prob * TARGETED_PROB_WEIGHTING
-        # outflow_rate_prob * OUTFLOW_RATE_PROB_WEIGHTING
+        targeted_prob * TARGETED_PROB_WEIGHTING +
+        get_outflow_rate_probability(soln) * OUTFLOW_RATE_PROB_WEIGHTING
     )
+
+
+def get_outflow_rate_probability(soln):
+    """
+    Get likelihood for outflow structure
+    """
+    Δ_v_θ = diff(soln.solution[:, ODEIndex.v_θ])
+    return - sum(diff(Δ_v_θ))
 
 
 def generate_initial_positions(soln_input):
