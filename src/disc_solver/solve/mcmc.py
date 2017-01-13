@@ -15,7 +15,7 @@ from numpy.random import randn
 
 from .config import define_conditions
 from .solution import solution
-from .utils import onroot_continue
+from .utils import onroot_stop
 from ..file_format import SolutionInput
 from ..utils import ODEIndex
 
@@ -105,7 +105,7 @@ class LogProbGenerator:
             return - float("inf")
         try:
             soln = solution(
-                new_soln_input, cons, onroot_func=onroot_continue,
+                new_soln_input, cons, onroot_func=onroot_stop,
                 store_internal=self._store_internal, root_func=self._root_func,
                 root_func_args=self._root_func_args,
             )
