@@ -21,7 +21,7 @@ from ..utils import ODEIndex
 
 log = logbook.Logger(__name__)
 
-INITIAL_SPREAD = 1
+INITIAL_SPREAD = 0.1
 TARGETED_PROB_WEIGHTING = 1
 OUTFLOW_RATE_PROB_WEIGHTING = 1
 
