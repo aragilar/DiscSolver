@@ -46,6 +46,7 @@ def ode_system(
     dderiv_ρ_M, dderiv_v_rM, dderiv_v_φM = taylor_series(
         γ=γ, a_0=a_0, init_con=init_con, η_derivs=η_derivs
     )
+    norm_kepler = sqrt(norm_kepler_sq)
     if η_derivs:
         η_O_scale = init_con[ODEIndex.η_O] / sqrt(init_con[ODEIndex.ρ])
         η_A_scale = init_con[ODEIndex.η_A] / sqrt(init_con[ODEIndex.ρ])
@@ -131,8 +132,8 @@ def ode_system(
         deriv_v_r_taylor = θ * dderiv_v_rM
         with errstate(invalid="ignore", divide="ignore"):
             deriv_v_r_normal = (
-                v_r ** 2 / 2 + v_θ ** 2 + v_φ ** 2 + 5/2 - 2 * γ -
-                norm_kepler_sq + a_0 / ρ * (
+                v_r ** 2 / 2 + v_θ ** 2 + 5/2 - 2 * γ +
+                (v_φ - norm_kepler) * (v_φ + norm_kepler) + a_0 / ρ * (
                     B_θ * deriv_B_r + (1/4 - γ) * (B_θ ** 2 + B_φ ** 2)
                 )
             ) / v_θ
