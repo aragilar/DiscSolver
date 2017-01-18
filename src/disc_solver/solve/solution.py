@@ -122,7 +122,7 @@ def ode_system(
                     )
                 )
             ) / (
-                η_O + η_A * (1 - norm_B_φ**2)
+                η_O + η_A * (1 - norm_B_φ) * (1 + norm_B_φ)
             ) - B_θ * (1/4 - γ)
         )
 
@@ -160,7 +160,7 @@ def ode_system(
                     B_φ ** 2 * tan(θ)
                 )
             )
-        ) / (1 - v_θ ** 2)
+        ) / ((1 - v_θ) * (1 + v_θ))
 
         deriv_ρ_taylor = θ * dderiv_ρ_M
         with errstate(invalid="ignore", divide="ignore"):
