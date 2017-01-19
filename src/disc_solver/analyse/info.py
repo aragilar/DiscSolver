@@ -118,13 +118,25 @@ def info(soln_file, *, group, soln_range, output_file):
 
             if group == "crosses-points":
                 if fast_index:
-                    print("{}: fast".format(soln_file.config_input.label))
+                    print(
+                        "{}: fast".format(soln_file.config_input.label),
+                        file=output_file
+                    )
                 elif alfven_index:
-                    print("{}: alfven".format(soln_file.config_input.label))
+                    print(
+                        "{}: alfven".format(soln_file.config_input.label),
+                        file=output_file
+                    )
                 elif slow_index:
-                    print("{}: slow".format(soln_file.config_input.label))
+                    print(
+                        "{}: slow".format(soln_file.config_input.label),
+                        file=output_file
+                    )
                 else:
-                    print("{}: none".format(soln_file.config_input.label))
+                    print(
+                        "{}: none".format(soln_file.config_input.label),
+                        file=output_file
+                    )
             elif group == "sonic-points":
                 print(OTHER_FORMAT.format(
                     "slow sonic point",
