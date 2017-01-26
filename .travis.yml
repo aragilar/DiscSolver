@@ -1,0 +1,37 @@
+language: python
+
+addons:
+  apt:
+    packages:
+      - libhdf5-serial-dev # for h5py
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+env:
+  #- TOXENV=py35
+  - TOXENV=flake8
+  - TOXENV=pylint
+  #- TOXENV=docs
+  #- TOXENV=check-manifest
+  #- TOXENV=checkreadme
+matrix:
+  include:
+    - python: 3.5
+      env:
+      - TOXENV=py35
+
+before_install:
+  - pip install codecov # for coverage
+
+install:
+  - pip install tox
+
+script:
+  - tox
+
+after_success:
+  - codecov
