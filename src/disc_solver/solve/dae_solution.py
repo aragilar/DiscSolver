@@ -246,6 +246,24 @@ def solution(
     max_steps = soln_input.max_steps
     η_derivs = soln_input.η_derivs
 
+    taylor_stop_angle = radians(soln_input.taylor_stop_angle)
+
+    if taylor_stop_angle is None:
+        post_taylor_angles = angles
+        post_taylor_initial_conditions = init_con
+    else:
+        taylor_soln = taylor_solution(
+            angles=angles, init_con=init_con, γ=γ, a_0=a_0,
+            norm_kepler_sq=norm_kepler_sq,
+            relative_tolerance=relative_tolerance,
+            absolute_tolerance=absolute_tolerance, max_steps=max_steps,
+            taylor_stop_angle=taylor_stop_angle, η_derivs=η_derivs,
+            store_internal=store_internal
+        )
+        post_taylor_angles = taylor_soln.new_angles
+        post_taylor_initial_conditions = taylor_soln.new_initial_conditions
+        taylor_internal = taylor_soln.internal_data
+
     extra_args = {}
     if find_sonic_point:
         extra_args["rootfn"] = gen_sonic_point_rootfn(1)
@@ -303,3 +321,13 @@ def solution(
         y_roots=soln.roots.y, sonic_point=sonic_point,
         sonic_point_values=sonic_point_values,
     )
+
+
+def mixed_solution(
+    soln_input, initial_conditions, *,
+    onroot_func=None, find_sonic_point=False, tstop=None,
+    ontstop_func=None, store_internal=True
+):
+    """
+    Find solution using both dae and taylor series
+    """
