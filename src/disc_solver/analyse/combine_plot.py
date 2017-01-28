@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 
 from ..constants import KM
 from ..utils import (
-    better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX, get_normalisation,
-    ODEIndex, MAGNETIC_INDEXES
+    mhd_wave_speeds, MHD_WAVE_INDEX, get_normalisation, ODEIndex,
+    MAGNETIC_INDEXES
 )
 
 from .utils import (
@@ -120,27 +120,27 @@ def generate_plot_combine(
             "y_label": "Velocity Field (km/s)",
             "lines": [
                 {
-                    "label": "v_r",
+                    "label": "$v_r$",
                     "index": ODEIndex.v_r,
                 },
                 {
-                    "label": "v_φ",
+                    "label": "$v_φ$",
                     "index": ODEIndex.v_φ,
                     "offset": sqrt(cons.norm_kepler_sq) * v_norm / KM
                 },
                 {
-                    "label": "v_θ",
+                    "label": "$v_θ$",
                     "index": ODEIndex.v_θ,
                 },
             ],
         }),
         ("density", {
-            "y_label": "Density ($g cm^{-3}$)",
+            "y_label": "Density (g cm$^{-3}$)",
             "normalisation": ρ_norm,
             "scale": "log",
             "lines": [
                 {
-                    "label": "ρ",
+                    "label": "$ρ$",
                     "index": ODEIndex.ρ,
                 }
             ],
@@ -150,15 +150,15 @@ def generate_plot_combine(
             "y_label": "Magnetic Field (G)",
             "lines": [
                 {
-                    "label": "B_r",
+                    "label": "$B_r$",
                     "index": ODEIndex.B_r,
                 },
                 {
-                    "label": "B_φ",
+                    "label": "$B_φ$",
                     "index": ODEIndex.B_φ,
                 },
                 {
-                    "label": "B_θ",
+                    "label": "$B_θ$",
                     "index": ODEIndex.B_θ,
                 },
             ],
@@ -182,7 +182,7 @@ def generate_plot_combine(
         })
     if with_sonic:
         plot_props["velocity"]["lines"].append({
-            "label": "sound",
+            "label": "$c_s$",
             "data": np.ones(len(solution)),
         })
 
@@ -210,14 +210,9 @@ def generate_plot_combine(
                 ), linestyle, label=line["label"]
             )
         if i == len(plot_props) - 1:  # label only the bottom one
-            ax.set_xlabel("angle from plane (°)")
-        if i % 2 == 1:
-            ax.tick_params(
-                axis='y', which='both', labelleft='off', labelright='on'
-            )
+            ax.set_xlabel("θ — angle from plane (°)")
         ax.set_ylabel(settings["y_label"])
         ax.set_yscale(settings.get("scale", "linear"))
         ax.legend(loc=0)
-        better_sci_format(ax.yaxis)
     fig.subplots_adjust(hspace=0)
     return fig

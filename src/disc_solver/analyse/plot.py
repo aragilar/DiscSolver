@@ -11,14 +11,15 @@ from numpy import (
 import matplotlib.pyplot as plt
 
 from ..utils import (
-    better_sci_format, mhd_wave_speeds, MHD_WAVE_INDEX, ODEIndex,
-    MAGNETIC_INDEXES,
+    mhd_wave_speeds, MHD_WAVE_INDEX, ODEIndex, MAGNETIC_INDEXES,
 )
 
 from .utils import (
     single_solution_plotter, analyse_main_wrapper, analysis_func_wrapper,
     common_plotting_options, get_common_plot_args, savefig
 )
+
+plt.style.use("bmh")
 
 
 def plot_parser(parser):
@@ -104,8 +105,6 @@ def generate_plot(
     solution = soln.solution
     angles = soln.angles
     cons = soln.initial_conditions
-    y_roots = soln.y_roots
-    t_roots = soln.t_roots
 
     zero_soln = np_zeros(len(solution))
     v = np_array([zero_soln, zero_soln, solution[:, ODEIndex.v_θ]])
@@ -169,8 +168,14 @@ def generate_plot(
         })
 
     fig, axes = plt.subplots(
-        nrows=2, ncols=4, tight_layout=True, sharex=True, **figargs
+        nrows=2, ncols=4, tight_layout=True, sharex=True,
+        gridspec_kw=dict(hspace=0), **figargs
     )
+
+    # only add label to bottom plots
+    for ax in axes[1]:
+        ax.set_xlabel("angle from plane (°)")
+
     axes.shape = len(param_names)
     for i, settings in enumerate(param_names):
         ax = axes[i]
@@ -186,13 +191,8 @@ def generate_plot(
                 extra["data"][indexes],
                 label=extra.get("label")
             )
-        ax.set_xlabel("angle from plane (°)")
         ax.set_ylabel(settings["name"])
         ax.set_yscale(settings.get("scale", "linear"))
         if settings.get("legend"):
             ax.legend(loc=0)
-        better_sci_format(ax.yaxis)
-        if t_roots is not None:
-            ax.axvline(degrees(t_roots[0]))
-            ax.plot(degrees(t_roots[0]), y_roots[0, i], ".")
     return fig
