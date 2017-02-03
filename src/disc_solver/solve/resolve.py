@@ -15,6 +15,7 @@ from .stepper import solver as stepper_solver
 from .single import solver as single_solver
 from .dae_single import solver as dae_single_solver
 from .mcmc import solver as mcmc_solver
+from .sonic_minimise import solver as sonic_minimise_solver
 from .utils import add_solver_arguments
 
 from .. import __version__ as ds_version
@@ -67,6 +68,11 @@ def resolve(
             )
         elif sonic_method == "mcmc":
             mcmc_solver(
+                old_solution.solution_input, run,
+                store_internal=store_internal,
+            )
+        elif sonic_method == "sonic_minimise":
+            sonic_minimise_solver(
                 old_solution.solution_input, run,
                 store_internal=store_internal,
             )
