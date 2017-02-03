@@ -15,7 +15,7 @@ from numpy.random import randn
 
 from .config import define_conditions
 from .solution import solution
-from .utils import onroot_stop
+from .utils import onroot_stop, velocity_stop_generator
 from ..file_format import SolutionInput
 from ..utils import ODEIndex
 
@@ -180,17 +180,3 @@ def solution_input_valid(soln_input):
     if soln_input.c_s_on_v_k <= 0:
         return False
     return True
-
-
-def velocity_stop_generator(soln_input):
-    """
-    return function to stop at target velocity
-    """
-    def rootfn(θ, params, out):
-        """
-        root function to stop at required velocity
-        """
-        # pylint: disable=unused-argument
-        out[0] = soln_input.target_velocity - params[ODEIndex.v_θ]
-        return 0
-    return rootfn, 1

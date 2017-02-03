@@ -65,6 +65,8 @@ def define_conditions(inp):
     init_con[ODEIndex.η_H] = η_H
 
     angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
+    if np.any(np.isnan(init_con)):
+        raise ValueError("Input implies NaN")
 
     return InitialConditions(
         norm_kepler_sq=norm_kepler_sq, a_0=a_0, init_con=init_con,

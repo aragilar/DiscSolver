@@ -138,3 +138,17 @@ def add_solver_arguments(parser):
         "--no-store-internal", action='store_false', dest="store_internal",
     )
     logging_options(parser)
+
+
+def velocity_stop_generator(soln_input):
+    """
+    return function to stop at target velocity
+    """
+    def rootfn(θ, params, out):
+        """
+        root function to stop at required velocity
+        """
+        # pylint: disable=unused-argument
+        out[0] = soln_input.target_velocity - params[ODEIndex.v_θ]
+        return 0
+    return rootfn, 1
