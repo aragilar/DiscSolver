@@ -378,7 +378,7 @@ def solution(
     soln_input, initial_conditions, *,
     onroot_func=None, find_sonic_point=False, tstop=None,
     ontstop_func=None, store_internal=True, root_func=None,
-    root_func_args=None
+    root_func_args=None, with_taylor=True, modified_initial_conditions=None
 ):
     """
     Find solution
@@ -391,12 +391,18 @@ def solution(
     absolute_tolerance = soln_input.absolute_tolerance
     relative_tolerance = soln_input.relative_tolerance
     max_steps = soln_input.max_steps
-    taylor_stop_angle = radians(soln_input.taylor_stop_angle)
     η_derivs = soln_input.η_derivs
+    if with_taylor:
+        taylor_stop_angle = radians(soln_input.taylor_stop_angle)
+    else:
+        taylor_stop_angle = None
 
-    if taylor_stop_angle is None:
+    if taylor_stop_angle is None and modified_initial_conditions is None:
         post_taylor_angles = angles
         post_taylor_initial_conditions = init_con
+    elif taylor_stop_angle is None:
+        post_taylor_angles = modified_initial_conditions.angles
+        post_taylor_initial_conditions = modified_initial_conditions.init_con
     else:
         taylor_soln = taylor_solution(
             angles=angles, init_con=init_con, γ=γ, a_0=a_0,
