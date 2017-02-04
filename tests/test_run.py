@@ -70,6 +70,18 @@ class TestSolve:
             config_file=None, output_file=None, store_internal=False,
         )
 
+    def test_sonic_root_default(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="sonic_root",
+            config_file=None, output_file=None, store_internal=True,
+        )
+
+    def test_sonic_root_no_internal(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="sonic_root",
+            config_file=None, output_file=None, store_internal=False,
+        )
+
 class TestReSolve:
     def test_single_default(self, tmpdir, solution):
         resolve(
@@ -110,6 +122,18 @@ class TestReSolve:
     def test_mcmc_no_internal(self, tmpdir, solution):
         resolve(
             output_dir=Path(str(tmpdir)), sonic_method="mcmc",
+            soln_filename=solution, soln_range=None, output_file=None, store_internal=False,
+        )
+
+    def test_sonic_root_default(self, tmpdir, solution):
+        resolve(
+            output_dir=Path(str(tmpdir)), sonic_method="sonic_root",
+            soln_filename=solution, soln_range=None, output_file=None, store_internal=True,
+        )
+
+    def test_sonic_root_no_internal(self, tmpdir, solution):
+        resolve(
+            output_dir=Path(str(tmpdir)), sonic_method="sonic_root",
             soln_filename=solution, soln_range=None, output_file=None, store_internal=False,
         )
 

@@ -123,7 +123,7 @@ def add_solver_arguments(parser):
     )
     parser.add_argument(
         "--sonic-method", choices=(
-            "step", "single", "dae_single", "mcmc"
+            "step", "single", "dae_single", "mcmc", "sonic_root",
         ), default="single",
     )
     parser.add_argument("--output-file")

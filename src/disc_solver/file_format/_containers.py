@@ -150,6 +150,16 @@ class JacobianData:
             jacobians=concatenate((self.jacobians, other.jacobians)),
         )
 
+    def flip(self):
+        """
+        Flip contents
+        """
+        self.derivs = self.derivs[::-1]
+        self.params = self.params[::-1]
+        self.angles = self.angles[::-1]
+        self.jacobians = self.jacobians[::-1]
+        return self
+
 
 @attr.s(cmp=False, hash=False)
 class InternalData:
@@ -203,6 +213,23 @@ class InternalData:
             ρ_taylor=concatenate((self.ρ_taylor, other.ρ_taylor)),
             problems=problems,
         )
+
+    def flip(self):
+        """
+        Flip contents
+        """
+        self._finalise()
+        self.derivs = self.derivs[::-1]
+        self.params = self.params[::-1]
+        self.angles = self.angles[::-1]
+        self.v_r_normal = self.v_r_normal[::-1]
+        self.v_φ_normal = self.v_φ_normal[::-1]
+        self.ρ_normal = self.ρ_normal[::-1]
+        self.v_r_taylor = self.v_r_taylor[::-1]
+        self.v_φ_taylor = self.v_φ_taylor[::-1]
+        self.ρ_taylor = self.ρ_taylor[::-1]
+        self.jacobian_data.flip()  # pylint: disable=no-member
+        return self
 
 
 @attr.s(cmp=False, hash=False)
