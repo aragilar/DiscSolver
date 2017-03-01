@@ -15,7 +15,7 @@ from scikits.odes.sundials import (
     CVODESolveFailed, CVODESolveFoundRoot, CVODESolveReachedTSTOP
 )
 
-from .deriv_funcs import dderiv_B_φ_soln, taylor_series
+from .deriv_funcs import dderiv_B_φ_soln, taylor_series, deriv_v_θ_sonic
 from .utils import gen_sonic_point_rootfn, error_handler
 
 from ..file_format import InternalData, Solution
@@ -24,6 +24,7 @@ from ..utils import ODEIndex
 INTEGRATOR = "cvode"
 LINSOLVER = "lapackdense"
 COORDS = "spherical midplane 0"
+SONIC_POINT_TOLERANCE = 0.01
 
 log = logbook.Logger(__name__)
 
@@ -37,7 +38,7 @@ TaylorSolution = namedtuple(
 
 def ode_system(
     *, γ, a_0, norm_kepler_sq, init_con, with_taylor=False, η_derivs=True,
-    store_internal=True
+    η_derivs_func=None, store_internal=True
 ):
     """
     Set up the system we are solving for.
@@ -55,6 +56,7 @@ def ode_system(
         η_O_scale = 0
         η_A_scale = 0
         η_H_scale = 0
+        η_derivs_func = None
 
     if store_internal:
         internal_data = InternalData()
@@ -154,14 +156,40 @@ def ode_system(
             deriv_v_φ_taylor if with_taylor else deriv_v_φ_normal
         )
 
-        deriv_v_θ = (
-            v_r / 2 * (v_θ ** 2 - 4 * γ) + v_θ * (
-                tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
-                    (1/4 - γ) * B_θ * B_r + B_r * deriv_B_r + B_φ * deriv_B_φ -
-                    B_φ ** 2 * tan(θ)
+        if η_derivs_func is not None:
+            deriv_η_O, deriv_η_A, deriv_η_H = η_derivs_func()
+
+        if 1 - SONIC_POINT_TOLERANCE < v_θ < 1 + SONIC_POINT_TOLERANCE:
+            if η_derivs_func is not None:
+                deriv_v_θ = deriv_v_θ_sonic(
+                    a_0=a_0, ρ=ρ, B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H,
+                    η_A=η_A, θ=θ, v_r=v_r, v_θ=v_θ, v_φ=v_φ,
+                    deriv_v_r=deriv_v_r, deriv_v_φ=deriv_v_φ,
+                    deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
+                    B_φ_prime=B_φ_prime, γ=γ, deriv_η_O=deriv_η_O,
+                    deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H
                 )
-            )
-        ) / ((1 - v_θ) * (1 + v_θ))
+            elif not η_derivs:
+                deriv_v_θ = deriv_v_θ_sonic(
+                    a_0=a_0, ρ=ρ, B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H,
+                    η_A=η_A, θ=θ, v_r=v_r, v_θ=v_θ, v_φ=v_φ,
+                    deriv_v_r=deriv_v_r, deriv_v_φ=deriv_v_φ,
+                    deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
+                    B_φ_prime=B_φ_prime, γ=γ, deriv_η_O=deriv_η_O,
+                    deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H
+                )
+            else:
+                log.critical("Unable to compute v_θ'")
+                return -1
+        else:
+            deriv_v_θ = (
+                v_r / 2 * (v_θ ** 2 - 4 * γ) + v_θ * (
+                    tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
+                        (1/4 - γ) * B_θ * B_r + B_r * deriv_B_r +
+                        B_φ * deriv_B_φ - B_φ ** 2 * tan(θ)
+                    )
+                )
+            ) / ((1 - v_θ) * (1 + v_θ))
 
         deriv_ρ_taylor = θ * dderiv_ρ_M
         with errstate(invalid="ignore", divide="ignore"):
@@ -172,10 +200,11 @@ def ode_system(
             )
         deriv_ρ = deriv_ρ_taylor if with_taylor else deriv_ρ_normal
 
-        deriv_ρ_scale = deriv_ρ / sqrt(ρ) / 2
-        deriv_η_O = deriv_ρ_scale * η_O_scale
-        deriv_η_A = deriv_ρ_scale * η_A_scale
-        deriv_η_H = deriv_ρ_scale * η_H_scale
+        if η_derivs_func is None:
+            deriv_ρ_scale = deriv_ρ / sqrt(ρ) / 2
+            deriv_η_O = deriv_ρ_scale * η_O_scale
+            deriv_η_A = deriv_ρ_scale * η_A_scale
+            deriv_η_H = deriv_ρ_scale * η_H_scale
 
         dderiv_B_φ = dderiv_B_φ_soln(
             B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r,

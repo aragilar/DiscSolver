@@ -40,6 +40,56 @@ def initial_conditions():
     # This is slightly off the plane, this should mean we don't get
     # cancellation
     values.angle = 0.1
+
+    values.params[ODEIndex.v_θ] = 1
+    values.params[ODEIndex.B_φ] = -7
+
+    θ = values.angle
+    a_0 = values.a_0
+    γ = values.γ
+    B_r = values.params[ODEIndex.B_r]
+    B_φ = values.params[ODEIndex.B_φ]
+    B_θ = values.params[ODEIndex.B_θ]
+    v_φ = values.params[ODEIndex.v_φ]
+    ρ = values.params[ODEIndex.ρ]
+    B_φ_prime = values.params[ODEIndex.B_φ_prime]
+    η_O = values.params[ODEIndex.η_O]
+    η_A = values.params[ODEIndex.η_A]
+    η_H = values.params[ODEIndex.η_H]
+
+    B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
+    with np.errstate(invalid="ignore"):
+        norm_B_r, norm_B_φ, norm_B_θ = (
+            B_r/B_mag, B_φ/B_mag, B_θ/B_mag
+        )
+
+    values.params[ODEIndex.v_r] = ρ * (
+        η_O + η_A * (1 - norm_B_φ**2)
+    ) / (
+        B_r * B_θ * a_0 - (1 / 2 - 2 * γ) * ρ * (
+            η_O + η_A * (1 - norm_B_φ**2)
+        )
+    ) * (
+        tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
+            B_r * (
+                B_r + B_φ_prime * (
+                    η_H * norm_B_θ -
+                    η_A * norm_B_r * norm_B_φ
+                ) + B_φ * (
+                    η_A * norm_B_φ * (
+                        norm_B_θ * (1/4 - γ) +
+                        norm_B_r * tan(θ)
+                    ) - η_H * (
+                        norm_B_r * (1/4 - γ) +
+                        norm_B_θ * tan(θ)
+                    )
+                )
+            ) / (
+                η_O + η_A * (1 - norm_B_φ**2)
+            ) + B_φ * B_φ_prime - B_φ ** 2 * tan(θ)
+        )
+    )
+
     return values
 
 
@@ -51,7 +101,9 @@ def rhs_func(initial_conditions):
             a_0=initial_conditions.a_0,
             norm_kepler_sq=initial_conditions.norm_kepler_sq,
             init_con=initial_conditions.params,
-            with_taylor=False
+            with_taylor=False,
+            η_derivs=True,
+            η_derivs_func=lambda **x: (-0.002, -0.003, -0.005)
         )
     return rhs
 
