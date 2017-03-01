@@ -77,7 +77,7 @@ def _initial_dump(initial_conditions):
     )
 
 
-@ds_registry.dumper(Solution, "Solution", version=2)
+@ds_registry.dumper(Solution, "Solution", version=3)
 def _solution_dumper(solution):
     return GroupContainer(
         attrs={
@@ -92,6 +92,8 @@ def _solution_dumper(solution):
         y_roots=solution.y_roots,
         solution_input=solution.solution_input,
         derivatives=solution.derivatives,
+        sonic_point=solution.sonic_point,
+        sonic_point_values=solution.sonic_point_values,
     )
 
 

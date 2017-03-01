@@ -364,8 +364,12 @@ def main_solution(
         )
     except CVODESolveFoundRoot as e:
         soln = e.soln
-        for root in soln.roots.t:
-            log.notice("Found sonic point at {}".format(degrees(root)))
+        if find_sonic_point:
+            log.notice("Found sonic point at {}".format(
+                degrees(soln.roots.t)
+            ))
+        else:
+            log.notice("Found root at {}".format(degrees(soln.roots.t)))
     except CVODESolveReachedTSTOP as e:
         soln = e.soln
         for tstop in soln.tstop.t:
@@ -437,9 +441,17 @@ def solution(
         joined_angles = concatenate((taylor_soln.angles, soln.values.t))
         joined_solution = concatenate((taylor_soln.params, soln.values.y))
 
+    if find_sonic_point and soln.roots.t is not None:
+        sonic_point = soln.roots.t[0]
+        sonic_point_values = soln.roots.y[0]
+    else:
+        sonic_point = None
+        sonic_point_values = None
+
     return Solution(
         solution_input=soln_input, initial_conditions=initial_conditions,
         flag=soln.flag, coordinate_system=COORDS, internal_data=internal_data,
         angles=joined_angles, solution=joined_solution, t_roots=soln.roots.t,
-        y_roots=soln.roots.y
+        y_roots=soln.roots.y, sonic_point=sonic_point,
+        sonic_point_values=sonic_point_values,
     )

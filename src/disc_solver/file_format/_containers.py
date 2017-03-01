@@ -27,6 +27,8 @@ class Solution:
     initial_conditions = attr.ib()
     t_roots = attr.ib()
     y_roots = attr.ib()
+    sonic_point = attr.ib()
+    sonic_point_values = attr.ib()
     derivatives = attr.ib(default=None)
 
 

@@ -288,10 +288,18 @@ def solution(
         for tstop in soln.tstop.t:
             log.notice("Stopped at {}".format(degrees(tstop)))
 
+    if find_sonic_point:
+        sonic_point = soln.roots.t[0]
+        sonic_point_values = soln.roots.y[0]
+    else:
+        sonic_point = None
+        sonic_point_values = None
+
     return Solution(
         solution_input=soln_input, initial_conditions=initial_conditions,
         flag=soln.flag, coordinate_system=COORDS, internal_data=internal_data,
         angles=soln.values.t, solution=soln.values.y,
         derivatives=soln.values.ydot, t_roots=soln.roots.t,
-        y_roots=soln.roots.y
+        y_roots=soln.roots.y, sonic_point=sonic_point,
+        sonic_point_values=sonic_point_values,
     )

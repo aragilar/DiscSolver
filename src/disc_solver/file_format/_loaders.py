@@ -176,6 +176,42 @@ def _solution_loader_2(group):
     )
 
 
+@ds_registry.loader("Solution", version=3)
+def _solution_loader_3(group):
+    if group["t_roots"] is None:
+        t_roots = None
+    else:
+        t_roots = group["t_roots"]["data"]
+    if group["y_roots"] is None:
+        y_roots = None
+    else:
+        y_roots = group["y_roots"]["data"]
+
+    if group["sonic_point"] is None:
+        sonic_point = None
+    else:
+        sonic_point = group["sonic_point"]["data"]
+    if group["sonic_point_values"] is None:
+        sonic_point_values = None
+    else:
+        sonic_point_values = group["sonic_point_values"]["data"]
+
+    return Solution(
+        flag=group.attrs["flag"],
+        coordinate_system=group.attrs["coordinate_system"],
+        angles=group["angles"]["data"],
+        solution=group["solution"]["data"],
+        internal_data=group["internal_data"],
+        initial_conditions=group["initial_conditions"],
+        solution_input=group["solution_input"],
+        t_roots=t_roots,
+        y_roots=y_roots,
+        sonic_point=sonic_point,
+        sonic_point_values=sonic_point_values,
+        derivatives=group["derivatives"],
+    )
+
+
 @ds_registry.loader("ConfigInput", version=1)
 def _config_loader(group):
     return ConfigInput(

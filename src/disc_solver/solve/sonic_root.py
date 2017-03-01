@@ -277,4 +277,5 @@ def write_solution(run, initial_solution, sonic_solution):
         internal_data=joined_internal_data,
         t_roots=initial_solution.t_roots,
         y_roots=initial_solution.y_roots,
+        sonic_point=None, sonic_point_values=None,
     ))
