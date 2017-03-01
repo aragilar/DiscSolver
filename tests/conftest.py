@@ -10,12 +10,14 @@ DEFAULT_SOLUTIONS = [
     "single_solution_default",
     "dae_single_solution_default",
     #"mcmc_solution_default",
+    "sonic_root_solution_default",
     "step_solution_default",
 ]
 NO_INTERNAL_SOLUTIONS = [
     "single_solution_no_internal",
     "dae_single_solution_no_internal",
     #"mcmc_solution_no_internal",
+    "sonic_root_solution_no_internal",
 ]
 ALL_SOLUTIONS = DEFAULT_SOLUTIONS + NO_INTERNAL_SOLUTIONS
 
@@ -56,6 +58,15 @@ def step_solution_default(tmpdir_factory):
     )
 
 @pytest.fixture(scope="session")
+def sonic_root_solution_default(tmpdir_factory):
+    method = "sonic_root"
+    tmpdir = tmpdir_factory.mktemp(method)
+    return solve(
+        sonic_method=method, output_dir=Path(str(tmpdir)),
+        output_file=None, config_file=None, store_internal=True,
+    )
+
+@pytest.fixture(scope="session")
 def single_solution_no_internal(tmpdir_factory):
     method = "single"
     tmpdir = tmpdir_factory.mktemp(method)
@@ -76,6 +87,15 @@ def dae_single_solution_no_internal(tmpdir_factory):
 @pytest.fixture(scope="session")
 def mcmc_solution_no_internal(tmpdir_factory):
     method = "mcmc"
+    tmpdir = tmpdir_factory.mktemp(method)
+    return solve(
+        sonic_method=method, output_dir=Path(str(tmpdir)),
+        output_file=None, config_file=None, store_internal=False,
+    )
+
+@pytest.fixture(scope="session")
+def sonic_root_solution_no_internal(tmpdir_factory):
+    method = "sonic_root"
     tmpdir = tmpdir_factory.mktemp(method)
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),

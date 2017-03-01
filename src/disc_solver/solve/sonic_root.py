@@ -4,22 +4,33 @@ Find sonic point using minimisation
 """
 from enum import IntEnum
 from math import sqrt, tan, log, exp
+from sys import float_info
 
 import logbook
 
-from numpy import zeros, linspace, errstate, isnan, diff, concatenate
+import emcee
+
+from numpy import (
+    argmax, concatenate, diff, errstate, full, isnan, linspace, zeros,
+)
+from numpy.random import randn
+
 from scipy.optimize import root
+
 from scikits.odes.sundials.cvode import StatusEnum as StatusFlag
 
 from .config import define_conditions
 from .solution import solution
-from .utils import velocity_stop_generator
+from .utils import velocity_stop_generator, SolverError
 
 from ..file_format import InitialConditions, SolutionInput, Solution
 from ..utils import ODEIndex
 
 logger = logbook.Logger(__name__)
-METHOD = "lm"
+METHOD = "anderson"
+θ_SCALE_INITIAL_STOP = 0.9
+ERR_FLOAT = -sqrt(float_info.max) / 10
+INITIAL_SPREAD = 0.1
 
 
 class TotalVars(IntEnum):
@@ -27,8 +38,8 @@ class TotalVars(IntEnum):
     Variables for root solver
     """
     γ = 0
-    sonic_point = 1
-    v_r = 2
+    θ_scale = 1
+    v_φ = 2
     B_θ = 3
     B_r = 4
     B_φ = 5
@@ -45,23 +56,41 @@ def solver(inp, run, *, store_internal=True):
         inp, define_conditions(inp), store_internal=store_internal,
         root_func=rootfn, root_func_args=rootfn_args,
     )
-    result = root(
-        generate_root_func(
-            inp=inp, run=run, store_internal=store_internal, rootfn=rootfn,
-            rootfn_args=rootfn_args,
-        ), guess_root_vals(inp, initial_solution), method=METHOD,
+    run.solutions.add_solution(initial_solution)
+
+    root_solver_func = generate_root_func(
+        inp=inp, run=run, store_internal=store_internal,
     )
-    if not result.success:
-        raise RuntimeError(
-            "Root solver failed with message: {}".format(
-                result.message
-            )
+    mcmc_func = wrap_root_with_mcmc(root_solver_func)
+    root_func = wrap_root_catch_error(root_solver_func)
+
+    nwalkers = max(len(TotalVars) * 2, inp.nwalkers)
+    sampler = emcee.EnsembleSampler(
+        nwalkers, len(TotalVars), mcmc_func, threads=inp.threads,
+    )
+    with errstate(invalid="ignore"):
+        sampler.run_mcmc(
+            generate_initial_positions(
+                guess_root_vals(inp, initial_solution), nwalkers
+            ), inp.iterations
         )
+    best_index = argmax(sampler.flatlnprobability)
+    best_guess = sampler.flatchain[best_index]
+    result = root(
+        root_func, best_guess, method=METHOD, options={
+            "maxiter": 50, "line_search": None,
+        },
+    )
+
+    if not result.success:
+        logger.error("Root solver failed with message: {}".format(
+            result.message
+        ))
 
     run.final_solution = run.solutions[str(len(run.solutions) - 1)]
 
 
-def generate_root_func(*, run, inp, rootfn, rootfn_args, store_internal):
+def generate_root_func(*, run, inp, store_internal):
     """
     Create function to pass to root solver
     """
@@ -69,17 +98,20 @@ def generate_root_func(*, run, inp, rootfn, rootfn_args, store_internal):
         """
         Function for root solver
         """
-        mod_inp, initial_cons = total_vars_to_ode(inp, guess)
+        mod_inp, initial_cons, θ_scale = total_vars_to_ode(inp, guess)
         soln = solution(
             mod_inp, initial_cons, store_internal=store_internal,
-            root_func=rootfn, root_func_args=rootfn_args,
+            θ_scale=θ_scale,
         )
-        sonic_cons = total_vars_to_mod_cons(initial_cons, guess, soln)
+
+        sonic_cons = total_vars_to_mod_cons(initial_cons, guess)
+
         sonic_soln = solution(
             mod_inp, initial_cons, with_taylor=False,
             modified_initial_conditions=sonic_cons,
-            store_internal=store_internal
+            store_internal=store_internal, θ_scale=θ_scale,
         )
+
         write_solution(run, soln, sonic_soln)
         return get_root_results(
             sonic_soln.solution, soln.solution
@@ -113,15 +145,24 @@ def guess_root_vals(inp, initial_solution):
     return initial_guess
 
 
+def generate_initial_positions(initial_guess, nwalkers):
+    """
+    Generate initial positions of walkers
+    """
+    return initial_guess * (
+        INITIAL_SPREAD * randn(nwalkers, len(initial_guess)) + 1
+    )
+
+
 def get_sonic_point_value(soln, name):
     """
     Extrapolate the value at the sonic point
     """
-    d_v_θ = 1 - soln.solution[-1, ODEIndex.v_θ]
-    derivs = diff(soln.solution)[-1]
+    d_v_θ = (1 - soln.solution[-1, ODEIndex.v_θ])
+    derivs = diff(soln.solution, axis=0)[-1]
 
-    if name == "sonic_point":
-        return soln.angles[-1] + derivs[ODEIndex.v_θ] * d_v_θ
+    if name == "θ_scale":
+        return soln.angles[-1] / θ_SCALE_INITIAL_STOP
     elif name == "log_ρ":
         ρ = soln.solution[:, ODEIndex.ρ]
         deriv_ρ = log(ρ[-1] / ρ[-2])
@@ -141,19 +182,20 @@ def total_vars_to_ode(inp, guess):
     """
     mod_inp = SolutionInput(**vars(inp))
     mod_inp.γ = guess[TotalVars.γ]
+    θ_scale = guess[TotalVars.θ_scale]
     cons = define_conditions(mod_inp)
-    return mod_inp, cons
+    cons.angles = linspace(0, θ_SCALE_INITIAL_STOP, mod_inp.num_angles)
+
+    return mod_inp, cons, θ_scale
 
 
-def total_vars_to_mod_cons(cons, guess, initial_solution):
+def total_vars_to_mod_cons(cons, guess):
     """
     Convert root solver variables to modified initial conditions
     """
     mod_cons = InitialConditions(**vars(cons))
-    mod_cons.angles = linspace(
-        guess[TotalVars.sonic_point], initial_solution.angles[-1],
-        len(cons.angles)
-    )
+    mod_cons.angles = linspace(1, θ_SCALE_INITIAL_STOP, len(cons.angles))
+
     mod_cons.init_con[ODEIndex.v_θ] = 1
     for var in TotalVars:
         if hasattr(ODEIndex, var.name):
@@ -161,14 +203,14 @@ def total_vars_to_mod_cons(cons, guess, initial_solution):
         elif var.name == "log_ρ":
             mod_cons.init_con[ODEIndex.ρ] = exp(guess[var])
 
-    θ = guess[TotalVars.sonic_point]
+    θ_scale = guess[TotalVars.θ_scale]
+    θ = θ_scale
     a_0 = mod_cons.a_0
     γ = mod_cons.γ
     B_r = mod_cons.init_con[ODEIndex.B_r]
     B_φ = mod_cons.init_con[ODEIndex.B_φ]
     B_θ = mod_cons.init_con[ODEIndex.B_θ]
-    v_r = mod_cons.init_con[ODEIndex.v_r]
-    v_θ = mod_cons.init_con[ODEIndex.v_θ]
+    v_φ = mod_cons.init_con[ODEIndex.v_φ]
     ρ = mod_cons.init_con[ODEIndex.ρ]
     B_φ_prime = mod_cons.init_con[ODEIndex.B_φ_prime]
     η_O = mod_cons.init_con[ODEIndex.η_O]
@@ -181,36 +223,37 @@ def total_vars_to_mod_cons(cons, guess, initial_solution):
             B_r/B_mag, B_φ/B_mag, B_θ/B_mag
         )
 
-    deriv_B_r = (
-        (
-            v_θ * B_r - v_r * B_θ + B_φ_prime * (
-                η_H * norm_B_θ -
-                η_A * norm_B_r * norm_B_φ
-            ) + B_φ * (
-                η_A * norm_B_φ * (
-                    norm_B_θ * (1/4 - γ) +
-                    norm_B_r * tan(θ)
-                ) - η_H * (
-                    norm_B_r * (1/4 - γ) +
-                    norm_B_θ * tan(θ)
-                )
-            )
-        ) / (
+    mod_cons.init_con[ODEIndex.v_r] = ρ * (
+        η_O + η_A * (1 - norm_B_φ**2)
+    ) / (
+        B_r * B_θ * a_0 - (1 / 2 - 2 * γ) * ρ * (
             η_O + η_A * (1 - norm_B_φ**2)
-        ) - B_θ * (1/4 - γ)
+        )
+    ) * (
+        tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
+            B_r * (
+                B_r + B_φ_prime * (
+                    η_H * norm_B_θ -
+                    η_A * norm_B_r * norm_B_φ
+                ) + B_φ * (
+                    η_A * norm_B_φ * (
+                        norm_B_θ * (1/4 - γ) +
+                        norm_B_r * tan(θ)
+                    ) - η_H * (
+                        norm_B_r * (1/4 - γ) +
+                        norm_B_θ * tan(θ)
+                    )
+                )
+            ) / (
+                η_O + η_A * (1 - norm_B_φ**2)
+            ) + B_φ * B_φ_prime - B_φ ** 2 * tan(θ)
+        )
     )
 
-    try:
-        mod_cons.init_con[ODEIndex.v_φ] = sqrt(- 1 - (
-            v_r / 2 * (1 - 4 * γ) + a_0 / ρ * (
-                (1/4 - γ) * B_θ * B_r + B_r * deriv_B_r + B_φ * B_φ_prime -
-                B_φ ** 2 * tan(θ)
-            )
-        ) / tan(θ))
-    except ValueError:
-        return None
     if any(isnan(mod_cons.init_con)):
-        return None
+        raise SolverError("Initial conditions contains NaN: {}".format(
+            mod_cons.init_con
+        ))
 
     return mod_cons
 
@@ -220,30 +263,30 @@ def write_solution(run, initial_solution, sonic_solution):
     Write solution created by root solver to file
     """
     if initial_solution.solution_input != sonic_solution.solution_input:
-        raise RuntimeError("Input changed between initial and sonic")
+        raise SolverError("Input changed between initial and sonic")
     if (
         initial_solution.initial_conditions !=
         sonic_solution.initial_conditions
     ):
-        raise RuntimeError(
+        raise SolverError(
             "Initial conditions changed between initial and sonic"
         )
     if initial_solution.coordinate_system != sonic_solution.coordinate_system:
-        raise RuntimeError("Coordinates changed between initial and sonic")
+        raise SolverError("Coordinates changed between initial and sonic")
 
     if initial_solution.flag != StatusFlag.ROOT_RETURN:
         logger.warn("Initial solution did not reach target velocity")
     if initial_solution.flag < 0:
         logger.warn("Initial solution failed with flag {}".format(
-            initial_solution.flag
+            initial_solution.flag.name
         ))
     if sonic_solution.flag < 0:
         logger.warn("Sonic solution failed with flag {}".format(
-            initial_solution.flag
+            sonic_solution.flag.name
         ))
     elif sonic_solution.flag != StatusFlag.SUCESS:
         logger.info("Sonic solution ended with flag {}".format(
-            initial_solution.flag
+            sonic_solution.flag.name
         ))
     final_flag = sonic_solution.flag
 
@@ -279,3 +322,36 @@ def write_solution(run, initial_solution, sonic_solution):
         y_roots=initial_solution.y_roots,
         sonic_point=None, sonic_point_values=None,
     ))
+
+
+def wrap_root_catch_error(root_func):
+    """
+    Catch exception in root func and return correct flag value
+    """
+    def new_root_func(*args, **kwargs):
+        """
+        Wrapper of root func
+        """
+        try:
+            root_func(*args, **kwargs)
+        except SolverError as e:
+            logger.exception(e)
+            return full(len(TotalVars), ERR_FLOAT)
+    return new_root_func
+
+
+def wrap_root_with_mcmc(root_solver_func):
+    """
+    Convert root solver function to one useable by emcee
+    """
+    def mcmc_func(*args, **kwargs):
+        """
+        Wrapper function for mcmc
+        """
+        try:
+            return - sum(root_solver_func(*args, **kwargs) ** 2)
+        except SolverError as e:
+            logger.exception(e)
+            return - float("inf")
+
+    return mcmc_func

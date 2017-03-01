@@ -14,6 +14,7 @@ from scikits.odes import ode
 from scikits.odes.sundials import (
     CVODESolveFailed, CVODESolveFoundRoot, CVODESolveReachedTSTOP
 )
+from scikits.odes.sundials.cvode import StatusEnum
 
 from .deriv_funcs import dderiv_B_φ_soln, taylor_series, deriv_v_θ_sonic
 from .utils import (
@@ -398,6 +399,8 @@ def main_solution(
                 soln.flag, soln.message
             )
         )
+        if soln.flag == StatusEnum.TOO_CLOSE:
+            raise e
     except CVODESolveFoundRoot as e:
         soln = e.soln
         if find_sonic_point:
