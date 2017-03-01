@@ -152,3 +152,21 @@ def velocity_stop_generator(soln_input):
         out[0] = soln_input.target_velocity - params[ODEIndex.v_θ]
         return 0
     return rootfn, 1
+
+
+def rad_to_scaled(obj, θ_scale):
+    """
+    Convert from radians to sonic scaled angle
+    """
+    if obj is None:
+        return None
+    return obj / θ_scale
+
+
+def scaled_to_rad(obj, θ_scale):
+    """
+    Convert from sonic scaled angle to radians
+    """
+    if obj is None:
+        return None
+    return obj * θ_scale

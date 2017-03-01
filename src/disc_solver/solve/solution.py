@@ -16,7 +16,9 @@ from scikits.odes.sundials import (
 )
 
 from .deriv_funcs import dderiv_B_φ_soln, taylor_series, deriv_v_θ_sonic
-from .utils import gen_sonic_point_rootfn, error_handler
+from .utils import (
+    gen_sonic_point_rootfn, error_handler, rad_to_scaled, scaled_to_rad,
+)
 
 from ..file_format import InternalData, Solution
 from ..utils import ODEIndex
@@ -37,8 +39,8 @@ TaylorSolution = namedtuple(
 
 
 def ode_system(
-    *, γ, a_0, norm_kepler_sq, init_con, with_taylor=False, η_derivs=True,
-    η_derivs_func=None, store_internal=True
+    *, γ, a_0, norm_kepler_sq, init_con, θ_scale=1, with_taylor=False,
+    η_derivs=True, η_derivs_func=None, store_internal=True
 ):
     """
     Set up the system we are solving for.
@@ -73,11 +75,12 @@ def ode_system(
     else:
         internal_data = None
 
-    def rhs_equation(θ, params, derivs):
+    def rhs_equation(x, params, derivs):
         """
         Compute the ODEs
         """
         # pylint: disable=too-many-statements
+        θ = scaled_to_rad(x, θ_scale)
         B_r = params[ODEIndex.B_r]
         B_φ = params[ODEIndex.B_φ]
         B_θ = params[ODEIndex.B_θ]
@@ -283,15 +286,16 @@ def jacobian_viewer_generator(internal_data):
 def taylor_solution(
     *, angles, init_con, γ, a_0, norm_kepler_sq, taylor_stop_angle,
     relative_tolerance=1e-6, absolute_tolerance=1e-10, max_steps=500,
-    η_derivs=True, store_internal=True
+    η_derivs=True, store_internal=True, θ_scale=1
 ):
     """
     Compute solution using taylor series
     """
+    taylor_stop_angle = rad_to_scaled(taylor_stop_angle, θ_scale)
     system, internal_data = ode_system(
         γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,
         init_con=init_con, with_taylor=True, η_derivs=η_derivs,
-        store_internal=store_internal,
+        store_internal=store_internal, θ_scale=θ_scale,
     )
 
     jacobian_viewer = jacobian_viewer_generator(internal_data)
@@ -316,7 +320,8 @@ def taylor_solution(
         soln = e.soln
         raise RuntimeError(
             "Taylor solver stopped in at {} with flag {!s}.\n{}".format(
-                degrees(soln.errors.t), soln.flag, soln.message
+                degrees(scaled_to_rad(soln.errors.t, θ_scale)),
+                soln.flag, soln.message
             )
         )
     except CVODESolveReachedTSTOP as e:
@@ -328,9 +333,9 @@ def taylor_solution(
     insert(new_angles, 0, taylor_stop_angle)
 
     return TaylorSolution(
-        angles=soln.values.t, params=soln.values.y, new_angles=new_angles,
-        internal_data=internal_data, new_initial_conditions=soln.tstop.y[0],
-        angle_stopped=soln.tstop.t[0],
+        angles=scaled_to_rad(soln.values.t, θ_scale), params=soln.values.y,
+        new_angles=new_angles, internal_data=internal_data,
+        new_initial_conditions=soln.tstop.y[0], angle_stopped=soln.tstop.t[0],
     )
 
 
@@ -339,7 +344,7 @@ def main_solution(
     norm_kepler_sq, relative_tolerance=1e-6, absolute_tolerance=1e-10,
     max_steps=500, onroot_func=None, find_sonic_point=False, tstop=None,
     ontstop_func=None, η_derivs=True, store_internal=True, root_func=None,
-    root_func_args=None
+    root_func_args=None, θ_scale=1
 ):
     """
     Find solution
@@ -360,7 +365,7 @@ def main_solution(
     system, internal_data = ode_system(
         γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,
         init_con=system_initial_conditions, η_derivs=η_derivs,
-        store_internal=store_internal, with_taylor=False,
+        store_internal=store_internal, with_taylor=False, θ_scale=θ_scale,
     )
 
     jacobian_viewer = jacobian_viewer_generator(internal_data)
@@ -375,7 +380,7 @@ def main_solution(
         old_api=False,
         err_handler=error_handler,
         onroot=onroot_func,
-        tstop=tstop,
+        tstop=rad_to_scaled(tstop, θ_scale),
         ontstop=ontstop_func,
         jac_viewer=jacobian_viewer,
         bdf_stability_detection=True,
@@ -388,21 +393,26 @@ def main_solution(
         soln = e.soln
         log.warn(
             "Solver stopped at {} with flag {!s}.\n{}".format(
-                degrees(soln.errors.t), soln.flag, soln.message
+                degrees(scaled_to_rad(soln.errors.t, θ_scale)),
+                soln.flag, soln.message
             )
         )
     except CVODESolveFoundRoot as e:
         soln = e.soln
         if find_sonic_point:
             log.notice("Found sonic point at {}".format(
-                degrees(soln.roots.t)
+                degrees(scaled_to_rad(soln.roots.t, θ_scale))
             ))
         else:
-            log.notice("Found root at {}".format(degrees(soln.roots.t)))
+            log.notice("Found root at {}".format(
+                degrees(scaled_to_rad(soln.roots.t, θ_scale))
+            ))
     except CVODESolveReachedTSTOP as e:
         soln = e.soln
         for tstop in soln.tstop.t:
-            log.notice("Stopped at {}".format(degrees(tstop)))
+            log.notice("Stopped at {}".format(
+                degrees(scaled_to_rad(tstop, θ_scale))
+            ))
 
     return soln, internal_data
 
@@ -411,7 +421,8 @@ def solution(
     soln_input, initial_conditions, *,
     onroot_func=None, find_sonic_point=False, tstop=None,
     ontstop_func=None, store_internal=True, root_func=None,
-    root_func_args=None, with_taylor=True, modified_initial_conditions=None
+    root_func_args=None, with_taylor=True, modified_initial_conditions=None,
+    θ_scale=1
 ):
     """
     Find solution
@@ -443,7 +454,7 @@ def solution(
             relative_tolerance=relative_tolerance,
             absolute_tolerance=absolute_tolerance, max_steps=max_steps,
             taylor_stop_angle=taylor_stop_angle, η_derivs=η_derivs,
-            store_internal=store_internal
+            store_internal=store_internal, θ_scale=θ_scale,
         )
         post_taylor_angles = taylor_soln.new_angles
         post_taylor_initial_conditions = taylor_soln.new_initial_conditions
@@ -457,21 +468,23 @@ def solution(
         onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
         η_derivs=η_derivs, store_internal=store_internal,
         find_sonic_point=find_sonic_point, root_func=root_func,
-        root_func_args=root_func_args,
+        root_func_args=root_func_args, θ_scale=θ_scale,
     )
 
     if store_internal and taylor_stop_angle is not None:
         internal_data = taylor_internal + internal_data
 
     if taylor_stop_angle is None:
-        joined_angles = soln.values.t
+        joined_angles = scaled_to_rad(soln.values.t, θ_scale)
         joined_solution = soln.values.y
     else:
-        joined_angles = concatenate((taylor_soln.angles, soln.values.t))
+        joined_angles = concatenate(
+            (taylor_soln.angles, scaled_to_rad(soln.values.t, θ_scale))
+        )
         joined_solution = concatenate((taylor_soln.params, soln.values.y))
 
     if find_sonic_point and soln.roots.t is not None:
-        sonic_point = soln.roots.t[0]
+        sonic_point = scaled_to_rad(soln.roots.t[0], θ_scale)
         sonic_point_values = soln.roots.y[0]
     else:
         sonic_point = None
@@ -480,7 +493,10 @@ def solution(
     return Solution(
         solution_input=soln_input, initial_conditions=initial_conditions,
         flag=soln.flag, coordinate_system=COORDS, internal_data=internal_data,
-        angles=joined_angles, solution=joined_solution, t_roots=soln.roots.t,
-        y_roots=soln.roots.y, sonic_point=sonic_point,
+        angles=joined_angles, solution=joined_solution,
+        t_roots=(
+            scaled_to_rad(soln.roots.t, θ_scale)
+            if soln.roots.t is not None else None
+        ), y_roots=soln.roots.y, sonic_point=sonic_point,
         sonic_point_values=sonic_point_values,
     )
