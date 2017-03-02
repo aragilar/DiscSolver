@@ -18,6 +18,7 @@ from scikits.odes.sundials import (
 from .deriv_funcs import dderiv_B_φ_soln, taylor_series, deriv_v_θ_sonic
 from .utils import (
     gen_sonic_point_rootfn, error_handler, rad_to_scaled, scaled_to_rad,
+    SolverError,
 )
 
 from ..file_format import InternalData, Solution
@@ -318,7 +319,7 @@ def taylor_solution(
         soln = solver.solve(angles, init_con)
     except CVODESolveFailed as e:
         soln = e.soln
-        raise RuntimeError(
+        raise SolverError(
             "Taylor solver stopped in at {} with flag {!s}.\n{}".format(
                 degrees(scaled_to_rad(soln.errors.t, θ_scale)),
                 soln.flag, soln.message
@@ -327,7 +328,7 @@ def taylor_solution(
     except CVODESolveReachedTSTOP as e:
         soln = e.soln
     else:
-        raise RuntimeError("Taylor solver did not find taylor_stop_angle")
+        raise SolverError("Taylor solver did not find taylor_stop_angle")
 
     new_angles = angles[angles > taylor_stop_angle]
     insert(new_angles, 0, taylor_stop_angle)
@@ -351,7 +352,7 @@ def main_solution(
     """
     extra_args = {}
     if find_sonic_point and root_func is not None:
-        raise RuntimeError("Cannot use both sonic point finder and root_func")
+        raise SolverError("Cannot use both sonic point finder and root_func")
     elif find_sonic_point:
         extra_args["rootfn"] = gen_sonic_point_rootfn(1)
         extra_args["nr_rootfns"] = 1
@@ -360,7 +361,7 @@ def main_solution(
         if root_func_args is not None:
             extra_args["nr_rootfns"] = root_func_args
         else:
-            raise RuntimeError("Need to specify size of root array")
+            raise SolverError("Need to specify size of root array")
 
     system, internal_data = ode_system(
         γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,

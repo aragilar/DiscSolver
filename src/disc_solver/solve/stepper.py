@@ -9,14 +9,14 @@ from numpy import diff
 
 from .config import define_conditions
 from .solution import solution
-from .utils import validate_solution, onroot_continue
+from .utils import validate_solution, onroot_continue, SolverError
 from ..file_format import SolutionInput, Solution
 from ..utils import ODEIndex
 
 log = logbook.Logger(__name__)
 
 
-class StepperError(RuntimeError):
+class StepperError(SolverError):
     """
     Base class for exceptions related to the stepper
     """
@@ -150,7 +150,7 @@ def solution_generator(store_internal=True):
     Generate solution func
     """
     if store_internal is False:
-        raise RuntimeError("Stepper needs internal data to function")
+        raise SolverError("Stepper needs internal data to function")
 
     def solution_func(inp):
         """

@@ -12,8 +12,8 @@ from ..utils import (
     MAGNETIC_INDEXES, get_solutions,
 )
 from .utils import (
-    analyse_main_wrapper, analysis_func_wrapper,
-    get_sonic_point, get_scale_height,
+    analyse_main_wrapper, analysis_func_wrapper, get_sonic_point,
+    get_scale_height, AnalysisError,
 )
 
 INPUT_FORMAT = " {: <20}: {}"
@@ -151,4 +151,4 @@ def info(soln_file, *, group, soln_range, output_file):
                     degrees(angles[fast_index]) if fast_index else None
                 ), file=output_file)
             else:
-                raise RuntimeError("Cannot find {}.".format(group))
+                raise AnalysisError("Cannot find {}.".format(group))

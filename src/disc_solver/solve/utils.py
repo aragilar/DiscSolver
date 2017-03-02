@@ -12,7 +12,7 @@ from scikits.odes.sundials.cvode import StatusEnum
 
 from .. import __version__ as ds_version
 from ..logging import logging_options
-from ..utils import ODEIndex
+from ..utils import ODEIndex, DiscSolverError
 
 
 def error_handler(error_code, module, func, msg, user_data):
@@ -170,3 +170,10 @@ def scaled_to_rad(obj, θ_scale):
     if obj is None:
         return None
     return obj * θ_scale
+
+
+class SolverError(DiscSolverError):
+    """
+    Error class for problems with solver routines
+    """
+    pass

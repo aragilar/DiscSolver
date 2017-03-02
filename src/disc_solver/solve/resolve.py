@@ -16,7 +16,7 @@ from .single import solver as single_solver
 from .dae_single import solver as dae_single_solver
 from .mcmc import solver as mcmc_solver
 from .sonic_root import solver as sonic_root_solver
-from .utils import add_solver_arguments
+from .utils import add_solver_arguments, SolverError
 
 from .. import __version__ as ds_version
 from ..file_format import registries, Run
@@ -77,7 +77,7 @@ def resolve(
                 store_internal=store_internal,
             )
         else:
-            raise RuntimeError("No method chosen to cross sonic point")
+            raise SolverError("No method chosen to cross sonic point")
 
     return output_file
 

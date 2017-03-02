@@ -10,11 +10,12 @@ import logbook
 import numpy as np
 
 from ..file_format import ConfigInput, InitialConditions, SolutionInput
-
 from ..utils import (
     str_to_float, str_to_int, str_to_bool, CaseDependentConfigParser,
     ODEIndex,
 )
+
+from .utils import SolverError
 
 log = logbook.Logger(__name__)
 
@@ -38,15 +39,18 @@ def define_conditions(inp):
     η_A = inp.η_A
     η_H = inp.η_H
 
-    v_φ = (
-        - v_r * η_H / (4 * (η_O + η_A)) + sqrt(
-            norm_kepler_sq - 5/2 + 2 * γ + v_r * (
-                a_0 / (η_O + η_A) + v_r / 2 * (
-                    η_H ** 2 / (8 * (η_O + η_A) ** 2) - 1
+    try:
+        v_φ = (
+            - v_r * η_H / (4 * (η_O + η_A)) + sqrt(
+                norm_kepler_sq - 5/2 + 2 * γ + v_r * (
+                    a_0 / (η_O + η_A) + v_r / 2 * (
+                        η_H ** 2 / (8 * (η_O + η_A) ** 2) - 1
+                    )
                 )
             )
         )
-    )
+    except ValueError:
+        raise SolverError("Input implies complex v_φ")
 
     B_φ_prime = v_φ * v_r / (2 * a_0)
 
@@ -66,7 +70,7 @@ def define_conditions(inp):
 
     angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
     if np.any(np.isnan(init_con)):
-        raise ValueError("Input implies NaN")
+        raise SolverError("Input implies NaN")
 
     return InitialConditions(
         norm_kepler_sq=norm_kepler_sq, a_0=a_0, init_con=init_con,

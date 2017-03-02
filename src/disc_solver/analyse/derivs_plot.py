@@ -6,7 +6,6 @@ import numpy as np
 from numpy import degrees
 import matplotlib.pyplot as plt
 
-from ..utils import better_sci_format
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
     get_common_plot_args, analysis_func_wrapper, savefig, AnalysisError
@@ -121,5 +120,4 @@ def generate_derivs_plot(
         ax.set_title(settings["name"])
         if settings.get("legend"):
             ax.legend()
-        better_sci_format(ax.yaxis)
     return fig

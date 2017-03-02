@@ -9,7 +9,6 @@ from configparser import ConfigParser
 from pathlib import Path
 
 import numpy as np
-from matplotlib.ticker import FuncFormatter
 
 from stringtopy import (
     str_to_float_converter, str_to_int_converter, str_to_bool_converter
@@ -22,11 +21,6 @@ MHD_WAVE_INDEX = {"slow": 0, "alfven": 1, "fast": 2}
 str_to_float = str_to_float_converter()
 str_to_int = str_to_int_converter()
 str_to_bool = str_to_bool_converter()
-
-
-def strdict(d):
-    """ stringify a dictionary"""
-    return {str(k): str(v) for k, v in d.items()}
 
 
 def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
@@ -101,15 +95,6 @@ def cosec(angle):
     return 1 / sin(angle)
 
 
-def better_sci_format(physical_axis):
-    """
-    Use scientific notation for each tick mark for axis `physical_axis`.
-    """
-    physical_axis.set_major_formatter(
-        FuncFormatter(lambda x, pos: "{:.2e}".format(x).replace("-", "−"))
-    )
-
-
 def find_in_array(array, item):
     """
     Finds item in array or returns None
@@ -160,39 +145,6 @@ class CaseDependentConfigParser(ConfigParser):
         return optionstr
 
 
-try:
-    from os import fspath  # pylint: disable=unused-import,wrong-import-order
-except ImportError:
-    def fspath(path):
-        """Return the string representation of the path.
-
-        If str or bytes is passed in, it is returned unchanged.
-        """
-        if isinstance(path, (str, bytes)):
-            return path
-
-        # Work from the object's type to match method resolution of other magic
-        # methods.
-        path_type = type(path)
-        try:
-            return path_type.__fspath__(path)
-        except AttributeError:
-            if hasattr(path_type, '__fspath__'):
-                raise
-            try:
-                import pathlib
-            except ImportError:
-                pass
-            else:
-                if isinstance(path, pathlib.PurePath):
-                    return str(path)
-
-            raise TypeError(
-                "expected str, bytes or os.PathLike object, not " +
-                path_type.__name__
-            )
-
-
 def get_solutions(run, soln_range):
     """
     Get solutions based on range
@@ -222,3 +174,10 @@ class ODEIndex(IntEnum):
 
 
 MAGNETIC_INDEXES = [ODEIndex.B_r, ODEIndex.B_φ, ODEIndex.B_θ]
+
+
+class DiscSolverError(Exception):
+    """
+    Base error class for DiscSolver
+    """
+    pass

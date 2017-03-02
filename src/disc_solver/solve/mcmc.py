@@ -15,7 +15,8 @@ from numpy.random import randn
 
 from .config import define_conditions
 from .solution import solution
-from .utils import onroot_stop, velocity_stop_generator
+from .utils import onroot_stop, velocity_stop_generator, SolverError
+
 from ..file_format import SolutionInput
 from ..utils import ODEIndex
 
@@ -98,7 +99,7 @@ class LogProbGenerator:
             return - float("inf")
         try:
             cons = define_conditions(new_soln_input)
-        except ValueError:
+        except SolverError:
             log.info(
                 "MCMC input could not be converted to initial conditions."
             )
@@ -109,7 +110,7 @@ class LogProbGenerator:
                 store_internal=self._store_internal, root_func=self._root_func,
                 root_func_args=self._root_func_args,
             )
-        except RuntimeError as e:
+        except SolverError as e:
             log.exception(e)
             return - float("inf")
         logprob = get_logprob_of_soln(new_soln_input, soln)

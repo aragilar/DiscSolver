@@ -11,9 +11,10 @@ from h5preserve import open as h5open
 from scipy.interpolate import interp1d
 
 from .. import __version__ as ds_version
+from ..compat import fspath
 from ..file_format import registries
 from ..logging import log_handler, logging_options
-from ..utils import ODEIndex, fspath, str_to_float, get_solutions
+from ..utils import ODEIndex, str_to_float, get_solutions, DiscSolverError
 
 
 def single_solution_plotter(func):
@@ -163,7 +164,7 @@ def get_sonic_point(solution):
     return fit(1.0)
 
 
-class AnalysisError(RuntimeError):
+class AnalysisError(DiscSolverError):
     """
     Error class for problems with analysis routines
     """
