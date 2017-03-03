@@ -48,6 +48,7 @@ setuptools.setup(
     entry_points = {
         'console_scripts': [
             "ds-soln = disc_solver.solve:main",
+            "ds-resoln = disc_solver.solve.resolve:main",
             "ds-info = disc_solver.analyse.info:info_main",
             "ds-plot = disc_solver.analyse.plot:plot_main",
             "ds-derivs-plot = disc_solver.analyse.derivs_plot:derivs_main",
