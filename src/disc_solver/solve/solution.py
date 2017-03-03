@@ -180,8 +180,8 @@ def ode_system(
                     η_A=η_A, θ=θ, v_r=v_r, v_θ=v_θ, v_φ=v_φ,
                     deriv_v_r=deriv_v_r, deriv_v_φ=deriv_v_φ,
                     deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
-                    B_φ_prime=B_φ_prime, γ=γ, deriv_η_O=deriv_η_O,
-                    deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H
+                    B_φ_prime=B_φ_prime, γ=γ, deriv_η_O=0,
+                    deriv_η_A=0, deriv_η_H=0,
                 )
             else:
                 log.critical("Unable to compute v_θ'")
@@ -205,7 +205,7 @@ def ode_system(
             )
         deriv_ρ = deriv_ρ_taylor if with_taylor else deriv_ρ_normal
 
-        if η_derivs_func is None:
+        if η_derivs_func is None and η_derivs:
             deriv_ρ_scale = deriv_ρ / sqrt(ρ) / 2
             deriv_η_O = deriv_ρ_scale * η_O_scale
             deriv_η_A = deriv_ρ_scale * η_A_scale
