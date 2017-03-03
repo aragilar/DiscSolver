@@ -94,7 +94,7 @@ def main():
     args = vars(parser.parse_args())
 
     soln_filename = expanded_path(args["soln_filename"])
-    soln_range = expanded_path(args["soln_range"])
+    soln_range = args["soln_range"]
     output_dir = expanded_path(args["output_dir"])
     sonic_method = args["sonic_method"]
     output_file = args.get("output_file", None)
