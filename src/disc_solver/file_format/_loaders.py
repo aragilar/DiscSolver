@@ -148,6 +148,9 @@ def _solution_loader(group):
         solution_input=group["solution_input"],
         t_roots=t_roots,
         y_roots=y_roots,
+        derivatives=None,
+        sonic_point=None,
+        sonic_point_values=None,
     )
 
 
@@ -173,6 +176,8 @@ def _solution_loader_2(group):
         t_roots=t_roots,
         y_roots=y_roots,
         derivatives=group["derivatives"],
+        sonic_point=None,
+        sonic_point_values=None,
     )
 
 
