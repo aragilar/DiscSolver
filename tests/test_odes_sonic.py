@@ -264,7 +264,7 @@ def test_azimuthal_induction_numeric(initial_conditions, derivs, rhs_func,
     eqn = dderiv_B_φ_hacked - solution.deriv.B_φ_prime
     test_info(eqn)
     print(eqn, file=regtest)
-    assert eqn == approx(0, abs=2e-12)
+    assert eqn == approx(0, abs=4e-12)
 
 
 def test_dae_continuity(residual, regtest, test_info):

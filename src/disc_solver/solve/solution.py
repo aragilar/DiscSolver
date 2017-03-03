@@ -210,6 +210,10 @@ def ode_system(
             deriv_η_O = deriv_ρ_scale * η_O_scale
             deriv_η_A = deriv_ρ_scale * η_A_scale
             deriv_η_H = deriv_ρ_scale * η_H_scale
+        else:
+            deriv_η_O = 0
+            deriv_η_A = 0
+            deriv_η_H = 0
 
         dderiv_B_φ = dderiv_B_φ_soln(
             B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r,
