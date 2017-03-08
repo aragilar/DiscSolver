@@ -3,11 +3,11 @@
 The system of daes
 """
 
-from math import sqrt, tan, degrees
+from math import sqrt, tan, degrees, radians
 
 import logbook
 
-from numpy import copy
+from numpy import copy, concatenate
 
 from scikits.odes import dae
 from scikits.odes.sundials import (
@@ -15,7 +15,8 @@ from scikits.odes.sundials import (
 )
 
 from .deriv_funcs import B_unit_derivs, C_func, A_func
-from .utils import gen_sonic_point_rootfn, error_handler
+from .solution import taylor_solution
+from .utils import gen_sonic_point_rootfn, error_handler, SolverError
 
 from ..file_format import DAEInternalData, Solution
 from ..utils import ODEIndex, sec
@@ -230,7 +231,8 @@ def dae_system(
 def solution(
     soln_input, initial_conditions, *,
     onroot_func=None, find_sonic_point=False, tstop=None,
-    ontstop_func=None, store_internal=True
+    ontstop_func=None, store_internal=True, with_taylor=False, root_func=None,
+    root_func_args=None, modified_initial_conditions=None
 ):
     """
     Find solution
@@ -245,12 +247,19 @@ def solution(
     relative_tolerance = soln_input.relative_tolerance
     max_steps = soln_input.max_steps
     η_derivs = soln_input.η_derivs
+    if with_taylor:
+        taylor_stop_angle = radians(soln_input.taylor_stop_angle)
+    else:
+        taylor_stop_angle = None
 
-    taylor_stop_angle = radians(soln_input.taylor_stop_angle)
-
-    if taylor_stop_angle is None:
+    if taylor_stop_angle is None and modified_initial_conditions is None:
         post_taylor_angles = angles
         post_taylor_initial_conditions = init_con
+        post_taylor_deriv_init_con = deriv_init_con
+    elif taylor_stop_angle is None:
+        post_taylor_angles = modified_initial_conditions.angles
+        post_taylor_initial_conditions = modified_initial_conditions.init_con
+        post_taylor_deriv_init_con = modified_initial_conditions.deriv_init_con
     else:
         taylor_soln = taylor_solution(
             angles=angles, init_con=init_con, γ=γ, a_0=a_0,
@@ -262,12 +271,21 @@ def solution(
         )
         post_taylor_angles = taylor_soln.new_angles
         post_taylor_initial_conditions = taylor_soln.new_initial_conditions
+        post_taylor_deriv_init_con = get_deriv_init_con(taylor_soln)
         taylor_internal = taylor_soln.internal_data
 
     extra_args = {}
-    if find_sonic_point:
+    if find_sonic_point and root_func is not None:
+        raise SolverError("Cannot use both sonic point finder and root_func")
+    elif find_sonic_point:
         extra_args["rootfn"] = gen_sonic_point_rootfn(1)
         extra_args["nr_rootfns"] = 1
+    elif root_func is not None:
+        extra_args["rootfn"] = root_func
+        if root_func_args is not None:
+            extra_args["nr_rootfns"] = root_func_args
+        else:
+            raise SolverError("Need to specify size of root array")
 
     system, internal_data = dae_system(
         γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq, init_con=init_con,
@@ -289,7 +307,11 @@ def solution(
     )
 
     try:
-        soln = solver.solve(angles, init_con, deriv_init_con)
+        soln = solver.solve(
+            post_taylor_angles,
+            post_taylor_initial_conditions,
+            post_taylor_deriv_init_con
+        )
     except IDASolveFailed as e:
         soln = e.soln
         log.warn(
@@ -306,6 +328,18 @@ def solution(
         for tstop_i in soln.tstop.t:
             log.notice("Stopped at {}".format(degrees(tstop_i)))
 
+    if store_internal and taylor_stop_angle is not None:
+        internal_data = taylor_internal + internal_data
+
+    if taylor_stop_angle is None:
+        joined_angles = soln.values.t
+        joined_solution = soln.values.y
+    else:
+        joined_angles = concatenate(
+            (taylor_soln.angles, soln.values.t)
+        )
+        joined_solution = concatenate((taylor_soln.params, soln.values.y))
+
     if find_sonic_point:
         sonic_point = soln.roots.t[0]
         sonic_point_values = soln.roots.y[0]
@@ -316,18 +350,9 @@ def solution(
     return Solution(
         solution_input=soln_input, initial_conditions=initial_conditions,
         flag=soln.flag, coordinate_system=COORDS, internal_data=internal_data,
-        angles=soln.values.t, solution=soln.values.y,
-        derivatives=soln.values.ydot, t_roots=soln.roots.t,
+        angles=joined_angles, solution=joined_solution,
+        derivatives=soln.values.ydot,
+        t_roots=soln.roots.t if soln.roots.t is not None else None,
         y_roots=soln.roots.y, sonic_point=sonic_point,
         sonic_point_values=sonic_point_values,
     )
-
-
-def mixed_solution(
-    soln_input, initial_conditions, *,
-    onroot_func=None, find_sonic_point=False, tstop=None,
-    ontstop_func=None, store_internal=True
-):
-    """
-    Find solution using both dae and taylor series
-    """

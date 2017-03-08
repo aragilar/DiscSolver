@@ -18,4 +18,3 @@ def solver(inp, run, *, store_internal=True):
     )
     run.solutions["0"] = single_solution
     run.final_solution = run.solutions["0"]
-
