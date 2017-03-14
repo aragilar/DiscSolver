@@ -2,6 +2,9 @@
 """
 Utility function and classes for solver associated code
 """
+
+import attr
+
 from numpy import (
     any as np_any,
     diff,
@@ -11,6 +14,7 @@ from numpy import (
 from scikits.odes.sundials.cvode import StatusEnum
 
 from .. import __version__ as ds_version
+from ..file_format import CONFIG_FIELDS
 from ..logging import logging_options
 from ..utils import ODEIndex, DiscSolverError
 
@@ -137,6 +141,7 @@ def add_solver_arguments(parser):
     internal_store_group.add_argument(
         "--no-store-internal", action='store_false', dest="store_internal",
     )
+    parser.add_argument("--override", action='append', nargs='2')
     logging_options(parser)
 
 
@@ -177,3 +182,27 @@ class SolverError(DiscSolverError):
     Error class for problems with solver routines
     """
     pass
+
+
+def add_overrides(*, overrides, config_input):
+    """
+    Create new instance of `ConfigInput` with `overrides` added.
+    """
+    if overrides is None:
+        return config_input
+    return attr.assoc(config_input, **overrides)
+
+
+def validate_overrides(overrides):
+    """
+    Validate overrides passed as auguments
+    """
+    clean_overrides = {}
+    for name, value in overrides:
+        if name in CONFIG_FIELDS:
+            clean_overrides[name] = value
+        else:
+            raise SolverError("Override incorrect: no such field {}".format(
+                name
+            ))
+    return clean_overrides

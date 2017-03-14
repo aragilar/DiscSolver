@@ -15,7 +15,7 @@ from ..utils import (
     ODEIndex,
 )
 
-from .utils import SolverError
+from .utils import SolverError, add_overrides
 
 log = logbook.Logger(__name__)
 
@@ -78,7 +78,7 @@ def define_conditions(inp):
     )
 
 
-def get_input_from_conffile(*, config_file):
+def get_input_from_conffile(*, config_file, overrides=None):
     """
     Get input values
     """
@@ -87,7 +87,7 @@ def get_input_from_conffile(*, config_file):
         with config_file.open("r") as f:
             config.read_file(f)
 
-    return ConfigInput(
+    return add_overrides(overrides=overrides, config_input=ConfigInput(
         start=config.get("config", "start", fallback="0"),
         stop=config.get("config", "stop", fallback="5"),
         taylor_stop_angle=config.get(
@@ -119,7 +119,7 @@ def get_input_from_conffile(*, config_file):
         η_O=config.get("initial", "η_O", fallback="0.001"),
         η_H=config.get("initial", "η_H", fallback="0.0001"),
         η_A=config.get("initial", "η_A", fallback="0.0005"),
-    )
+    ))
 
 
 def config_input_to_soln_input(inp):

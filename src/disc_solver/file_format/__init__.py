@@ -13,6 +13,8 @@ from ._containers import ( # noqa
 from ._old_dict_loading import (
     dict_as_group_registry as _dict_as_group_registry
 )
-from ._utils import ds_registry as _ds_registry
+from ._utils import ds_registry as _ds_registry, get_fields
 
 registries = new_registry_list(_ds_registry, _dict_as_group_registry)
+
+CONFIG_FIELDS = get_fields(ConfigInput)

@@ -19,7 +19,7 @@ from .single import solver as single_solver
 from .dae_single import solver as dae_single_solver
 from .mcmc import solver as mcmc_solver
 from .sonic_root import solver as sonic_root_solver
-from .utils import add_solver_arguments, SolverError
+from .utils import add_solver_arguments, SolverError, validate_overrides
 
 from .. import __version__ as ds_version
 from ..file_format import registries, Run
@@ -30,12 +30,15 @@ log = logbook.Logger(__name__)
 
 
 def solve(
-    *, output_file, sonic_method, config_file, output_dir, store_internal
+    *, output_file, sonic_method, config_file, output_dir, store_internal,
+    overrides=None
 ):
     """
     Main function to generate solution
     """
-    config_input = get_input_from_conffile(config_file=config_file)
+    config_input = get_input_from_conffile(
+        config_file=config_file, overrides=overrides
+    )
     run = Run(
         config_input=config_input,
         config_filename=str(config_file),
@@ -94,10 +97,11 @@ def main():
     sonic_method = args["sonic_method"]
     output_file = args.get("output_file", None)
     store_internal = args.get("store_internal", True)
+    overrides = validate_overrides(args.get("override", []))
 
     with log_handler(args), redirected_warnings(), redirected_logging():
         print(solve(
             output_file=output_file, sonic_method=sonic_method,
             config_file=config_file, output_dir=output_dir,
-            store_internal=store_internal,
+            store_internal=store_internal, overrides=overrides,
         ))
