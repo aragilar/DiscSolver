@@ -141,7 +141,7 @@ def add_solver_arguments(parser):
     internal_store_group.add_argument(
         "--no-store-internal", action='store_false', dest="store_internal",
     )
-    parser.add_argument("--override", action='append', nargs='2')
+    parser.add_argument("--override", action='append', nargs=2, default=[])
     logging_options(parser)
 
 
