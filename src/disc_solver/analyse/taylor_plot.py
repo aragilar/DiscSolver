@@ -74,7 +74,7 @@ def taylor_plot(
 def generate_taylor_plot(
     soln, *, figargs=None, show_values=False, stop=90, linestyle='.'
 ):
-    # pylint: disable=unused-variable
+    # pylint: disable=unused-variable,unused-argument
     """
     Compare derivatives from taylor series to full version
     """

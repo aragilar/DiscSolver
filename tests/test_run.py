@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-from disc_solver.config_generator import config_generator
 from disc_solver.analyse.info import info
 from disc_solver.analyse.plot import plot
 from disc_solver.analyse.derivs_plot import derivs_plot
@@ -17,14 +16,6 @@ from disc_solver.solve import solve
 from disc_solver.solve.resolve import resolve
 from disc_solver.filter_files import filter_files
 
-
-
-class TestConfigGeneration:
-    def test_default(self, tmpdir):
-        for path in config_generator(
-            input_file=None, output_path=Path(str(tmpdir))
-        ):
-            pass
 
 
 class TestSolve:

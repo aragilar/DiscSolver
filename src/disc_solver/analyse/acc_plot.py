@@ -69,7 +69,7 @@ def generate_acc_plot(
     """
     Friendlier plot for talks
     """
-    # pylint: disable=unused-variable
+    # pylint: disable=unused-variable,unused-argument
     if figargs is None:
         figargs = {}
 

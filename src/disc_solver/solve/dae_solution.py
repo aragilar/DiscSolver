@@ -285,8 +285,8 @@ def solution(
             log.notice("Found sonic point at {}".format(degrees(root)))
     except IDASolveReachedTSTOP as e:
         soln = e.soln
-        for tstop in soln.tstop.t:
-            log.notice("Stopped at {}".format(degrees(tstop)))
+        for tstop_i in soln.tstop.t:
+            log.notice("Stopped at {}".format(degrees(tstop_i)))
 
     if find_sonic_point:
         sonic_point = soln.roots.t[0]

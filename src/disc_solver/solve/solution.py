@@ -417,9 +417,9 @@ def main_solution(
             ))
     except CVODESolveReachedTSTOP as e:
         soln = e.soln
-        for tstop in soln.tstop.t:
+        for tstop_scaled in soln.tstop.t:
             log.notice("Stopped at {}".format(
-                degrees(scaled_to_rad(tstop, θ_scale))
+                degrees(scaled_to_rad(tstop_scaled, θ_scale))
             ))
 
     return soln, internal_data
