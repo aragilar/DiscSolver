@@ -3,17 +3,17 @@
 Find sonic point using minimisation
 """
 from enum import IntEnum
-from math import sqrt, tan, log, exp
+from math import sqrt, tan
 from sys import float_info
 
 import logbook
 
 from numpy import (
-    concatenate, diff, errstate, full, isnan, linspace, zeros, array,
+    concatenate, diff, errstate, full, isnan, linspace, zeros, array
 )
 from numpy.random import randn
 
-from scipy.optimize import root
+from scipy.optimize import least_squares
 
 from scikits.odes.sundials.cvode import StatusEnum as StatusFlag
 
@@ -25,7 +25,7 @@ from ..file_format import InitialConditions, Solution
 from ..utils import ODEIndex
 
 logger = logbook.Logger(__name__)
-ROOT_METHOD = "anderson"
+LS_METHOD = "trf"
 θ_SCALE_INITIAL_STOP = 0.9
 ERR_FLOAT = -sqrt(float_info.max) / 10
 INITIAL_SPREAD = 0.1
@@ -37,6 +37,7 @@ COMPARING_INDICES = [
     ODEIndex.B_r,
     ODEIndex.B_θ,
     ODEIndex.B_φ,
+    ODEIndex.ρ
 ]
 
 
@@ -49,8 +50,21 @@ class TotalVars(IntEnum):
     B_θ = 2
     B_r = 3
     B_φ = 4
-    log_ρ = 5
+    ρ = 5
     B_φ_prime = 6
+
+
+def get_bounds(**kwargs):
+    """
+    Create bounds in correct format
+    """
+    bounds = full((2, len(TotalVars)), float("inf"))
+    bounds[0] = -float("inf")
+    for var in TotalVars:
+        var_bounds = kwargs.get(var.name)
+        if var_bounds is not None:
+            bounds[:, var] = var_bounds
+    return tuple(bounds)
 
 
 def solver(inp, run, *, store_internal=True):
@@ -72,10 +86,10 @@ def solver(inp, run, *, store_internal=True):
     root_func = wrap_root_catch_error(root_solver_func)
     best_guess = guess_root_vals(inp, initial_solution)
 
-    result = root(
-        root_func, best_guess, method=ROOT_METHOD, options={
-            "maxiter": inp.iterations, "line_search": LINE_SEARCH_METHOD,
-        },
+    result = least_squares(
+        root_func, best_guess, method=LS_METHOD, bounds=get_bounds(
+            ρ=(0, float("inf")), θ_sonic=(0, float("inf")),
+        ),
     )
 
     if not result.success:
@@ -128,9 +142,6 @@ def get_root_results(*, sonic_values, midplane_values):
         sonic_values[-1, COMPARING_INDICES] -
         midplane_values[-1, COMPARING_INDICES]
     )
-    root_results.append(log(
-        sonic_values[-1, ODEIndex.ρ] / midplane_values[-1, ODEIndex.ρ]
-    ))
     return array(root_results)
 
 
@@ -167,13 +178,6 @@ def get_sonic_point_value(soln, name):
 
     if name == "θ_sonic":
         return soln.angles[-1] / θ_SCALE_INITIAL_STOP
-    elif name == "log_ρ":
-        ρ = soln.solution[:, ODEIndex.ρ]
-        deriv_ρ = log(ρ[-1] / ρ[-2])
-        return (
-            log(soln.solution[-1, ODEIndex.ρ]) +
-            deriv_ρ / derivs[ODEIndex.v_θ] * d_v_θ
-        )
     return (
         soln.solution[-1, ODEIndex[name]] +
         derivs[ODEIndex[name]] / derivs[ODEIndex.v_θ] * d_v_θ
@@ -194,8 +198,6 @@ def total_vars_to_mod_cons(*, initial_conditions, guess, sonic_stop):
     for var in TotalVars:
         if hasattr(ODEIndex, var.name):
             mod_cons.init_con[ODEIndex[var.name]] = guess[var]
-        elif var.name == "log_ρ":
-            mod_cons.init_con[ODEIndex.ρ] = exp(guess[var])
 
     θ = θ_sonic
     a_0 = mod_cons.a_0
