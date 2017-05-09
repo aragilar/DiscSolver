@@ -7,8 +7,10 @@ from functools import wraps
 import sys
 
 from logbook.compat import redirected_warnings, redirected_logging
-from h5preserve import open as h5open
+from matplotlib.colors import TABLEAU_COLORS, XKCD_COLORS
 from scipy.interpolate import interp1d
+
+from h5preserve import open as h5open
 
 from .. import __version__ as ds_version
 from ..compat import fspath
@@ -169,3 +171,12 @@ class AnalysisError(DiscSolverError):
     Error class for problems with analysis routines
     """
     pass
+
+
+def distinct_color_map(size):
+    """
+    Generate a list of unique colours for matplotlib line/scatter plots
+    """
+    if size > len(TABLEAU_COLORS):
+        return XKCD_COLORS.keys()
+    return TABLEAU_COLORS.keys()
