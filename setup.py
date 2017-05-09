@@ -59,7 +59,6 @@ setuptools.setup(
             "ds-scale-height = disc_solver.analyse.scale_height:scale_height_main",
             "ds-validate-input-plot = disc_solver.analyse.validate_input_plot:validate_input_plot_main",
             "ds-acc-plot = disc_solver.analyse.acc_plot:acc_main",
-            "ds-generate-config = disc_solver.config_generator:main",
             "ds-filter-files = disc_solver.filter_files:main",
         ],
     },
