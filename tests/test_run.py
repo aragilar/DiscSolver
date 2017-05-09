@@ -11,6 +11,7 @@ from disc_solver.analyse.taylor_plot import taylor_plot
 from disc_solver.analyse.combine_plot import combine_plot
 from disc_solver.analyse.acc_plot import acc_plot
 from disc_solver.analyse.jacobian_plot import jacobian_plot
+from disc_solver.analyse.diverge_plot import diverge_main
 from disc_solver.analyse.conserve_plot import conserve_main
 from disc_solver.analyse.utils import AnalysisError
 from disc_solver.solve import solve
@@ -255,6 +256,12 @@ class TestAnalysis:
 
     def test_jacobian_file(self, solution, plot_file):
         plot(solution, plot_filename=plot_file)
+
+    def test_diverge_show(self, solution, mpl_interactive):
+        diverge_main([str(solution), '--show'])
+
+    def test_diverge_file(self, solution, plot_file):
+        diverge_main([str(solution), '--filename', str(plot_file)])
 
     def test_conserve_show(self, solution, mpl_interactive):
         conserve_main([str(solution), '--show'])
