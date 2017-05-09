@@ -97,7 +97,7 @@ def _solution_dumper(solution):
     )
 
 
-@ds_registry.dumper(ConfigInput, "ConfigInput", version=6)
+@ds_registry.dumper(ConfigInput, "ConfigInput", version=7)
 def _config_dumper(config_input):
     return GroupContainer(
         attrs={
@@ -114,6 +114,7 @@ def _config_dumper(config_input):
             "iterations": config_input.iterations,
             "threads": config_input.threads,
             "target_velocity": config_input.target_velocity,
+            "split_method": config_input.split_method,
             "v_rin_on_c_s": config_input.v_rin_on_c_s,
             "v_a_on_c_s": config_input.v_a_on_c_s,
             "c_s_on_v_k": config_input.c_s_on_v_k,
@@ -125,7 +126,7 @@ def _config_dumper(config_input):
     )
 
 
-@ds_registry.dumper(SolutionInput, "SolutionInput", version=6)
+@ds_registry.dumper(SolutionInput, "SolutionInput", version=7)
 def _input_dumper(solution_input):
     return GroupContainer(
         attrs={
@@ -140,6 +141,7 @@ def _input_dumper(solution_input):
             "iterations": solution_input.iterations,
             "threads": solution_input.threads,
             "target_velocity": solution_input.target_velocity,
+            "split_method": solution_input.split_method,
             "γ": solution_input.γ,
             "v_rin_on_c_s": solution_input.v_rin_on_c_s,
             "v_a_on_c_s": solution_input.v_a_on_c_s,

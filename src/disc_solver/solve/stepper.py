@@ -2,6 +2,7 @@
 """
 Stepper related logic
 """
+from warnings import warn
 
 import logbook
 
@@ -10,6 +11,7 @@ from numpy import diff
 from .config import define_conditions
 from .solution import solution
 from .utils import validate_solution, onroot_continue, SolverError
+from ..analyse.diverge_plot import diverge_plot
 from ..file_format import SolutionInput, Solution
 from ..utils import ODEIndex
 
@@ -46,7 +48,7 @@ def binary_searcher(
 
 def stepper_creator(
     soln_writer, step_func, get_soln_type, initial_step_size=1e-4,
-    max_search_steps=10,
+    max_search_steps=20,
 ):
     """
     Create stepper
@@ -115,6 +117,27 @@ def cleanup_generator(run, writer):
     return cleanup
 
 
+def human_view_splitter_generator():
+    """
+    Generate splitter func which uses human input
+    """
+    solutions = []
+
+    def human_view_splitter(soln, **kwargs):
+        """
+        Splitter func which uses human input
+        """
+        # pylint: disable=unused-argument
+        solutions.append(soln)
+        diverge_plot(*solutions, show=True)
+        soln_type = input("What type: ").strip()
+        while soln_type not in ("sign flip", "diverge", "STOP"):
+            print("Solution type must be either 'sign flip' or 'diverge'")
+            soln_type = input("What type: ").strip()
+        return soln_type
+    return human_view_splitter
+
+
 def create_soln_splitter(method):
     """
     Create func to see split in solution
@@ -140,7 +163,11 @@ def create_soln_splitter(method):
         elif all(d_v_θ < 0):
             return "sign flip"
         return "unknown"
-    method_dict = {"v_θ_deriv": v_θ_deriv}
+
+    method_dict = {
+        "v_θ_deriv": v_θ_deriv,
+        "human": human_view_splitter_generator(),
+    }
 
     return method_dict.get(method) or v_θ_deriv
 
@@ -150,7 +177,7 @@ def solution_generator(store_internal=True):
     Generate solution func
     """
     if store_internal is False:
-        raise SolverError("Stepper needs internal data to function")
+        warn("Step split functions may need internal data to function")
 
     def solution_func(inp):
         """
@@ -180,6 +207,8 @@ def step_input():
             inp_dict["v_rin_on_c_s"] -= step_size
         elif soln_type == "sign flip":
             inp_dict["v_rin_on_c_s"] += step_size
+        elif soln_type == "STOP":
+            raise StepperError("Stepper stopped")
         else:
             raise StepperError("Solution type not known")
         if prev_v_rin_on_c_s == inp_dict["v_rin_on_c_s"]:
@@ -199,7 +228,7 @@ def solver(soln_input, run, store_internal=True):
         solution_generator(store_internal=store_internal), cleanup,
         stepper_creator(
             writer, step_func,
-            create_soln_splitter("v_θ_deriv")
+            create_soln_splitter(soln_input.split_method)
         ), soln_input,
     )
     if not isinstance(run.final_solution, Solution):
