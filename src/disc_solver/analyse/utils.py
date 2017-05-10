@@ -98,11 +98,13 @@ def analyse_main_wrapper(
         decorator for analyse_main_wrapper
         """
         @wraps(cmd)
-        def wrap_analysis_main():
+        def wrap_analysis_main(argv=None):
             """
             Actual main function for analysis code, deals with parsers and
             logging
             """
+            if argv is None:
+                argv = sys.argv[1:]
             cmd_args = {}
             parser = argparse.ArgumentParser(
                 description=cmd_description,
@@ -115,16 +117,62 @@ def analyse_main_wrapper(
             parser.add_argument("soln_range")
             logging_options(parser)
             cmd_parser = cmd_parser_func(parser)
-            args = vars(cmd_parser.parse_args())
+            args = vars(cmd_parser.parse_args(argv))
             for name, func in cmd_parser_splitters.items():
                 cmd_args[name] = func(args)
             with log_handler(args):
                 with redirected_warnings(), redirected_logging():
-                    sys.exit(cmd(
+                    return cmd(
                         args["soln_file"],
                         soln_range=args["soln_range"],
                         **cmd_args
-                    ))
+                    )
+
+        return wrap_analysis_main
+
+    return decorator
+
+
+def analyse_multisolution_wrapper(
+    cmd_description, cmd_parser_func, cmd_parser_splitters=None
+):
+    """
+    Wrapper for main entry point for analysis functions which use multiple
+    solutions
+    """
+    def decorator(cmd):
+        """
+        decorator for analyse_main_wrapper
+        """
+        @wraps(cmd)
+        def wrap_analysis_main(argv=None):
+            """
+            Actual main function for analysis code, deals with parsers and
+            logging
+            """
+            if argv is None:
+                argv = sys.argv[1:]
+            cmd_args = {}
+            parser = argparse.ArgumentParser(
+                description=cmd_description,
+                argument_default=argparse.SUPPRESS,
+            )
+            parser.add_argument(
+                '--version', action='version', version='%(prog)s ' + ds_version
+            )
+            parser.add_argument("soln_file")
+            logging_options(parser)
+            cmd_parser = cmd_parser_func(parser)
+            args = vars(cmd_parser.parse_args(argv))
+            for name, func in cmd_parser_splitters.items():
+                cmd_args[name] = func(args)
+            with log_handler(args):
+                with redirected_warnings(), redirected_logging():
+                    with h5open(args["soln_file"], registries) as soln_file:
+                        solutions = soln_file["run"].solutions.values()
+                        return cmd(
+                            *solutions, **cmd_args
+                        )
 
         return wrap_analysis_main
 

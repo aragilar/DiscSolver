@@ -20,6 +20,10 @@ NO_INTERNAL_SOLUTIONS = [
     "sonic_root_solution_no_internal",
 ]
 ALL_SOLUTIONS = DEFAULT_SOLUTIONS + NO_INTERNAL_SOLUTIONS
+MULTI_SOLUTIONS = [
+    "mcmc_solution_no_internal",
+    "sonic_root_solution_no_internal",
+]
 
 @pytest.fixture(scope="session")
 def single_solution_default(tmpdir_factory):
@@ -112,6 +116,10 @@ def solution_default(request):
 
 @pytest.fixture(scope="session", params=NO_INTERNAL_SOLUTIONS)
 def solution_no_internal(request):
+    return request.getfuncargvalue(request.param)
+
+@pytest.fixture(scope="session", params=MULTI_SOLUTIONS)
+def solutions_many(request):
     return request.getfuncargvalue(request.param)
 
 @pytest.fixture()
