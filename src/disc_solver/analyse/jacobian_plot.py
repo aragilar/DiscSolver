@@ -2,16 +2,18 @@
 """
 Jacobian-plot command for DiscSolver
 """
+from math import ceil
 import numpy as np
 from numpy import degrees
 import matplotlib.pyplot as plt
-from scipy.linalg import eigvals
+from scipy.linalg import eig
 
 from ..utils import ODEIndex
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
-    get_common_plot_args, analysis_func_wrapper, savefig
+    get_common_plot_args, analysis_func_wrapper, savefig, get_jacobian,
 )
+from ..solve.solution import ode_system
 
 
 def plot_parser(parser):
@@ -69,28 +71,41 @@ def generate_jacobian_plot(
     jacobian_data = soln.internal_data.jacobian_data
     angles = jacobian_data.angles
     jacobians = jacobian_data.jacobians
-    npnot = np.logical_not
-    npand = np.logical_and
+    params = jacobian_data.params
     indexes = degrees(angles) <= stop
+    #print(jacobians[indexes].max())
+    #tmp_jacs = jacobians[indexes]
+    #for jac in tmp_jacs[1:] - tmp_jacs[:-1]:
+    #    print(jac, end="\n\n\n")
 
-    data = np.array([eigvals(j) for j in jacobians])
-
-    fig, axes = plt.subplots(
-        nrows=2, ncols=6, tight_layout=True, sharex=True, **figargs
+    deriv_func, _ = ode_system(
+        γ=soln.initial_conditions.γ, a_0=soln.initial_conditions.a_0,
+        norm_kepler_sq=soln.initial_conditions.norm_kepler_sq,
+        init_con=soln.initial_conditions.init_con,
+        η_derivs=soln.solution_input.η_derivs, store_internal=False,
+        with_taylor=False,
     )
-    axes.shape = 12
-    for param in ODEIndex:
-        ax = axes[param]
-        pos_data = data[:, param] >= 0
-        ax.plot(
-            degrees(angles[npand(pos_data, indexes)]),
-            data[npand(pos_data, indexes), param], linestyle + "b",
-        )
-        ax.plot(
-            degrees(angles[npand(npnot(pos_data), indexes)]),
-            - data[npand(npnot(pos_data), indexes), param], linestyle + "g",
-        )
-        ax.set_xlabel("angle from plane (°)")
-        ax.set_yscale("log")
-        ax.set_title(param.name)
+
+    jacobians = []
+    new_angles = []
+    for angle, params_val in zip(angles, params):
+        try:
+            jacobians.append(get_jacobian(deriv_func, angle, params_val))
+            new_angles.append(angle)
+        except RuntimeError:
+            print("Skipping angle {}".format(degrees(angle)))
+
+    evals, evecs = zip(*[eig(j) for j in jacobians])
+    evals = np.array(evals)
+    evecs = np.array(evecs)
+    log_mod = np.log10(np.absolute(evals))
+
+    fig, ax = plt.subplots(tight_layout=True, **figargs)
+    ax.plot(degrees(new_angles), log_mod, marker='.', linestyle='-')
+    #ax.plot(degrees(new_angles), np.angle(evals), marker='.', linestyle='--')
+    ax.legend([str(i) for i in range(11)])
+    ax.set_xlabel("angle from plane (°)")
+    for angle, evec in zip(new_angles, evecs[:, 2]):
+        print(degrees(angle))
+        print(evec, end='\n\n')
     return fig

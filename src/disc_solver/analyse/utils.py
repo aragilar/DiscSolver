@@ -8,6 +8,7 @@ import sys
 
 from logbook.compat import redirected_warnings, redirected_logging
 from matplotlib.colors import TABLEAU_COLORS, XKCD_COLORS
+from numpy import zeros
 from scipy.interpolate import interp1d
 
 from h5preserve import open as h5open
@@ -228,3 +229,36 @@ def distinct_color_map(size):
     if size > len(TABLEAU_COLORS):
         return XKCD_COLORS.keys()
     return TABLEAU_COLORS.keys()
+
+
+def get_jacobian(func, position, params, eps_power=7):
+    num_params = len(params)
+    jac = zeros((num_params, num_params))
+    out_pos = zeros(num_params)
+    out_neg = zeros(num_params)
+
+    pos_params = params.copy()
+    neg_params = params.copy()
+
+    eps = 10 ** - eps_power
+
+    for i in range(num_params):
+        out_pos[:] = 0
+        out_neg[:] = 0
+        pos_params[:] = params
+        neg_params[:] = params
+        pos_params[i] = params[i] + eps
+        neg_params[i] = params[i] - eps
+
+        flag = func(position, pos_params, out_pos)
+        if flag != 0:
+            raise RuntimeError(
+                "Failed to compute {} component of jacobian".format(i)
+            )
+        flag = func(position, neg_params, out_neg)
+        if flag != 0:
+            raise RuntimeError(
+                "Failed to compute {} component of jacobian".format(i)
+            )
+        jac[:,i] = (out_pos - out_neg) / (2 * eps)
+    return jac
