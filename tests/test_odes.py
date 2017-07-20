@@ -12,6 +12,7 @@ import logbook
 
 import numpy as np
 
+from disc_solver.float_handling import float_type, FLOAT_TYPE
 from disc_solver.constants import G
 from disc_solver.utils import ODEIndex
 from disc_solver.solve.solution import ode_system
@@ -24,15 +25,15 @@ ODE_NUMBER = len(ODEIndex)
 def initial_conditions():
     values = SimpleNamespace()
     # These are all arbitrary values, this should not affect the result
-    values.params = np.array([7 for i in range(ODE_NUMBER)], dtype=float)
-    values.β = 2
-    values.norm_kepler_sq = 2
-    values.a_0 = 2
+    values.params = np.array([7 for i in range(ODE_NUMBER)], dtype=FLOAT_TYPE)
+    values.β = float_type(2)
+    values.norm_kepler_sq = float_type(2)
+    values.a_0 = float_type(2)
     values.γ = 5/4 - values.β
 
     # This is slightly off the plane, this should mean we don't get
     # cancellation
-    values.angle = 0.1
+    values.angle = float_type(0.1)
     return values
 
 
@@ -203,7 +204,7 @@ def test_polar_induction(initial_conditions, solution, regtest, test_info):
 
 def test_azimuthal_induction_numeric(initial_conditions, derivs, rhs_func,
         solution, regtest, test_info):
-    step = 1e-4
+    step = float_type(1e-4)
     new_params = initial_conditions.params + derivs * step
     new_angle = initial_conditions.angle + step
     new_derivs = np.zeros(ODE_NUMBER)

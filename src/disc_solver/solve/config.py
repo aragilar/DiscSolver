@@ -9,6 +9,7 @@ import logbook
 
 import numpy as np
 
+from ..float_handling import float_type, FLOAT_TYPE
 from ..file_format import ConfigInput, InitialConditions, SolutionInput
 from ..utils import (
     str_to_float, str_to_int, str_to_bool, CaseDependentConfigParser,
@@ -24,11 +25,11 @@ def define_conditions(inp):
     """
     Compute initial conditions based on input
     """
-    ρ = 1
-    B_θ = 1
-    v_θ = 0
-    B_r = 0
-    B_φ = 0
+    ρ = float_type(1)
+    B_θ = float_type(1)
+    v_θ = float_type(0)
+    B_r = float_type(0)
+    B_φ = float_type(0)
 
     v_r = - inp.v_rin_on_c_s
     a_0 = inp.v_a_on_c_s ** 2
@@ -54,7 +55,7 @@ def define_conditions(inp):
 
     B_φ_prime = v_φ * v_r / (2 * a_0)
 
-    init_con = np.zeros(11)
+    init_con = np.zeros(11, dtype=FLOAT_TYPE)
 
     init_con[ODEIndex.B_r] = B_r
     init_con[ODEIndex.B_φ] = B_φ
@@ -130,28 +131,28 @@ def config_input_to_soln_input(inp):
     Convert user input into solver input
     """
     return SolutionInput(
-        start=str_to_float(inp.start),
-        stop=str_to_float(inp.stop),
-        taylor_stop_angle=str_to_float(inp.taylor_stop_angle),
+        start=float_type(str_to_float(inp.start)),
+        stop=float_type(str_to_float(inp.stop)),
+        taylor_stop_angle=float_type(str_to_float(inp.taylor_stop_angle)),
         max_steps=str_to_int(inp.max_steps),
         num_angles=str_to_int(inp.num_angles),
-        relative_tolerance=str_to_float(inp.relative_tolerance),
-        absolute_tolerance=str_to_float(inp.absolute_tolerance),
+        relative_tolerance=float_type(str_to_float(inp.relative_tolerance)),
+        absolute_tolerance=float_type(str_to_float(inp.absolute_tolerance)),
         jump_before_sonic=(
             None if inp.jump_before_sonic == "None"
-            else str_to_float(inp.jump_before_sonic)
+            else float_type(str_to_float(inp.jump_before_sonic))
         ),
         η_derivs=str_to_bool(inp.η_derivs),
         nwalkers=str_to_int(inp.nwalkers),
         iterations=str_to_int(inp.iterations),
         threads=str_to_int(inp.threads),
-        target_velocity=str_to_float(inp.target_velocity),
+        target_velocity=float_type(str_to_float(inp.target_velocity)),
         split_method=inp.split_method,
-        γ=str_to_float(inp.γ),
-        v_rin_on_c_s=str_to_float(inp.v_rin_on_c_s),
-        v_a_on_c_s=str_to_float(inp.v_a_on_c_s),
-        c_s_on_v_k=str_to_float(inp.c_s_on_v_k),
-        η_O=str_to_float(inp.η_O),
-        η_H=str_to_float(inp.η_H),
-        η_A=str_to_float(inp.η_A),
+        γ=float_type(str_to_float(inp.γ)),
+        v_rin_on_c_s=float_type(str_to_float(inp.v_rin_on_c_s)),
+        v_a_on_c_s=float_type(str_to_float(inp.v_a_on_c_s)),
+        c_s_on_v_k=float_type(str_to_float(inp.c_s_on_v_k)),
+        η_O=float_type(str_to_float(inp.η_O)),
+        η_H=float_type(str_to_float(inp.η_H)),
+        η_A=float_type(str_to_float(inp.η_A)),
     )

@@ -3,12 +3,13 @@
 The system of odes
 """
 
-from math import sqrt, tan, degrees, radians
 from collections import namedtuple
 
 import logbook
 
-from numpy import concatenate, copy, insert, errstate
+from numpy import (
+    concatenate, copy, insert, errstate, sqrt, tan, degrees, radians,
+)
 
 from scikits.odes import ode
 from scikits.odes.sundials import (
@@ -22,13 +23,14 @@ from .utils import (
     SolverError,
 )
 
+from ..float_handling import float_type
 from ..file_format import InternalData, Solution
 from ..utils import ODEIndex
 
 INTEGRATOR = "cvode"
 LINSOLVER = "lapackdense"
 COORDS = "spherical midplane 0"
-SONIC_POINT_TOLERANCE = 0.01
+SONIC_POINT_TOLERANCE = float_type(0.01)
 
 log = logbook.Logger(__name__)
 
@@ -41,8 +43,8 @@ TaylorSolution = namedtuple(
 
 
 def ode_system(
-    *, γ, a_0, norm_kepler_sq, init_con, θ_scale=1, with_taylor=False,
-    η_derivs=True, η_derivs_func=None, store_internal=True
+    *, γ, a_0, norm_kepler_sq, init_con, θ_scale=float_type(1),
+    with_taylor=False, η_derivs=True, η_derivs_func=None, store_internal=True
 ):
     """
     Set up the system we are solving for.
@@ -291,8 +293,8 @@ def jacobian_viewer_generator(internal_data):
 
 def taylor_solution(
     *, angles, init_con, γ, a_0, norm_kepler_sq, taylor_stop_angle,
-    relative_tolerance=1e-6, absolute_tolerance=1e-10, max_steps=500,
-    η_derivs=True, store_internal=True, θ_scale=1
+    relative_tolerance=float_type(1e-6), absolute_tolerance=float_type(1e-10),
+    max_steps=500, η_derivs=True, store_internal=True, θ_scale=float_type(1)
 ):
     """
     Compute solution using taylor series
@@ -347,10 +349,11 @@ def taylor_solution(
 
 def main_solution(
     *, angles, system_initial_conditions, ode_initial_conditions, γ, a_0,
-    norm_kepler_sq, relative_tolerance=1e-6, absolute_tolerance=1e-10,
-    max_steps=500, onroot_func=None, find_sonic_point=False, tstop=None,
-    ontstop_func=None, η_derivs=True, store_internal=True, root_func=None,
-    root_func_args=None, θ_scale=1
+    norm_kepler_sq, relative_tolerance=float_type(1e-6),
+    absolute_tolerance=float_type(1e-10), max_steps=500, onroot_func=None,
+    find_sonic_point=False, tstop=None, ontstop_func=None, η_derivs=True,
+    store_internal=True, root_func=None, root_func_args=None,
+    θ_scale=float_type(1)
 ):
     """
     Find solution
@@ -430,7 +433,7 @@ def solution(
     onroot_func=None, find_sonic_point=False, tstop=None,
     ontstop_func=None, store_internal=True, root_func=None,
     root_func_args=None, with_taylor=True, modified_initial_conditions=None,
-    θ_scale=1
+    θ_scale=float_type(1)
 ):
     """
     Find solution

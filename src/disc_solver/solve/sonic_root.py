@@ -3,13 +3,12 @@
 Find sonic point using minimisation
 """
 from enum import IntEnum
-from math import sqrt, tan, log, exp
-from sys import float_info
 
 import logbook
 
 from numpy import (
-    concatenate, diff, errstate, full, isnan, linspace, zeros, array,
+    concatenate, diff, errstate, full, isnan, linspace, zeros, array, sqrt,
+    tan, log, exp,
 )
 from numpy.random import randn
 
@@ -21,13 +20,14 @@ from .config import define_conditions
 from .solution import solution
 from .utils import velocity_stop_generator, SolverError
 
+from ..float_handling import float_type, FLOAT_TYPE_INFO
 from ..file_format import InitialConditions, Solution
 from ..utils import ODEIndex
 
 logger = logbook.Logger(__name__)
 ROOT_METHOD = "anderson"
-θ_SCALE_INITIAL_STOP = 0.9
-ERR_FLOAT = -sqrt(float_info.max) / 10
+θ_SCALE_INITIAL_STOP = float_type(0.9)
+ERR_FLOAT = -sqrt(FLOAT_TYPE_INFO.max) / 10
 INITIAL_SPREAD = 0.1
 LINE_SEARCH_METHOD = None
 COMPARING_INDICES = [
@@ -190,7 +190,7 @@ def total_vars_to_mod_cons(*, initial_conditions, guess, sonic_stop):
         θ_sonic, sonic_stop, len(initial_conditions.angles)
     )
 
-    mod_cons.init_con[ODEIndex.v_θ] = 1
+    mod_cons.init_con[ODEIndex.v_θ] = float_type(1)
     for var in TotalVars:
         if hasattr(ODEIndex, var.name):
             mod_cons.init_con[ODEIndex[var.name]] = guess[var]

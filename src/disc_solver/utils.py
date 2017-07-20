@@ -4,11 +4,12 @@ Useful functions
 """
 
 from enum import IntEnum
-from math import pi, cos, sin, sqrt
+from math import pi
 from configparser import ConfigParser
 from pathlib import Path
 
 import numpy as np
+from numpy import cos, sin, sqrt
 
 from stringtopy import (
     str_to_float_converter, str_to_int_converter, str_to_bool_converter

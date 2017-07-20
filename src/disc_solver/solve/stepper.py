@@ -11,7 +11,10 @@ from numpy import diff
 from .config import define_conditions
 from .solution import solution
 from .utils import validate_solution, onroot_continue, SolverError
+
 from ..analyse.diverge_plot import diverge_plot
+
+from ..float_handling import float_type
 from ..file_format import SolutionInput, Solution
 from ..utils import ODEIndex
 
@@ -47,7 +50,7 @@ def binary_searcher(
 
 
 def stepper_creator(
-    soln_writer, step_func, get_soln_type, initial_step_size=1e-4,
+    soln_writer, step_func, get_soln_type, initial_step_size=float_type(1e-4),
     max_search_steps=20,
 ):
     """
