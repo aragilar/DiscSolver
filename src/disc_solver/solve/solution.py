@@ -28,7 +28,7 @@ from ..file_format import InternalData, Solution
 from ..utils import ODEIndex
 
 INTEGRATOR = "cvode"
-LINSOLVER = "lapackdense"
+LINSOLVER = "dense"
 COORDS = "spherical midplane 0"
 SONIC_POINT_TOLERANCE = float_type(0.01)
 
