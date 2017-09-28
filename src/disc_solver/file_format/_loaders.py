@@ -570,6 +570,7 @@ def _run_loader(group):
         final_solution=group["final_solution"],
         solutions=group["solutions"],
         disc_solver_version=None,
+        float_type=None,
     )
 
 
@@ -582,6 +583,20 @@ def _run_loader2(group):
         final_solution=group["final_solution"],
         solutions=group["solutions"],
         disc_solver_version=group["disc_solver_version"],
+        float_type=None,
+    )
+
+
+@ds_registry.loader("Run", version=3)
+def _run_loader3(group):
+    return Run(
+        config_input=group["config_input"],
+        config_filename=group["config_filename"],
+        time=group["time"],
+        final_solution=group["final_solution"],
+        solutions=group["solutions"],
+        disc_solver_version=group["disc_solver_version"],
+        float_type=group["float_type"]
     )
 
 

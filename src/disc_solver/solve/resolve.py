@@ -20,6 +20,7 @@ from .utils import add_solver_arguments, SolverError
 
 from .. import __version__ as ds_version
 from ..file_format import registries, Run
+from ..float_handling import float_type
 from ..logging import log_handler
 from ..utils import expanded_path, get_solutions
 
@@ -41,6 +42,7 @@ def resolve(
         config_input=old_run.config_input,
         config_filename=old_run.config_filename,
         disc_solver_version=ds_version,
+        float_type=str(float_type)
     )
 
     if output_file is None:

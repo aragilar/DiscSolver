@@ -337,6 +337,7 @@ class Run:
     config_input = attr.ib()
     config_filename = attr.ib()
     disc_solver_version = attr.ib()
+    float_type = attr.ib()
     time = attr.ib(default=None)
     _final_solution = attr.ib(default=attr.Factory(DelayedContainer))
     solutions = attr.ib(default=attr.Factory(Solutions))
