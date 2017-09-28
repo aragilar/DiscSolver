@@ -306,8 +306,6 @@ def taylor_solution(
         store_internal=store_internal, θ_scale=θ_scale,
     )
 
-    jacobian_viewer = jacobian_viewer_generator(internal_data)
-
     solver = ode(
         INTEGRATOR, system,
         linsolver=LINSOLVER,
@@ -318,7 +316,6 @@ def taylor_solution(
         old_api=False,
         err_handler=error_handler,
         tstop=taylor_stop_angle,
-        jac_viewer=jacobian_viewer,
         bdf_stability_detection=True,
     )
 
@@ -377,8 +374,6 @@ def main_solution(
         store_internal=store_internal, with_taylor=False, θ_scale=θ_scale,
     )
 
-    jacobian_viewer = jacobian_viewer_generator(internal_data)
-
     solver = ode(
         INTEGRATOR, system,
         linsolver=LINSOLVER,
@@ -391,7 +386,6 @@ def main_solution(
         onroot=onroot_func,
         tstop=rad_to_scaled(tstop, θ_scale),
         ontstop=ontstop_func,
-        jac_viewer=jacobian_viewer,
         bdf_stability_detection=True,
         **extra_args
     )
