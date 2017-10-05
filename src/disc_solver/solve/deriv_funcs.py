@@ -271,9 +271,7 @@ def taylor_series(*, γ, a_0, init_con, η_derivs):
     η_P = η_O + η_A
     η_perp_sq = η_P ** 2 + η_H ** 2
 
-    deriv_B_r = - (
-        γ - 1/4 + (v_r + deriv_B_φ * η_H) / η_P
-    )
+    deriv_B_r = γ - 1/4 + (deriv_B_φ * η_H - v_r) / η_P
 
     dderiv_B_θ = 1 - (γ + 3/4) * deriv_B_r
 
