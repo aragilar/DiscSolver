@@ -97,7 +97,7 @@ def _solution_dumper(solution):
     )
 
 
-@ds_registry.dumper(ConfigInput, "ConfigInput", version=7)
+@ds_registry.dumper(ConfigInput, "ConfigInput", version=8)
 def _config_dumper(config_input):
     return GroupContainer(
         attrs={
@@ -122,11 +122,12 @@ def _config_dumper(config_input):
             "η_H": config_input.η_H,
             "η_A": config_input.η_A,
             "η_derivs": config_input.η_derivs,
+            "use_taylor_jump": config_input.use_taylor_jump,
         }, jump_before_sonic=config_input.jump_before_sonic
     )
 
 
-@ds_registry.dumper(SolutionInput, "SolutionInput", version=7)
+@ds_registry.dumper(SolutionInput, "SolutionInput", version=8)
 def _input_dumper(solution_input):
     return GroupContainer(
         attrs={
@@ -150,6 +151,7 @@ def _input_dumper(solution_input):
             "η_H": solution_input.η_H,
             "η_A": solution_input.η_A,
             "η_derivs": solution_input.η_derivs,
+            "use_taylor_jump": solution_input.use_taylor_jump,
         }, jump_before_sonic=solution_input.jump_before_sonic
     )
 

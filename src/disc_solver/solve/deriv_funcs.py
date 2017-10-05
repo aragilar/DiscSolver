@@ -5,7 +5,7 @@ Computing derivatives
 
 from math import sqrt, tan
 
-from numpy import errstate
+from numpy import errstate, zeros
 import logbook
 
 from ..utils import sec, ODEIndex
@@ -257,10 +257,36 @@ def dderiv_v_φ_midplane(a_0, v_φ, dderiv_v_r, η_perp_sq, η_H, Y_5, Y_4):
     return dderiv_v_r / Y_5 * (a_0 * η_H / η_perp_sq - v_φ) + Y_4 / Y_5
 
 
+def ddderiv_B_φ_midplane(
+    η_H, dderiv_v_r, η_perp_sq, dderiv_v_φ, η_P, γ, Y_2
+):
+    """
+    Compute B_φ''' around the midplane
+    """
+    return (η_H * dderiv_v_r / Y_2) - (
+        4 * dderiv_v_φ * η_P / (η_perp_sq * (3 - 4 * γ))
+    ) + Y_2
+
+
+def ddderiv_B_r_midplane(Y_3, η_H, η_P, dderiv_v_r, dderiv_B_φ_prime):
+    """
+    Compute B_r''' around the midplane
+    """
+    return Y_3 + (η_H * dderiv_B_φ_prime - dderiv_v_r) / η_P
+
+
+def ddderiv_v_θ_midplane(dderiv_ρ, dderiv_v_r, v_r, γ):
+    """
+    Compute v_θ''' around the midplane
+    """
+    return 4 * γ * v_r * (dderiv_ρ - 1 - dderiv_v_r / (2 * v_r))
+
+
 def taylor_series(*, γ, a_0, init_con, η_derivs):
     """
-    Compute taylor series of v_r'', ρ'' and v_φ''
+    Compute taylor series for second and third order components.
     """
+    # pylint: disable=too-many-statements
     v_r = init_con[ODEIndex.v_r]
     v_φ = init_con[ODEIndex.v_φ]
     deriv_B_φ = init_con[ODEIndex.B_φ_prime]
@@ -310,6 +336,16 @@ def taylor_series(*, γ, a_0, init_con, η_derivs):
         a_0, v_φ, dderiv_v_r, η_perp_sq, η_H, Y_5, Y_4
     )
 
+    dderiv_B_φ_prime = ddderiv_B_φ_midplane(
+        η_H, dderiv_v_r, η_perp_sq, dderiv_v_φ, η_P, γ, Y_2
+    )
+
+    ddderiv_B_r = ddderiv_B_r_midplane(
+        Y_3, η_H, η_P, dderiv_v_r, dderiv_B_φ_prime
+    )
+
+    ddderiv_v_θ = ddderiv_v_θ_midplane(dderiv_ρ, dderiv_v_r, v_r, γ)
+
     log.info("Y_1: {}".format(Y_1))
     log.info("Y_2: {}".format(Y_2))
     log.info("Y_3: {}".format(Y_3))
@@ -321,7 +357,21 @@ def taylor_series(*, γ, a_0, init_con, η_derivs):
     log.info("v_φ'': {}".format(dderiv_v_φ))
     log.info("ρ'': {}".format(dderiv_ρ))
 
-    return dderiv_ρ, dderiv_v_r, dderiv_v_φ
+    derivs = zeros(len(ODEIndex))
+
+    derivs[ODEIndex.B_θ] = dderiv_B_θ
+    derivs[ODEIndex.B_r] = ddderiv_B_r
+    derivs[ODEIndex.ρ] = dderiv_ρ
+    derivs[ODEIndex.v_r] = dderiv_v_r
+    derivs[ODEIndex.v_φ] = dderiv_v_φ
+    derivs[ODEIndex.v_θ] = ddderiv_v_θ
+    derivs[ODEIndex.B_φ_prime] = dderiv_B_φ_prime
+
+    derivs[ODEIndex.η_O] = dderiv_η_O
+    derivs[ODEIndex.η_A] = dderiv_η_A
+    derivs[ODEIndex.η_H] = dderiv_η_H
+
+    return derivs
 
 
 def deriv_v_θ_sonic(
@@ -471,3 +521,49 @@ def deriv_v_θ_sonic(
     )
 
     return (-b - sqrt(b**2 - 4 * a * c)) / (2 * a)
+
+
+def get_taylor_first_order(*, init_con, γ):
+    """
+    Compute first order taylor series at θ.
+
+    Note that η' is assumed to be proportional to ρ' (i.e. 0)
+    """
+    v_r = init_con[ODEIndex.v_r]
+    B_φ_prime = init_con[ODEIndex.B_φ_prime]
+    η_O = init_con[ODEIndex.η_O]
+    η_A = init_con[ODEIndex.η_A]
+    η_H = init_con[ODEIndex.η_H]
+
+    first_order = zeros(len(ODEIndex))
+
+    first_order[ODEIndex.B_r] = γ - 1/4 + (B_φ_prime * η_H - v_r) / (η_O + η_A)
+    first_order[ODEIndex.B_φ] = B_φ_prime
+    first_order[ODEIndex.v_θ] = - 2 * γ * v_r
+
+    return first_order
+
+
+def get_taylor_second_order(
+    *, init_con, γ, a_0, η_derivs
+):
+    """
+    Return the second order constants of a taylor series off the midplane.
+    """
+    second_order = zeros(len(ODEIndex))
+
+    derivs = taylor_series(
+        γ=γ, a_0=a_0, init_con=init_con, η_derivs=η_derivs
+    )
+
+    second_order[ODEIndex.B_θ] = derivs[ODEIndex.B_θ]
+    second_order[ODEIndex.ρ] = derivs[ODEIndex.ρ]
+    second_order[ODEIndex.v_r] = derivs[ODEIndex.v_r]
+    second_order[ODEIndex.v_φ] = derivs[ODEIndex.v_φ]
+    second_order[ODEIndex.B_φ_prime] = derivs[ODEIndex.B_φ_prime]
+
+    second_order[ODEIndex.η_O] = derivs[ODEIndex.η_O]
+    second_order[ODEIndex.η_A] = derivs[ODEIndex.η_A]
+    second_order[ODEIndex.η_H] = derivs[ODEIndex.η_H]
+
+    return second_order

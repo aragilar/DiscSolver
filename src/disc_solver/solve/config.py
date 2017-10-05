@@ -116,6 +116,9 @@ def get_input_from_conffile(*, config_file, overrides=None):
         split_method=config.get(
             "config", "split_method", fallback="v_θ_deriv"
         ),
+        use_taylor_jump=config.get(
+            "config", "use_taylor_jump", fallback="False"
+        ),
         γ=config.get("initial", "γ", fallback="0.001"),
         v_rin_on_c_s=config.get("initial", "v_rin_on_c_s", fallback="1"),
         v_a_on_c_s=config.get("initial", "v_a_on_c_s", fallback="1"),
@@ -148,6 +151,7 @@ def config_input_to_soln_input(inp):
         threads=str_to_int(inp.threads),
         target_velocity=float_type(str_to_float(inp.target_velocity)),
         split_method=inp.split_method,
+        use_taylor_jump=str_to_bool(inp.use_taylor_jump),
         γ=float_type(str_to_float(inp.γ)),
         v_rin_on_c_s=float_type(str_to_float(inp.v_rin_on_c_s)),
         v_a_on_c_s=float_type(str_to_float(inp.v_a_on_c_s)),

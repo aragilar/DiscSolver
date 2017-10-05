@@ -17,7 +17,10 @@ from scikits.odes.sundials import (
 )
 from scikits.odes.sundials.cvode import StatusEnum
 
-from .deriv_funcs import dderiv_B_φ_soln, taylor_series, deriv_v_θ_sonic
+from .deriv_funcs import (
+    dderiv_B_φ_soln, taylor_series, deriv_v_θ_sonic, get_taylor_first_order,
+    get_taylor_second_order,
+)
 from .utils import (
     gen_sonic_point_rootfn, error_handler, rad_to_scaled, scaled_to_rad,
     SolverError,
@@ -50,9 +53,13 @@ def ode_system(
     Set up the system we are solving for.
     """
     # pylint: disable=too-many-statements
-    dderiv_ρ_M, dderiv_v_rM, dderiv_v_φM = taylor_series(
+    taylor_derivs = taylor_series(
         γ=γ, a_0=a_0, init_con=init_con, η_derivs=η_derivs
     )
+    dderiv_v_rM = taylor_derivs[ODEIndex.v_r]
+    dderiv_v_φM = taylor_derivs[ODEIndex.v_φ]
+    dderiv_ρ_M = taylor_derivs[ODEIndex.ρ]
+
     norm_kepler = sqrt(norm_kepler_sq)
     if η_derivs:
         η_O_scale = init_con[ODEIndex.η_O] / sqrt(init_con[ODEIndex.ρ])
@@ -344,6 +351,38 @@ def taylor_solution(
     )
 
 
+def taylor_jump(
+    *, angles, init_con, γ, a_0, taylor_stop_angle,
+    η_derivs=True, θ_scale=float_type(1)
+):
+    """
+    Perform a single large step off the midplane using a taylor series
+    expansion.
+    """
+    taylor_stop_angle = rad_to_scaled(taylor_stop_angle, θ_scale)
+    new_angles = angles[angles > taylor_stop_angle]
+    insert(new_angles, 0, taylor_stop_angle)
+
+    first_order_taylor_values = get_taylor_first_order(
+        init_con=init_con, γ=γ
+    )
+    second_order_taylor_values = get_taylor_second_order(
+        init_con=init_con, γ=γ, a_0=a_0, η_derivs=η_derivs
+    )
+
+    taylor_values = init_con + taylor_stop_angle * (
+        first_order_taylor_values +
+        taylor_stop_angle * second_order_taylor_values
+    )
+
+    return TaylorSolution(
+        angles=scaled_to_rad([0, taylor_stop_angle], θ_scale),
+        params=[init_con, taylor_values],
+        new_angles=new_angles, internal_data=None,
+        new_initial_conditions=taylor_values, angle_stopped=taylor_stop_angle,
+    )
+
+
 def main_solution(
     *, angles, system_initial_conditions, ode_initial_conditions, γ, a_0,
     norm_kepler_sq, relative_tolerance=float_type(1e-6),
@@ -441,6 +480,7 @@ def solution(
     relative_tolerance = soln_input.relative_tolerance
     max_steps = soln_input.max_steps
     η_derivs = soln_input.η_derivs
+    use_taylor_jump = soln_input.use_taylor_jump
     if with_taylor:
         taylor_stop_angle = radians(soln_input.taylor_stop_angle)
     else:
@@ -453,14 +493,22 @@ def solution(
         post_taylor_angles = modified_initial_conditions.angles
         post_taylor_initial_conditions = modified_initial_conditions.init_con
     else:
-        taylor_soln = taylor_solution(
-            angles=angles, init_con=init_con, γ=γ, a_0=a_0,
-            norm_kepler_sq=norm_kepler_sq,
-            relative_tolerance=relative_tolerance,
-            absolute_tolerance=absolute_tolerance, max_steps=max_steps,
-            taylor_stop_angle=taylor_stop_angle, η_derivs=η_derivs,
-            store_internal=store_internal, θ_scale=θ_scale,
-        )
+        if use_taylor_jump:
+            taylor_soln = taylor_jump(
+                angles=angles, init_con=init_con, γ=γ, a_0=a_0,
+                taylor_stop_angle=taylor_stop_angle, η_derivs=η_derivs,
+                θ_scale=θ_scale,
+            )
+
+        else:
+            taylor_soln = taylor_solution(
+                angles=angles, init_con=init_con, γ=γ, a_0=a_0,
+                norm_kepler_sq=norm_kepler_sq,
+                relative_tolerance=relative_tolerance,
+                absolute_tolerance=absolute_tolerance, max_steps=max_steps,
+                taylor_stop_angle=taylor_stop_angle, η_derivs=η_derivs,
+                store_internal=store_internal, θ_scale=θ_scale,
+            )
         post_taylor_angles = taylor_soln.new_angles
         post_taylor_initial_conditions = taylor_soln.new_initial_conditions
         taylor_internal = taylor_soln.internal_data

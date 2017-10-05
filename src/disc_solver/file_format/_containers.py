@@ -61,6 +61,7 @@ class ConfigInput:
     η_A = attr.ib()
     η_derivs = attr.ib(default="True")
     jump_before_sonic = attr.ib(default=None)
+    use_taylor_jump = attr.ib(default="True")
 
 
 @attr.s
@@ -89,6 +90,7 @@ class SolutionInput:
     η_A = attr.ib()
     η_derivs = attr.ib(default=True)
     jump_before_sonic = attr.ib(default=None)
+    use_taylor_jump = attr.ib(default=True)
 
 
 class Problems(MutableMapping):
