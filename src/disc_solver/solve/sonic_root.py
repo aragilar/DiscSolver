@@ -124,10 +124,14 @@ def get_root_results(*, sonic_values, midplane_values):
     """
     Get value of solution for root solver
     """
+    if sonic_values.size == 0:
+        raise SolverError("Sonic solution failed")
     root_results = list(
         sonic_values[-1, COMPARING_INDICES] -
         midplane_values[-1, COMPARING_INDICES]
     )
+    if not root_results:
+        raise SolverError("Subtraction of solutions failed")
     root_results.append(log(
         sonic_values[-1, ODEIndex.ρ] / midplane_values[-1, ODEIndex.ρ]
     ))
@@ -326,7 +330,7 @@ def wrap_root_catch_error(root_func):
         Wrapper of root func
         """
         try:
-            root_func(*args, **kwargs)
+            return root_func(*args, **kwargs)
         except SolverError as e:
             logger.exception(e)
             return full(len(TotalVars), ERR_FLOAT)

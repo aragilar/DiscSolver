@@ -10,6 +10,8 @@ from numpy import asarray, concatenate, zeros
 
 from h5preserve import wrap_on_demand, OnDemandWrapper, DelayedContainer
 
+from ..utils import ODEIndex
+
 
 # pylint: disable=too-few-public-methods
 
@@ -137,10 +139,19 @@ class JacobianData:
         """
         Finalise data for storage in hdf5 files
         """
-        self.derivs = asarray(self.derivs)
-        self.params = asarray(self.params)
         self.angles = asarray(self.angles)
+
+        self.derivs = asarray(self.derivs)
+        if self.derivs.size == 0:
+            self.derivs.shape = (0, len(ODEIndex))
+
+        self.params = asarray(self.params)
+        if self.params.size == 0:
+            self.params.shape = (0, len(ODEIndex))
+
         self.jacobians = asarray(self.jacobians)
+        if self.jacobians.size == 0:
+            self.jacobians.shape = (0, len(ODEIndex), len(ODEIndex))
 
     def __add__(self, other):
         self._finalise()
@@ -188,7 +199,13 @@ class InternalData:
         Finalise data for storage in hdf5 files
         """
         self.derivs = asarray(self.derivs)
+        if self.derivs.size == 0:
+            self.derivs.shape = (0, len(ODEIndex))
+
         self.params = asarray(self.params)
+        if self.params.size == 0:
+            self.params.shape = (0, len(ODEIndex))
+
         self.angles = asarray(self.angles)
         self.v_r_normal = asarray(self.v_r_normal)
         self.v_φ_normal = asarray(self.v_φ_normal)
@@ -252,7 +269,13 @@ class DAEInternalData:
         Finalise data for storage in hdf5 files
         """
         self.derivs = asarray(self.derivs)
+        if self.derivs.size == 0:
+            self.derivs.shape = (0, len(ODEIndex))
+
         self.params = asarray(self.params)
+        if self.params.size == 0:
+            self.params.shape = (0, len(ODEIndex))
+
         self.angles = asarray(self.angles)
         self.residuals = asarray(self.residuals)
 
