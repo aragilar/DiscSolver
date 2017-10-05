@@ -108,19 +108,19 @@ def sonic_root_solution_no_internal(tmpdir_factory):
 
 @pytest.fixture(scope="session", params=ALL_SOLUTIONS)
 def solution(request):
-    return request.getfuncargvalue(request.param)
+    return request.getfixturevalue(request.param)
 
 @pytest.fixture(scope="session", params=DEFAULT_SOLUTIONS)
 def solution_default(request):
-    return request.getfuncargvalue(request.param)
+    return request.getfixturevalue(request.param)
 
 @pytest.fixture(scope="session", params=NO_INTERNAL_SOLUTIONS)
 def solution_no_internal(request):
-    return request.getfuncargvalue(request.param)
+    return request.getfixturevalue(request.param)
 
 @pytest.fixture(scope="session", params=MULTI_SOLUTIONS)
 def solutions_many(request):
-    return request.getfuncargvalue(request.param)
+    return request.getfixturevalue(request.param)
 
 @pytest.fixture()
 def mpl_interactive():
