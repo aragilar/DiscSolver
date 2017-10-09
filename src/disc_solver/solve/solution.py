@@ -8,7 +8,7 @@ from collections import namedtuple
 import logbook
 
 from numpy import (
-    concatenate, copy, insert, errstate, sqrt, tan, degrees, radians,
+    array, concatenate, copy, insert, errstate, sqrt, tan, degrees, radians,
 )
 
 from scikits.odes import ode
@@ -376,8 +376,8 @@ def taylor_jump(
     )
 
     return TaylorSolution(
-        angles=scaled_to_rad([0, taylor_stop_angle], θ_scale),
-        params=[init_con, taylor_values],
+        angles=scaled_to_rad(array([0, taylor_stop_angle]), θ_scale),
+        params=array([init_con, taylor_values]),
         new_angles=new_angles, internal_data=None,
         new_initial_conditions=taylor_values, angle_stopped=taylor_stop_angle,
     )

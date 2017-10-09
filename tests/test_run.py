@@ -75,6 +75,13 @@ class TestSolve:
             config_file=None, output_file=None, store_internal=False,
         )
 
+    def test_single_no_internal_step_sonic(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="single",
+            config_file=None, output_file=None, store_internal=False,
+            overrides={"use_taylor_jump": "True",},
+        )
+
 class TestReSolve:
     def test_single_default(self, tmpdir, solution):
         resolve(

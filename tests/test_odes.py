@@ -29,7 +29,7 @@ def initial_conditions():
     values.β = float_type(2)
     values.norm_kepler_sq = float_type(2)
     values.a_0 = float_type(2)
-    values.γ = 5/4 - values.β
+    values.γ = float_type(5)/float_type(4) - values.β
 
     # This is slightly off the plane, this should mean we don't get
     # cancellation
@@ -115,7 +115,7 @@ def residual(initial_conditions, derivs):
 
 def test_continuity(initial_conditions, solution, regtest, test_info):
     eqn = (
-        (5/2 - 2 * initial_conditions.β) * solution.v_r +
+        (float_type(5)/float_type(2) - 2 * initial_conditions.β) * solution.v_r +
         solution.deriv.v_θ + (
             solution.v_θ / solution.ρ
         ) * (
@@ -137,7 +137,7 @@ def test_solenoid(initial_conditions, solution, regtest, test_info):
 
 
 def test_radial_momentum(initial_conditions, solution, regtest, test_info):
-    eqn = (solution.v_θ * solution.deriv.v_r - 1/2 * solution.v_r**2 -
+    eqn = (solution.v_θ * solution.deriv.v_r - float_type(1)/float_type(2) * solution.v_r**2 -
         solution.v_θ**2 - solution.v_φ**2 + initial_conditions.norm_kepler_sq -
         2 * initial_conditions.β - initial_conditions.a_0 / solution.ρ * (
             solution.B_θ * solution.deriv.B_r + (initial_conditions.β - 1) * (
