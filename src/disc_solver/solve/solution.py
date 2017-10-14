@@ -525,7 +525,8 @@ def solution(
     )
 
     if store_internal and taylor_stop_angle is not None:
-        internal_data = taylor_internal + internal_data
+        if taylor_internal is not None:
+            internal_data = taylor_internal + internal_data
 
     if taylor_stop_angle is None:
         joined_angles = scaled_to_rad(soln.values.t, θ_scale)
