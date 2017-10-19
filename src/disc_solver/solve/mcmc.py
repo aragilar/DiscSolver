@@ -10,7 +10,7 @@ import logbook
 
 import emcee
 
-from numpy import any as np_any, diff, errstate
+from numpy import any as np_any, all as np_all, diff, errstate
 from numpy.random import randn
 
 from .config import define_conditions
@@ -140,6 +140,10 @@ def get_logprob_of_soln(new_soln_input, soln):
     if soln.flag < 0:
         return - float("inf")
     if np_any(diff(soln.solution[:, ODEIndex.v_θ]) < 0):
+        return - float("inf")
+    if np_all(soln.solution[:, ODEIndex.v_φ] >= 0) or np_all(
+        soln.solution[:, ODEIndex.v_φ] <= 0
+    ):
         return - float("inf")
     targeted_prob = - (
         new_soln_input.target_velocity - soln.solution[-1, ODEIndex.v_θ]
