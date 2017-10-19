@@ -16,13 +16,14 @@ from ..logging import log_handler, logging_options
 
 from .utils import savefig
 
-DIMENSIONS = ["β", "v_rin_on_c_s", "c_s_on_v_k", "v_a_on_c_s", "η_O"]
+DIMENSIONS = [
+    "γ", "v_rin_on_c_s", "c_s_on_v_k", "v_a_on_c_s",
+]
 DIM_RANGES = [
-    (1.24, 1.25),
-    (0.5, 2.5),
-    (1e-2, 0.1),
-    (0.5, 1),
-    (2.5e-4, 0.05)
+    (0, 0.01),
+    (0, 2.5),
+    (0.01, 0.08),
+    (0, 2),
 ]
 
 
@@ -83,10 +84,14 @@ def generate_plot(files, figargs):
     for file in files:
         with h5open(file, registries) as f:
             run = f["run"]
-            data.append(get_attrs(
-                run.final_solution.solution_input, DIMENSIONS
-            ))
-    fig = corner(data, range=DIM_RANGES, bins=50, labels=DIMENSIONS, **figargs)
+            data.extend([
+                get_attrs(soln.solution_input, DIMENSIONS)
+                for soln in run.solutions.values()
+            ])
+    fig = corner(
+        data, range=DIM_RANGES, bins=50, plot_contours=False,
+        labels=DIMENSIONS, **figargs
+    )
     return fig
 
 
