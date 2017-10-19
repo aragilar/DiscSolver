@@ -68,6 +68,9 @@ def info(soln_file, *, group, soln_range, output_file):
             "number of solutions: {}".format(len(soln_file.solutions)),
             file=output_file
         )
+        print("config:", file=output_file)
+        for name, value in vars(soln_file.config_input).items():
+            print(INPUT_FORMAT.format(name, value), file=output_file)
     elif group == "status":
         print(
             "ODE return flag: {!s}".format(soln_instance.flag),
