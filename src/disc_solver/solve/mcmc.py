@@ -10,7 +10,7 @@ import logbook
 
 import emcee
 
-from numpy import any as np_any, all as np_all, diff, errstate
+from numpy import any as np_any, diff, errstate
 from numpy.random import randn
 
 from .config import define_conditions
@@ -113,7 +113,7 @@ class LogProbGenerator:
         except SolverError as e:
             log.exception(e)
             return - float("inf")
-        logprob = get_logprob_of_soln(new_soln_input, soln)
+        logprob = get_logprob_of_soln(soln)
         if not isfinite(logprob):
             log.info("Solution invalid")
             return - float("inf")
@@ -133,7 +133,7 @@ class LogProbGenerator:
         return self._run.solutions[self._best_logprob_index]
 
 
-def get_logprob_of_soln(new_soln_input, soln):
+def get_logprob_of_soln(soln):
     """
     Return log probability of solution
     """
@@ -141,12 +141,8 @@ def get_logprob_of_soln(new_soln_input, soln):
         return - float("inf")
     if np_any(diff(soln.solution[:, ODEIndex.v_θ]) < 0):
         return - float("inf")
-    if np_all(soln.solution[:, ODEIndex.v_φ] >= 0) or np_all(
-        soln.solution[:, ODEIndex.v_φ] <= 0
-    ):
-        return - float("inf")
     targeted_prob = - (
-        new_soln_input.target_velocity - soln.solution[-1, ODEIndex.v_θ]
+        soln.solution_input.target_velocity - soln.solution[-1, ODEIndex.v_θ]
     ) ** 2
     return (
         targeted_prob * TARGETED_PROB_WEIGHTING +
