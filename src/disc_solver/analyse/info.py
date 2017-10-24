@@ -15,6 +15,7 @@ from .utils import (
     analyse_main_wrapper, analysis_func_wrapper, get_sonic_point,
     get_scale_height, AnalysisError,
 )
+from ..solve.mcmc import get_logprob_of_soln
 
 INPUT_FORMAT = " {: <20}: {}"
 INIT_FORMAT = " {: <20}: {}"
@@ -86,7 +87,7 @@ def info(soln_file, *, group, soln_range, output_file):
             get_sonic_point(soln_instance) / get_scale_height(soln_instance)
         ))
     elif group == "solutions":
-        for name in soln_file.solutions.keys():
+        for name, _ in sort_solutions(soln_file.solutions):
             print(name, file=output_file)
     else:
         inp = soln_instance.solution_input
@@ -155,3 +156,13 @@ def info(soln_file, *, group, soln_range, output_file):
                 ), file=output_file)
             else:
                 raise AnalysisError("Cannot find {}.".format(group))
+
+
+def sort_solutions(solutions):
+    """
+    Sort solutions based on logprob of solution
+    """
+    return sorted(
+        solutions.items(),
+        key=lambda soln: get_logprob_of_soln(soln[1])
+    )
