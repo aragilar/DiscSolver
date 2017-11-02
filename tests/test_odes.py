@@ -1,7 +1,6 @@
-
 # -*- coding: utf-8 -*-
 
-from math import pi, sqrt, tan
+from math import sqrt, tan
 from types import SimpleNamespace
 import unittest
 
@@ -13,7 +12,6 @@ import logbook
 import numpy as np
 
 from disc_solver.float_handling import float_type, FLOAT_TYPE
-from disc_solver.constants import G
 from disc_solver.utils import ODEIndex
 from disc_solver.solve.solution import ode_system
 from disc_solver.solve.dae_solution import dae_system
