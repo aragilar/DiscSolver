@@ -217,11 +217,11 @@ class TestAnalysis:
     def test_derivs_file(self, solution_default, plot_file):
         derivs_plot(solution_default, plot_filename=plot_file)
 
-    def test_derivs_show(self, solution_no_internal, mpl_interactive):
+    def test_derivs_show_no_internal(self, solution_no_internal, mpl_interactive):
         with pytest.raises(AnalysisError):
             derivs_plot(solution_no_internal, show=True)
 
-    def test_derivs_file(self, solution_no_internal, plot_file):
+    def test_derivs_file_no_internal(self, solution_no_internal, plot_file):
         with pytest.raises(AnalysisError):
             derivs_plot(solution_no_internal, plot_filename=plot_file)
 
@@ -231,11 +231,11 @@ class TestAnalysis:
     def test_params_file(self, solution_default, plot_file):
         params_plot(solution_default, plot_filename=plot_file)
 
-    def test_params_show(self, solution_no_internal, mpl_interactive):
+    def test_params_show_no_internal(self, solution_no_internal, mpl_interactive):
         with pytest.raises(AnalysisError):
             params_plot(solution_no_internal, show=True)
 
-    def test_params_file(self, solution_no_internal, plot_file):
+    def test_params_file_no_internal(self, solution_no_internal, plot_file):
         with pytest.raises(AnalysisError):
             params_plot(solution_no_internal, plot_filename=plot_file)
 
@@ -245,11 +245,11 @@ class TestAnalysis:
     def test_taylor_file(self, solution_default, plot_file):
         taylor_plot(solution_default, plot_filename=plot_file)
 
-    def test_taylor_show(self, solution_no_internal, mpl_interactive):
+    def test_taylor_show_no_internal(self, solution_no_internal, mpl_interactive):
         with pytest.raises(AnalysisError):
             taylor_plot(solution_no_internal, show=True)
 
-    def test_taylor_file(self, solution_no_internal, plot_file):
+    def test_taylor_file_no_internal(self, solution_no_internal, plot_file):
         with pytest.raises(AnalysisError):
             taylor_plot(solution_no_internal, plot_filename=plot_file)
 

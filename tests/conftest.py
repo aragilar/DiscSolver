@@ -8,7 +8,7 @@ from disc_solver.solve import solve
 PLOT_FILE = "plot.png"
 DEFAULT_SOLUTIONS = [
     "single_solution_default",
-    "dae_single_solution_default",
+    #"dae_single_solution_default",
     #"mcmc_solution_default",
     "sonic_root_solution_default",
     "step_solution_default",
