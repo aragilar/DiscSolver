@@ -56,8 +56,6 @@ setuptools.setup(
             "ds-taylor-plot = disc_solver.analyse.taylor_plot:taylor_main",
             "ds-combine-plot = disc_solver.analyse.combine_plot:combine_main",
             "ds-jacobian-plot = disc_solver.analyse.jacobian_plot:jacobian_main",
-            "ds-scale-height = disc_solver.analyse.scale_height:scale_height_main",
-            "ds-validate-input-plot = disc_solver.analyse.validate_input_plot:validate_input_plot_main",
             "ds-validate-plot = disc_solver.analyse.validate_plot:validate_plot_main",
             "ds-acc-plot = disc_solver.analyse.acc_plot:acc_main",
             "ds-diverge-plot = disc_solver.analyse.diverge_plot:diverge_main",
