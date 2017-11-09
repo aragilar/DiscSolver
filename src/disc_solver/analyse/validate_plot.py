@@ -70,29 +70,34 @@ def generate_validate_plot(
 
     param_names = [
         {
-            "name": "",
+            "name": "continuity",
             "func": validate_continuity
         },
         {
-            "name": "",
+            "name": "solenoid",
             "func": validate_solenoid
         },
         {
-            "name": "",
+            "name": "radial momentum",
             "func": validate_radial_momentum
         },
         {
-            "name": "",
+            "name": "azimuthal momentum",
             "func": validate_azimuthal_mometum
         },
         {
-            "name": "",
+            "name": "polar momentum",
             "func": validate_polar_momentum
         },
         {
-            "name": "",
+            "name": "polar induction",
             "func": validate_polar_induction
         },
+        {
+            "name": "E_φ",
+            "func": validate_E_φ
+        }
+
     ]
 
     if soln.internal_data is None:
@@ -101,23 +106,35 @@ def generate_validate_plot(
     indexes = degrees(values.angles) <= stop
 
     fig, axes = plt.subplots(
-        nrows=2, ncols=3, tight_layout=True, sharex=True, **figargs
+        nrows=1, ncols=2, tight_layout=True, **figargs
     )
-    axes.shape = 6
-    for i, settings in enumerate(param_names):
+
+    ax = axes[0]
+    for settings in param_names:
         difference = settings["func"](
             values.initial_conditions, values
         )[indexes]
         print("{}: {}".format(settings["name"], max(difference)))
 
-        ax = axes[i]
         ax.plot(
             degrees(values.angles[indexes]), difference, linestyle,
+            label=settings["name"],
         )
-        ax.set_xlabel("angle from plane (°)")
-        ax.set_title(settings["name"])
-        if settings.get("legend"):
-            ax.legend()
+    ax.set_xlabel("angle from plane (°)")
+    ax.legend()
+
+    ax2 = axes[1]
+    ax2.plot(
+        degrees(values.angles[indexes]), values.E_r[indexes], linestyle,
+        label="$E_r$",
+    )
+    ax2.plot(
+        degrees(values.angles[indexes]), values.E_θ[indexes], linestyle,
+        label="$E_θ$",
+    )
+    ax2.set_xlabel("angle from plane (°)")
+    ax2.legend()
+
     return fig
 
 
@@ -167,7 +184,49 @@ def get_values(solution):
     B_mag = sqrt(values.B_r ** 2 + values.B_φ ** 2 + values.B_θ ** 2)
     values.norm_B_r, values.norm_B_φ, values.norm_B_θ = (
         values.B_r/B_mag, values.B_φ/B_mag, values.B_θ/B_mag)
+
+    values.E_r, values.E_θ, values.E_φ = get_E_values(
+        values.initial_conditions, values
+    )
+
     return values
+
+
+def get_E_values(initial_conditions, values):
+    """
+    Compute values for E
+    """
+    A_r = values.deriv.B_φ - values.B_φ * tan(values.angles)
+    A_θ = (1 - initial_conditions.β) * values.B_φ
+    A_φ = values.B_θ * (1 - initial_conditions.β) - values.deriv.B_r
+
+    E_r_dash = values.η_O * A_r + values.η_H * (
+        A_θ * values.norm_B_φ - A_φ * values.norm_B_θ
+    ) - values.η_A * (
+        A_φ * values.norm_B_r * values.norm_B_φ +
+        A_θ * values.norm_B_r * values.norm_B_θ -
+        A_r * (1 - values.norm_B_r ** 2)
+    )
+    E_θ_dash = values.η_O * A_θ + values.η_H * (
+        A_φ * values.norm_B_r - A_r * values.norm_B_φ
+    ) - values.η_A * (
+        A_r * values.norm_B_r * values.norm_B_θ +
+        A_φ * values.norm_B_θ * values.norm_B_φ -
+        A_θ * (1 - values.norm_B_θ ** 2)
+    )
+    E_φ_dash = values.η_O * A_φ + values.η_H * (
+        A_r * values.norm_B_θ - A_θ * values.norm_B_r
+    ) - values.η_A * (
+        A_θ * values.norm_B_θ * values.norm_B_φ +
+        A_r * values.norm_B_r * values.norm_B_φ -
+        A_φ * (1 - values.norm_B_φ ** 2)
+    )
+
+    E_r = values.v_θ * values.B_φ - values.v_φ * values.B_θ - E_r_dash
+    E_θ = values.v_φ * values.B_r - values.v_r * values.B_φ - E_θ_dash
+    E_φ = values.v_r * values.B_θ - values.v_θ * values.B_r - E_φ_dash
+
+    return E_r, E_θ, E_φ
 
 
 def validate_continuity(initial_conditions, values):
@@ -260,3 +319,11 @@ def validate_polar_induction(initial_conditions, values):
             )
         )
     )
+
+
+def validate_E_φ(initial_conditions, values):
+    """
+    Validate E_φ conservation
+    """
+    # pylint: disable=unused-argument
+    return values.E_φ
