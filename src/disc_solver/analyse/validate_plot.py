@@ -106,34 +106,66 @@ def generate_validate_plot(
     indexes = degrees(values.angles) <= stop
 
     fig, axes = plt.subplots(
-        nrows=1, ncols=2, tight_layout=True, **figargs
+        nrows=2, ncols=2, sharex=True, tight_layout=True,
+        gridspec_kw=dict(hspace=0), **figargs
     )
+    for ax in axes[1]:
+        ax.set_xlabel("angle from plane (°)")
+    axes = axes.flatten()
 
-    ax = axes[0]
+    ax_val = axes[0]
     for settings in param_names:
         difference = settings["func"](
             values.initial_conditions, values
         )[indexes]
         print("{}: {}".format(settings["name"], max(difference)))
 
-        ax.plot(
+        ax_val.plot(
             degrees(values.angles[indexes]), difference, linestyle,
             label=settings["name"],
         )
-    ax.set_xlabel("angle from plane (°)")
-    ax.legend()
+    ax_val.legend()
 
-    ax2 = axes[1]
-    ax2.plot(
+    ax_E = axes[1]
+    ax_E.plot(
         degrees(values.angles[indexes]), values.E_r[indexes], linestyle,
         label="$E_r$",
     )
-    ax2.plot(
+    ax_E.plot(
         degrees(values.angles[indexes]), values.E_θ[indexes], linestyle,
         label="$E_θ$",
     )
-    ax2.set_xlabel("angle from plane (°)")
-    ax2.legend()
+    ax_E.legend()
+
+    ax_E_dash = axes[2]
+    ax_E_dash.plot(
+        degrees(values.angles[indexes]), values.E_r_dash[indexes], linestyle,
+        label="$E_r'$",
+    )
+    ax_E_dash.plot(
+        degrees(values.angles[indexes]), values.E_θ_dash[indexes], linestyle,
+        label="$E_θ'$",
+    )
+    ax_E_dash.plot(
+        degrees(values.angles[indexes]), values.E_φ_dash[indexes], linestyle,
+        label="$E_φ'$",
+    )
+    ax_E_dash.legend()
+
+    ax_J = axes[3]
+    ax_J.plot(
+        degrees(values.angles[indexes]), values.J_r[indexes], linestyle,
+        label="$J_r$",
+    )
+    ax_J.plot(
+        degrees(values.angles[indexes]), values.J_θ[indexes], linestyle,
+        label="$J_θ$",
+    )
+    ax_J.plot(
+        degrees(values.angles[indexes]), values.J_φ[indexes], linestyle,
+        label="$J_φ$",
+    )
+    ax_J.legend()
 
     return fig
 
@@ -185,9 +217,12 @@ def get_values(solution):
     values.norm_B_r, values.norm_B_φ, values.norm_B_θ = (
         values.B_r/B_mag, values.B_φ/B_mag, values.B_θ/B_mag)
 
-    values.E_r, values.E_θ, values.E_φ = get_E_values(
+    J, E_dash, E = get_E_values(
         values.initial_conditions, values
     )
+    values.J_r, values.J_θ, values.J_φ = J
+    values.E_r, values.E_θ, values.E_φ = E
+    values.E_r_dash, values.E_θ_dash, values.E_φ_dash = E_dash
 
     return values
 
@@ -196,37 +231,41 @@ def get_E_values(initial_conditions, values):
     """
     Compute values for E
     """
-    A_r = values.deriv.B_φ - values.B_φ * tan(values.angles)
-    A_θ = (1 - initial_conditions.β) * values.B_φ
-    A_φ = values.B_θ * (1 - initial_conditions.β) - values.deriv.B_r
+    J_r = values.deriv.B_φ - values.B_φ * tan(values.angles)
+    J_θ = (1 - initial_conditions.β) * values.B_φ
+    J_φ = values.B_θ * (1 - initial_conditions.β) - values.deriv.B_r
 
-    E_r_dash = values.η_O * A_r + values.η_H * (
-        A_θ * values.norm_B_φ - A_φ * values.norm_B_θ
+    E_r_dash = values.η_O * J_r + values.η_H * (
+        J_θ * values.norm_B_φ - J_φ * values.norm_B_θ
     ) - values.η_A * (
-        A_φ * values.norm_B_r * values.norm_B_φ +
-        A_θ * values.norm_B_r * values.norm_B_θ -
-        A_r * (1 - values.norm_B_r ** 2)
+        J_φ * values.norm_B_r * values.norm_B_φ +
+        J_θ * values.norm_B_r * values.norm_B_θ -
+        J_r * (1 - values.norm_B_r ** 2)
     )
-    E_θ_dash = values.η_O * A_θ + values.η_H * (
-        A_φ * values.norm_B_r - A_r * values.norm_B_φ
+    E_θ_dash = values.η_O * J_θ + values.η_H * (
+        J_φ * values.norm_B_r - J_r * values.norm_B_φ
     ) - values.η_A * (
-        A_r * values.norm_B_r * values.norm_B_θ +
-        A_φ * values.norm_B_θ * values.norm_B_φ -
-        A_θ * (1 - values.norm_B_θ ** 2)
+        J_r * values.norm_B_r * values.norm_B_θ +
+        J_φ * values.norm_B_θ * values.norm_B_φ -
+        J_θ * (1 - values.norm_B_θ ** 2)
     )
-    E_φ_dash = values.η_O * A_φ + values.η_H * (
-        A_r * values.norm_B_θ - A_θ * values.norm_B_r
+    E_φ_dash = values.η_O * J_φ + values.η_H * (
+        J_r * values.norm_B_θ - J_θ * values.norm_B_r
     ) - values.η_A * (
-        A_θ * values.norm_B_θ * values.norm_B_φ +
-        A_r * values.norm_B_r * values.norm_B_φ -
-        A_φ * (1 - values.norm_B_φ ** 2)
+        J_θ * values.norm_B_θ * values.norm_B_φ +
+        J_r * values.norm_B_r * values.norm_B_φ -
+        J_φ * (1 - values.norm_B_φ ** 2)
     )
 
     E_r = values.v_θ * values.B_φ - values.v_φ * values.B_θ - E_r_dash
     E_θ = values.v_φ * values.B_r - values.v_r * values.B_φ - E_θ_dash
     E_φ = values.v_r * values.B_θ - values.v_θ * values.B_r - E_φ_dash
 
-    return E_r, E_θ, E_φ
+    return (
+        (J_r, J_θ, J_φ),
+        (E_r_dash, E_θ_dash, E_φ_dash),
+        (E_r, E_θ, E_φ)
+    )
 
 
 def validate_continuity(initial_conditions, values):
