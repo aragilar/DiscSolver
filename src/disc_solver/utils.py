@@ -28,7 +28,7 @@ def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
     """
     Checks whether velocity is supersonic.
     """
-    speeds = mhd_wave_speeds(v, B, rho, sound_speed)
+    speeds = mhd_wave_speeds(B, rho, sound_speed)
 
     v_axis = 1 if v.ndim > 1 else 0
     v_sq = np.sum(v**2, axis=v_axis)
@@ -37,20 +37,18 @@ def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
         return v_sq > speeds[MHD_WAVE_INDEX[mhd_wave_type]]
 
 
-def mhd_wave_speeds(v, B, rho, sound_speed):
+def mhd_wave_speeds(B, rho, sound_speed):
     """
     Computes MHD wave speeds (slow, alfven, fast)
     """
-    v_axis = 1 if v.ndim > 1 else 0
-    B_axis = 1 if B.ndim > 1 else 0
+    B_axis = 1 if B.ndim == 2 else 0
 
-    v_sq = np.sum(v**2, axis=v_axis)
     B_sq = np.sum(B**2, axis=B_axis)
 
-    with np.errstate(invalid="ignore"):
-        cos_sq_psi = np.sum(
-            (v.T**2/v_sq).T * (B.T**2/B_sq).T, axis=max(v_axis, B_axis)
-        ) ** 2
+    if B_axis:
+        cos_sq_psi = B[:, ODEIndex.B_θ]**2 / B_sq
+    else:
+        cos_sq_psi = B[ODEIndex.B_θ]**2 / B_sq
 
     v_a_sq = B_sq / (4*pi*rho)
     slow = 1/2 * (

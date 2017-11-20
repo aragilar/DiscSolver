@@ -4,10 +4,7 @@ Plot command for DiscSolver
 """
 from math import sqrt
 
-from numpy import (
-    degrees, array as np_array, zeros as np_zeros, sqrt as np_sqrt,
-    ones as np_ones
-)
+from numpy import degrees, sqrt as np_sqrt, ones as np_ones
 import matplotlib.pyplot as plt
 
 from ..utils import (
@@ -106,10 +103,8 @@ def generate_plot(
     angles = soln.angles
     cons = soln.initial_conditions
 
-    zero_soln = np_zeros(len(solution))
-    v = np_array([zero_soln, zero_soln, solution[:, ODEIndex.v_θ]])
     wave_speeds = np_sqrt(mhd_wave_speeds(
-        v.T, solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1
+        solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1
     ))
 
     indexes = degrees(angles) <= stop

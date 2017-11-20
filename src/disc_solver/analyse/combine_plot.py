@@ -108,10 +108,8 @@ def generate_plot_combine(
 
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
-    zero_soln = np.zeros(len(solution))
-    v = np.array([zero_soln, zero_soln, solution[:, ODEIndex.v_θ]])
     wave_speeds = np.sqrt(mhd_wave_speeds(
-        v.T, solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], v_norm
+        solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], v_norm
     ))
 
     plot_props = OrderedDict([

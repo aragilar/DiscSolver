@@ -84,10 +84,8 @@ def generate_diverge_plot(
             label=str(i), color=color, linestyle=linestyle,
         )
 
-        zero_soln = np.zeros(len(solution))
-        v = np.array([zero_soln, zero_soln, solution[:, ODEIndex.v_θ]])
         wave_speeds = np.sqrt(mhd_wave_speeds(
-            v.T, solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1.0
+            solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1.0
         ))
 
         if initial_plot:
