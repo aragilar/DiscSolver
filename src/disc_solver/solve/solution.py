@@ -224,13 +224,16 @@ def ode_system(
             deriv_η_A = 0
             deriv_η_H = 0
 
-        dderiv_B_φ = dderiv_B_φ_soln(
-            B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r,
-            v_θ=v_θ, v_φ=v_φ, deriv_v_r=deriv_v_r, deriv_v_θ=deriv_v_θ,
-            deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
-            deriv_B_φ=deriv_B_φ, γ=γ, deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A,
-            deriv_η_H=deriv_η_H
-        )
+        if v_θ > 0.6 and derivs_list:
+            dderiv_B_φ = derivs_list[-1][ODEIndex.B_φ_prime]
+        else:
+            dderiv_B_φ = dderiv_B_φ_soln(
+                B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ,
+                v_r=v_r, v_θ=v_θ, v_φ=v_φ, deriv_v_r=deriv_v_r,
+                deriv_v_θ=deriv_v_θ, deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r,
+                deriv_B_θ=deriv_B_θ, deriv_B_φ=deriv_B_φ, γ=γ,
+                deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H
+            )
 
         derivs[ODEIndex.B_r] = deriv_B_r
         derivs[ODEIndex.B_φ] = deriv_B_φ
