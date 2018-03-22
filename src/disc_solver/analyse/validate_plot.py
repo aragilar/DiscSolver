@@ -106,7 +106,7 @@ def generate_validate_plot(
     indexes = degrees(values.angles) <= stop
 
     fig, axes = plt.subplots(
-        nrows=2, ncols=2, sharex=True, tight_layout=True,
+        nrows=2, ncols=2, sharex=True, constrained_layout=True,
         gridspec_kw=dict(hspace=0), **figargs
     )
     for ax in axes[1]:

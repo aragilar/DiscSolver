@@ -163,7 +163,7 @@ def generate_plot(
         })
 
     fig, axes = plt.subplots(
-        nrows=2, ncols=4, tight_layout=True, sharex=True,
+        nrows=2, ncols=4, constrained_layout=True, sharex=True,
         gridspec_kw=dict(hspace=0), **figargs
     )
 

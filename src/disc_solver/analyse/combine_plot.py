@@ -187,7 +187,7 @@ def generate_plot_combine(
     indexes = degrees(angles) <= stop
 
     fig, axes = plt.subplots(
-        nrows=3, ncols=1, tight_layout=True, sharex=True,
+        nrows=3, ncols=1, constrained_layout=True, sharex=True,
         gridspec_kw=dict(hspace=0),
         **figargs
     )
