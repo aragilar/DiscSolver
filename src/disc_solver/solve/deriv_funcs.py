@@ -263,7 +263,7 @@ def ddderiv_B_φ_midplane(
     """
     Compute B_φ''' around the midplane
     """
-    return (η_H * dderiv_v_r / Y_2) - (
+    return (η_H * dderiv_v_r / η_perp_sq) - (
         4 * dderiv_v_φ * η_P / (η_perp_sq * (3 - 4 * γ))
     ) + Y_2
 

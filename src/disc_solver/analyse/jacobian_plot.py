@@ -76,7 +76,7 @@ def generate_jacobian_plot(
     data = np.array([eigvals(j) for j in jacobians])
 
     fig, axes = plt.subplots(
-        nrows=2, ncols=6, tight_layout=True, sharex=True, **figargs
+        nrows=2, ncols=6, constrained_layout=True, sharex=True, **figargs
     )
     axes.shape = 12
     for param in ODEIndex:

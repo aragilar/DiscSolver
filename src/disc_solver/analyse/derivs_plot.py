@@ -101,7 +101,7 @@ def generate_derivs_plot(
     indexes = degrees(deriv_angles) <= stop
 
     fig, axes = plt.subplots(
-        nrows=2, ncols=4, tight_layout=True, sharex=True, **figargs
+        nrows=2, ncols=4, constrained_layout=True, sharex=True, **figargs
     )
     axes.shape = len(param_names)
     for i, settings in enumerate(param_names):

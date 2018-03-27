@@ -109,7 +109,7 @@ def generate_plot_combine(
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
     wave_speeds = np.sqrt(mhd_wave_speeds(
-        solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], v_norm
+        solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1
     ))
 
     plot_props = OrderedDict([
@@ -187,7 +187,7 @@ def generate_plot_combine(
     indexes = degrees(angles) <= stop
 
     fig, axes = plt.subplots(
-        nrows=3, ncols=1, tight_layout=True, sharex=True,
+        nrows=3, ncols=1, constrained_layout=True, sharex=True,
         gridspec_kw=dict(hspace=0),
         **figargs
     )

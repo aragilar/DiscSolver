@@ -91,7 +91,7 @@ def generate_taylor_plot(
     ρ_taylor = soln.internal_data.ρ_taylor
 
     deriv_angles = degrees(soln.internal_data.angles)
-    fig, axes = plt.subplots(ncols=3, tight_layout=True, **figargs)
+    fig, axes = plt.subplots(ncols=3, constrained_layout=True, **figargs)
     if show_values:
         axes[0].plot(
             deriv_angles[v_r_normal >= 0],

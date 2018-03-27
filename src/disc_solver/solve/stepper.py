@@ -47,6 +47,7 @@ def binary_searcher(
         log.critical(str(e))
     else:
         log.critical("Failed to find with {} attempts.".format(num_attempts))
+    return None
 
 
 def stepper_creator(
