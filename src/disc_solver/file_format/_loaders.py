@@ -306,6 +306,11 @@ def _config_loader4(group):
         η_A=group.attrs["η_A"],
         jump_before_sonic=group["jump_before_sonic"],
         η_derivs=group.attrs["η_derivs"],
+        nwalkers=None,
+        iterations=None,
+        threads=None,
+        target_velocity=None,
+        split_method=None,
     )
 
 
@@ -507,6 +512,10 @@ def _input_loader4(group):
         η_A=group.attrs["η_A"],
         jump_before_sonic=group["jump_before_sonic"],
         η_derivs=group.attrs["η_derivs"],
+        nwalkers=None,
+        iterations=None,
+        threads=None,
+        target_velocity=None,
     )
 
 
