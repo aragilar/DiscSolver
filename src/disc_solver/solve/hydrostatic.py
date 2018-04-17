@@ -16,11 +16,12 @@ from scikits.odes.sundials import (
 )
 from scikits.odes.sundials.cvode import StatusEnum
 
+from .config import define_conditions
+from .deriv_funcs import B_unit_derivs, A_func, C_func
 from .utils import (
     error_handler, rad_to_scaled, scaled_to_rad,
     SolverError,
 )
-from .deriv_funcs import B_unit_derivs, A_func, C_func
 
 from ..float_handling import float_type
 from ..file_format import InternalData, Solution
@@ -573,7 +574,7 @@ def hydrostatic_solution(
         store_internal=store_internal, θ_scale=θ_scale,
     )
 
-    solver = ode(
+    ode_solver = ode(
         INTEGRATOR, system,
         linsolver=LINSOLVER,
         rtol=relative_tolerance,
@@ -590,7 +591,7 @@ def hydrostatic_solution(
     )
 
     try:
-        soln = solver.solve(angles, initial_conditions)
+        soln = ode_solver.solve(angles, initial_conditions)
     except CVODESolveFailed as e:
         soln = e.soln
         log.warn(
@@ -652,3 +653,14 @@ def solution(
         ), y_roots=soln.roots.y, sonic_point=None,
         sonic_point_values=None,
     )
+
+
+def solver(inp, run, *, store_internal=True):
+    """
+    hydrostatic solver
+    """
+    hydro_solution = solution(
+        inp, define_conditions(inp), store_internal=store_internal
+    )
+    run.solutions["0"] = hydro_solution
+    run.final_solution = run.solutions["0"]

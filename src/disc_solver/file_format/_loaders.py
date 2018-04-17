@@ -665,6 +665,7 @@ def _run_loader(group):
         solutions=group["solutions"],
         disc_solver_version=None,
         float_type=None,
+        sonic_method="unknown",
     )
 
 
@@ -678,6 +679,7 @@ def _run_loader2(group):
         solutions=group["solutions"],
         disc_solver_version=group["disc_solver_version"],
         float_type=None,
+        sonic_method="unknown",
     )
 
 
@@ -690,7 +692,22 @@ def _run_loader3(group):
         final_solution=group["final_solution"],
         solutions=group["solutions"],
         disc_solver_version=group["disc_solver_version"],
-        float_type=group["float_type"]
+        float_type=group["float_type"],
+        sonic_method="unknown",
+    )
+
+
+@ds_registry.loader("Run", version=4)
+def _run_loader4(group):
+    return Run(
+        config_input=group["config_input"],
+        config_filename=group["config_filename"],
+        time=group["time"],
+        final_solution=group["final_solution"],
+        solutions=group["solutions"],
+        disc_solver_version=group["disc_solver_version"],
+        float_type=group["float_type"],
+        sonic_method=group["sonic_method"],
     )
 
 

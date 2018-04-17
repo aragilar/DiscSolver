@@ -19,6 +19,7 @@ from .single import solver as single_solver
 from .dae_single import solver as dae_single_solver
 from .mcmc import solver as mcmc_solver
 from .sonic_root import solver as sonic_root_solver
+from .hydrostatic import solver as hydrostatic_solver
 from .utils import add_solver_arguments, SolverError, validate_overrides
 
 from .. import __version__ as ds_version
@@ -44,7 +45,8 @@ def solve(
         config_input=config_input,
         config_filename=str(config_file),
         disc_solver_version=ds_version,
-        float_type=str(float_type)
+        float_type=str(float_type),
+        sonic_method=sonic_method,
     )
 
     if output_file is None:
@@ -75,6 +77,11 @@ def solve(
             )
         elif sonic_method == "sonic_root":
             sonic_root_solver(
+                config_input_to_soln_input(config_input), run,
+                store_internal=store_internal,
+            )
+        elif sonic_method == "hydrostatic":
+            hydrostatic_solver(
                 config_input_to_soln_input(config_input), run,
                 store_internal=store_internal,
             )

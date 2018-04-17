@@ -13,17 +13,26 @@ DEFAULT_SOLUTIONS = [
     #"mcmc_solution_default",
     "sonic_root_solution_default",
     "step_solution_default",
+    "hydrostatic_solution_default",
 ]
 NO_INTERNAL_SOLUTIONS = [
     "single_solution_no_internal",
     "dae_single_solution_no_internal",
     #"mcmc_solution_no_internal",
     "sonic_root_solution_no_internal",
+    "hydrostatic_solution_no_internal",
 ]
 ALL_SOLUTIONS = DEFAULT_SOLUTIONS + NO_INTERNAL_SOLUTIONS
 MULTI_SOLUTIONS = [
     "mcmc_solution_no_internal",
     "sonic_root_solution_no_internal",
+]
+TAYLOR_SOLUTIONS = [
+    "single_solution_default",
+    #"dae_single_solution_default",
+    #"mcmc_solution_default",
+    "sonic_root_solution_default",
+    "step_solution_default",
 ]
 
 @pytest.fixture(scope="session")
@@ -72,6 +81,15 @@ def sonic_root_solution_default(tmpdir_factory):
     )
 
 @pytest.fixture(scope="session")
+def hydrostatic_solution_default(tmpdir_factory):
+    method = "hydrostatic"
+    tmpdir = tmpdir_factory.mktemp(method)
+    return solve(
+        sonic_method=method, output_dir=Path(str(tmpdir)),
+        output_file=None, config_file=None, store_internal=True,
+    )
+
+@pytest.fixture(scope="session")
 def single_solution_no_internal(tmpdir_factory):
     method = "single"
     tmpdir = tmpdir_factory.mktemp(method)
@@ -107,6 +125,15 @@ def sonic_root_solution_no_internal(tmpdir_factory):
         output_file=None, config_file=None, store_internal=False,
     )
 
+@pytest.fixture(scope="session")
+def hydrostatic_solution_no_internal(tmpdir_factory):
+    method = "hydrostatic"
+    tmpdir = tmpdir_factory.mktemp(method)
+    return solve(
+        sonic_method=method, output_dir=Path(str(tmpdir)),
+        output_file=None, config_file=None, store_internal=False,
+    )
+
 @pytest.fixture(scope="session", params=ALL_SOLUTIONS)
 def solution(request):
     return request.getfixturevalue(request.param)
@@ -121,6 +148,10 @@ def solution_no_internal(request):
 
 @pytest.fixture(scope="session", params=MULTI_SOLUTIONS)
 def solutions_many(request):
+    return request.getfixturevalue(request.param)
+
+@pytest.fixture(scope="session", params=TAYLOR_SOLUTIONS)
+def solution_taylor(request):
     return request.getfixturevalue(request.param)
 
 @pytest.fixture()

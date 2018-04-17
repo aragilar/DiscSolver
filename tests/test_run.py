@@ -90,6 +90,18 @@ class TestSolve:
             overrides={"use_taylor_jump": "True",},
         )
 
+    def test_hydrostatic_default(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="hydrostatic",
+            config_file=None, output_file=None, store_internal=True,
+        )
+
+    def test_hydrostatic_no_internal(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="hydrostatic",
+            config_file=None, output_file=None, store_internal=False,
+        )
+
 class TestReSolve:
     def test_single_default(self, tmpdir, solution):
         resolve(
@@ -142,6 +154,18 @@ class TestReSolve:
     def test_sonic_root_no_internal(self, tmpdir, solution):
         resolve(
             output_dir=Path(str(tmpdir)), sonic_method="sonic_root",
+            soln_filename=solution, soln_range=None, output_file=None, store_internal=False,
+        )
+
+    def test_hydrostatic_default(self, tmpdir, solution):
+        resolve(
+            output_dir=Path(str(tmpdir)), sonic_method="hydrostatic",
+            soln_filename=solution, soln_range=None, output_file=None, store_internal=True,
+        )
+
+    def test_hydrostatic_no_internal(self, tmpdir, solution):
+        resolve(
+            output_dir=Path(str(tmpdir)), sonic_method="hydrostatic",
             soln_filename=solution, soln_range=None, output_file=None, store_internal=False,
         )
 
@@ -240,11 +264,11 @@ class TestAnalysis:
         with pytest.raises(AnalysisError):
             params_plot(solution_no_internal, plot_filename=plot_file)
 
-    def test_taylor_show(self, solution_default, mpl_interactive):
-        taylor_plot(solution_default, show=True)
+    def test_taylor_show(self, solution_taylor, mpl_interactive):
+        taylor_plot(solution_taylor, show=True)
 
-    def test_taylor_file(self, solution_default, plot_file):
-        taylor_plot(solution_default, plot_filename=plot_file)
+    def test_taylor_file(self, solution_taylor, plot_file):
+        taylor_plot(solution_taylor, plot_filename=plot_file)
 
     def test_taylor_show_no_internal(self, solution_no_internal, mpl_interactive):
         with pytest.raises(AnalysisError):
