@@ -3,9 +3,9 @@
 Computing derivatives
 """
 
-from math import sqrt, tan
+# DO NOT IMPORT MATH, BREAKS FLOAT SUPPORT
 
-from numpy import errstate, zeros
+from numpy import errstate, zeros, sqrt, tan
 import logbook
 
 from ..utils import sec, ODEIndex
