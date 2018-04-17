@@ -197,6 +197,11 @@ def dderiv_B_φ_func(
         B_θ=B_θ, B_r=B_r, ρ=ρ, η_A=η_A, η_O=η_O, η_H=η_H, b_φ=b_φ, b_r=b_r,
         b_θ=b_θ
     )
+    if (b**2 - 4 * c) < 0:
+        log.error("Discriminant less than 0, = {}".format(b**2 - 4 * c))
+        return None
+    else:
+        log.debug("Discriminant not less than 0, = {}".format(b**2 - 4 * c))
 
     Z = Z_func(
         a_0=a_0, B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ,
@@ -503,6 +508,9 @@ def ode_system(
             deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H,
             deriv_ρ=deriv_ρ,
         )
+        if dderiv_B_φ is None:
+            # Discriminant is less than 0
+            return 1
         deriv_v_r = deriv_v_r_func(
             a_0=a_0, norm_kepler_sq=norm_kepler_sq, B_r=B_r, B_φ=B_φ, B_θ=B_θ,
             η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r, v_φ=v_φ, ρ=ρ,
