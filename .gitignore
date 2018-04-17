@@ -8,4 +8,4 @@ pylint_*.txt
 dist
 *.egg-info
 soln.hdf5
-.pytest.cache
+.pytest_cache

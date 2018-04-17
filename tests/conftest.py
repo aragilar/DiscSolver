@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from disc_solver.solve import solve
+from disc_solver.float_handling import float_type as FLOAT_TYPE
 
 PLOT_FILE = "plot.png"
 DEFAULT_SOLUTIONS = [
@@ -139,3 +140,7 @@ def tmp_text_stream(request):
 @pytest.fixture
 def plot_file(tmpdir):
     return Path(Path(str(tmpdir)), PLOT_FILE)
+
+@pytest.fixture
+def test_id(request):
+    return str(request.node) + str(FLOAT_TYPE)

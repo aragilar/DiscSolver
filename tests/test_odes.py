@@ -111,7 +111,7 @@ def residual(initial_conditions, derivs):
     return residual
 
 
-def test_continuity(initial_conditions, solution, regtest, test_info):
+def test_continuity(initial_conditions, solution, regtest, test_info, test_id):
     eqn = (
         (float_type(5)/float_type(2) - 2 * initial_conditions.β) * solution.v_r +
         solution.deriv.v_θ + (
@@ -121,20 +121,23 @@ def test_continuity(initial_conditions, solution, regtest, test_info):
         )
     )
     test_info(eqn)
+    regtest.identifier = test_id
     print(eqn, file=regtest)
     assert eqn == approx(0)
 
 
-def test_solenoid(initial_conditions, solution, regtest, test_info):
+def test_solenoid(initial_conditions, solution, regtest, test_info, test_id):
     eqn = solution.deriv.B_θ - (
         (initial_conditions.β - 2) * solution.B_r + solution.B_θ * tan(initial_conditions.angle)
     )
     test_info(eqn)
+    regtest.identifier = test_id
     print(eqn, file=regtest)
     assert eqn == approx(0)
 
 
-def test_radial_momentum(initial_conditions, solution, regtest, test_info):
+def test_radial_momentum(initial_conditions, solution, regtest, test_info,
+        test_id):
     eqn = (solution.v_θ * solution.deriv.v_r - float_type(1)/float_type(2) * solution.v_r**2 -
         solution.v_θ**2 - solution.v_φ**2 + initial_conditions.norm_kepler_sq -
         2 * initial_conditions.β - initial_conditions.a_0 / solution.ρ * (
@@ -144,11 +147,13 @@ def test_radial_momentum(initial_conditions, solution, regtest, test_info):
         )
     )
     test_info(eqn)
+    regtest.identifier = test_id
     print(eqn, file=regtest)
     assert eqn == approx(0)
 
 
-def test_azimuthal_mometum(initial_conditions, solution, regtest, test_info):
+def test_azimuthal_mometum(initial_conditions, solution, regtest, test_info,
+        test_id):
     eqn = (solution.v_θ * solution.deriv.v_φ + 1/2 * solution.v_r * solution.v_φ -
         tan(initial_conditions.angle) * solution.v_θ * solution.v_φ - initial_conditions.a_0 / solution.ρ * (
             solution.B_θ * solution.deriv.B_φ +
@@ -157,11 +162,13 @@ def test_azimuthal_mometum(initial_conditions, solution, regtest, test_info):
         )
     )
     test_info(eqn)
+    regtest.identifier = test_id
     print(eqn, file=regtest)
     assert eqn == approx(0)
 
 
-def test_polar_momentum(initial_conditions, solution, regtest, test_info):
+def test_polar_momentum(initial_conditions, solution, regtest, test_info,
+        test_id):
     eqn = (solution.v_r * solution.v_θ / 2 + solution.v_θ * solution.deriv.v_θ +
         tan(initial_conditions.angle) * solution.v_φ ** 2 + solution.deriv.ρ / solution.ρ +
         initial_conditions.a_0 / solution.ρ * (
@@ -171,11 +178,13 @@ def test_polar_momentum(initial_conditions, solution, regtest, test_info):
         )
     )
     test_info(eqn)
+    regtest.identifier = test_id
     print(eqn, file=regtest)
     assert eqn == approx(0)
 
 
-def test_polar_induction(initial_conditions, solution, regtest, test_info):
+def test_polar_induction(initial_conditions, solution, regtest, test_info,
+        test_id):
     eqn = (
         solution.v_θ * solution.B_r -
         solution.v_r * solution.B_θ + (
@@ -196,12 +205,13 @@ def test_polar_induction(initial_conditions, solution, regtest, test_info):
         )
     )
     test_info(eqn)
+    regtest.identifier = test_id
     print(eqn, file=regtest)
     assert eqn == approx(0)
 
 
 def test_azimuthal_induction_numeric(initial_conditions, derivs, rhs_func,
-        solution, regtest, test_info):
+        solution, regtest, test_info, test_id):
     step = float_type(1e-4)
     new_params = initial_conditions.params + derivs * step
     new_angle = initial_conditions.angle + step
@@ -210,55 +220,63 @@ def test_azimuthal_induction_numeric(initial_conditions, derivs, rhs_func,
     dderiv_B_φ_hacked = ((new_derivs - derivs) / step)[ODEIndex.B_φ]
     eqn = dderiv_B_φ_hacked - solution.deriv.B_φ_prime
     test_info(eqn)
+    regtest.identifier = test_id
     print(eqn, file=regtest)
     assert eqn == approx(0, abs=2e-12)
 
 
-def test_dae_continuity(residual, regtest, test_info):
+def test_dae_continuity(residual, regtest, test_info, test_id):
     res = residual[ODEIndex.ρ]
     test_info(res)
+    regtest.identifier = test_id
     print(res, file=regtest)
     assert res == approx(0)
 
 
-def test_dae_solenoid(residual, regtest, test_info):
+def test_dae_solenoid(residual, regtest, test_info, test_id):
     res = residual[ODEIndex.B_θ]
     test_info(res)
+    regtest.identifier = test_id
     print(res, file=regtest)
     assert res == approx(0)
 
 
-def test_dae_radial_momentum(residual, regtest, test_info):
+def test_dae_radial_momentum(residual, regtest, test_info, test_id):
     res = residual[ODEIndex.v_r]
     test_info(res)
+    regtest.identifier = test_id
     print(res, file=regtest)
     assert res == approx(0)
 
 
-def test_dae_azimuthal_mometum(residual, regtest, test_info):
+def test_dae_azimuthal_mometum(residual, regtest, test_info, test_id):
     res = residual[ODEIndex.v_φ]
     test_info(res)
+    regtest.identifier = test_id
     print(res, file=regtest)
     assert res == approx(0)
 
 
-def test_dae_polar_momentum(residual, regtest, test_info):
+def test_dae_polar_momentum(residual, regtest, test_info, test_id):
     res = residual[ODEIndex.v_θ]
     test_info(res)
+    regtest.identifier = test_id
     print(res, file=regtest)
     assert res == approx(0)
 
 
-def test_dae_polar_induction(residual, regtest, test_info):
+def test_dae_polar_induction(residual, regtest, test_info, test_id):
     res = residual[ODEIndex.B_r]
     test_info(res)
+    regtest.identifier = test_id
     print(res, file=regtest)
     assert res == approx(0)
 
 
-def test_dae_azimuthal_induction(residual, regtest, test_info):
+def test_dae_azimuthal_induction(residual, regtest, test_info, test_id):
     res = residual[ODEIndex.B_φ_prime]
     test_info(res)
+    regtest.identifier = test_id
     print(res, file=regtest)
     assert res == approx(0)
 
