@@ -116,7 +116,8 @@ def א_2_func(
                     η_A * b_φ * (b_θ / 4 + b_r * tan(θ)) -
                     η_H * (b_r / 4 + b_θ * tan(θ))
                 ) + (
-                    deriv_η_O + deriv_η_A * b_φ ** 2 + η_A * deriv_b_φ * b_φ
+                    deriv_η_O + deriv_η_A * b_φ ** 2 +
+                    2 * η_A * deriv_b_φ * b_φ
                 ) / (
                     η_O + η_A * (1 - b_φ ** 2)
                 ) * (
