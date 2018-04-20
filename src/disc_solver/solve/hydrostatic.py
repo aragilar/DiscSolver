@@ -199,9 +199,15 @@ def dderiv_B_φ_func(
         b_θ=b_θ
     )
     if (b**2 - 4 * c) < 0:
-        log.error("Discriminant less than 0, = {}".format(b**2 - 4 * c))
+        log.warning("b = {}".format(b))
+        log.warning("c = {}".format(c))
+        log.error("Discriminant less than 0, = {}; θ = {}".format(
+            b**2 - 4 * c, degrees(θ)
+        ))
         return None
     else:
+        log.debug("b = {}".format(b))
+        log.debug("c = {}".format(c))
         log.debug("Discriminant not less than 0, = {}".format(b**2 - 4 * c))
 
     Z = Z_func(
@@ -224,6 +230,9 @@ def dderiv_B_φ_func(
         η_A=η_A, η_H=η_H, deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A,
         deriv_η_H=deriv_η_H
     )
+    log.info("Z = {}".format(Z))
+    log.info("א_1 = {}".format(א_1))
+    log.info("א_2 = {}".format(א_2))
 
     return (
         v_φ * B_r - 4 / 3 * (
