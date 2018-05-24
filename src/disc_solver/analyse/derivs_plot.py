@@ -17,7 +17,17 @@ def plot_parser(parser):
     Add arguments for plot command to parser
     """
     common_plotting_options(parser)
+    parser.add_argument("--nolog", action='store_true', default=False)
     return parser
+
+
+def get_plot_args(args):
+    """
+    Parse plot args
+    """
+    return {
+        "nolog": args.get("nolog", False),
+    }
 
 
 @analyse_main_wrapper(
@@ -25,19 +35,22 @@ def plot_parser(parser):
     plot_parser,
     cmd_parser_splitters={
         "common_plot_args": get_common_plot_args,
+        "plot_args": get_plot_args,
     }
 )
-def derivs_main(soln, *, soln_range, common_plot_args):
+def derivs_main(soln, *, soln_range, common_plot_args, plot_args):
     """
     Entry point for ds-derivs-plot
     """
-    return derivs_plot(soln, soln_range=soln_range, **common_plot_args)
+    return derivs_plot(
+        soln, soln_range=soln_range, **common_plot_args, **plot_args
+    )
 
 
 @analysis_func_wrapper
 def derivs_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
-    figargs=None, linestyle='.', title=None
+    figargs=None, linestyle='.', title=None, nolog=False
 ):
     """
     Show derivatives
@@ -45,7 +58,7 @@ def derivs_plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_derivs_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title,
+        title=title, nolog=nolog
     )
     if plot_filename is not None:
         savefig(fig, plot_filename)
@@ -56,7 +69,7 @@ def derivs_plot(
 
 @single_solution_plotter
 def generate_derivs_plot(
-    soln, *, linestyle='.', figargs=None, stop=90
+    soln, *, linestyle='.', figargs=None, stop=90, nolog=False
 ):
     """
     Generate plot of derivatives
@@ -106,17 +119,25 @@ def generate_derivs_plot(
     axes.shape = len(param_names)
     for i, settings in enumerate(param_names):
         ax = axes[i]
-        pos_deriv = derivs[:, i] >= 0
-        ax.plot(
-            degrees(deriv_angles[npand(pos_deriv, indexes)]),
-            derivs[npand(pos_deriv, indexes), i], linestyle + "b",
-        )
-        ax.plot(
-            degrees(deriv_angles[npand(npnot(pos_deriv), indexes)]),
-            - derivs[npand(npnot(pos_deriv), indexes), i], linestyle + "g",
-        )
+        if nolog:
+            ax.plot(
+                degrees(deriv_angles[indexes]),
+                derivs[indexes, i], linestyle,
+            )
+
+        else:
+            pos_deriv = derivs[:, i] >= 0
+            ax.plot(
+                degrees(deriv_angles[npand(pos_deriv, indexes)]),
+                derivs[npand(pos_deriv, indexes), i], linestyle + "b",
+            )
+            ax.plot(
+                degrees(deriv_angles[npand(npnot(pos_deriv), indexes)]),
+                - derivs[npand(npnot(pos_deriv), indexes), i], linestyle + "g",
+            )
+            ax.set_yscale(settings.get("scale", "log"))
+
         ax.set_xlabel("angle from plane (°)")
-        ax.set_yscale(settings.get("scale", "log"))
         ax.set_title(settings["name"])
         if settings.get("legend"):
             ax.legend()
