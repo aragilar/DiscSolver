@@ -11,11 +11,15 @@ from pathlib import Path
 import numpy as np
 from numpy import cos, sin, sqrt
 
+import logbook
+
 from stringtopy import (
     str_to_float_converter, str_to_int_converter, str_to_bool_converter
 )
 
 from .constants import G, AU, M_SUN
+
+logger = logbook.Logger(__name__)
 
 MHD_WAVE_INDEX = {"slow": 0, "alfven": 1, "fast": 2}
 
@@ -180,3 +184,40 @@ class DiscSolverError(Exception):
     Base error class for DiscSolver
     """
     pass
+
+
+def solve_quartic(*, a, b, c, d, e):
+    """
+    Compute roots of quartic given coefficients
+    """
+    Δ = (
+        256 * a**3 * e**3 - 192 * a**2 * b * d * e**2 -
+        128 * a**2 * c**2 * e**2 + 144 * a**2 * c * d**2 * e -
+        27 * a**2 * d**4 + 144 * a * b**2 * c * e**2 -
+        6 * a * b**2 * d**2 * e - 80 * a * b * c**2 * d * e +
+        18 * a * b * c * d**3 + 16 * a * c**4 * e - 4 * a * c**3 * d**2 -
+        27 * b**4 * e**2 + 18 * b**3 * c * d * e - 4 * b**3 * d**3 -
+        4 * b**2 * c**3 * e + b**2 * c**2 * d**2
+    )
+
+    logger.debug("Δ = {}".format(Δ))
+
+    p = (8 * a * c - 3 * b**2) / (8 * a * c)
+    q = (b**3 - 4 * a * b * c + 8 * a**2 * d) / (8 * a**3)
+
+    Δ_0 = c**2 - 3 * b * d + 12 * a * e
+    Δ_1 = (
+        2 * c**3 - 9 * b * c * d + 27 * b**2 * e + 27 * a * d**2 -
+        72 * a * c * e
+    )
+
+    Q = ((Δ_1 + sqrt(- 27 * Δ)) / 2) ** (1/3)
+    S = sqrt(- 2 * p / 3 + (Q + Δ_0 / Q) / (3 * a)) / 2
+
+    roots = []
+    roots.append(- b / (4 * a) - S + sqrt(- 4 * S**2 - 2 * p + q / S) / 2)
+    roots.append(- b / (4 * a) - S - sqrt(- 4 * S**2 - 2 * p + q / S) / 2)
+    roots.append(- b / (4 * a) + S + sqrt(- 4 * S**2 - 2 * p - q / S) / 2)
+    roots.append(- b / (4 * a) + S - sqrt(- 4 * S**2 - 2 * p - q / S) / 2)
+
+    return roots
