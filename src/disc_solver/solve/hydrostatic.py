@@ -3,12 +3,10 @@
 The system of odes
 """
 
-from collections import namedtuple
-
 import logbook
 
 # DO NOT IMPORT MATH, BREAKS FLOAT SUPPORT
-from numpy import sqrt, tan, copy, errstate, degrees
+from numpy import sqrt, tan, copy, errstate, degrees, isreal, float64
 
 from scikits.odes import ode
 from scikits.odes.sundials import (
@@ -25,7 +23,7 @@ from .utils import (
 
 from ..float_handling import float_type
 from ..file_format import InternalData, Solution
-from ..utils import ODEIndex, sec
+from ..utils import ODEIndex, sec, solve_quartic, VELOCITY_INDEXES
 
 INTEGRATOR = "cvode"
 LINSOLVER = "dense"
@@ -34,13 +32,6 @@ SOLUTION_TYPE = "hydrostatic"
 SONIC_POINT_TOLERANCE = float_type(0.01)
 
 log = logbook.Logger(__name__)
-
-TaylorSolution = namedtuple(
-    "TaylorSolution", [
-        "angles", "params", "new_angles", "internal_data",
-        "new_initial_conditions", "angle_stopped",
-    ]
-)
 
 
 def b_func(*, C, v_r):
@@ -412,9 +403,71 @@ def deriv_v_r_func(
     )
 
 
+def v_r_func(
+    *, a_0, norm_kepler_sq, B_r, B_φ, B_θ, η_O, η_H, η_A, θ, ρ, deriv_B_φ
+):
+    """
+    Compute v_r
+    """
+    B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
+    with errstate(invalid="ignore"):
+        b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
+
+    C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
+
+    a = 1/2
+
+    b = - B_θ ** 2 * a_0 / (ρ * (η_O + η_A * (1 - b_φ ** 2)))
+
+    c = 5 / 2 - norm_kepler_sq + a_0 / ρ * (
+        B_φ ** 2 / 4 + B_θ * deriv_B_φ * C + B_θ * B_φ / (
+            η_O + η_A * (1 - b_φ**2)
+        ) * (
+            η_A * b_φ * (b_θ / 4 + b_r * tan(θ)) - η_H * (
+                b_r / 4 + b_θ * tan(θ)
+            )
+        )
+    )
+
+    e = (
+        2 * a_0 / ρ * (B_θ * deriv_B_φ - B_r * B_φ / 4 - B_θ * B_φ * tan(θ))
+    ) ** 2
+    v_r_list = solve_quartic(a=a, b=b, c=c, d=0, e=e, use_np_roots=True)
+
+    return v_r_list[isreal(v_r_list)][1]
+
+
+def v_φ_func(
+    *, a_0, norm_kepler_sq, B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r, ρ,
+):
+    """
+    Compute v_φ
+    """
+    B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
+    with errstate(invalid="ignore"):
+        b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
+
+    C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
+
+    b = v_r * C / 2
+
+    c = v_r ** 2 / 2 + 5 / 2 - norm_kepler_sq + a_0 / ρ * (
+        B_φ ** 2 / 4 + C * B_φ * (
+            B_r / 4 + B_θ * tan(θ)
+        ) - B_θ / (η_O + η_A * (1 - b_φ ** 2)) * (
+            v_r * B_θ - B_φ * (
+                η_A * b_φ * (b_θ / 4 + b_r * tan(θ)) -
+                η_H * (b_r / 4 + b_θ * tan(θ))
+            )
+        )
+    )
+
+    return - b + sqrt(b**2 - 4 * c)
+
+
 def ode_system(
     *, a_0, norm_kepler_sq, init_con, θ_scale=float_type(1),
-    η_derivs=True, η_derivs_func=None, store_internal=True
+    η_derivs=True, η_derivs_func=None, store_internal=True, no_v_deriv=True
 ):
     """
     Set up the system we are solving for.
@@ -471,6 +524,19 @@ def ode_system(
             )
 
         deriv_B_φ = B_φ_prime
+        deriv_B_θ = B_θ * tan(θ) - 3/4 * B_r
+
+        if no_v_deriv:
+            v_r = v_r_func(
+                a_0=a_0, norm_kepler_sq=norm_kepler_sq, B_r=B_r, B_φ=B_φ,
+                B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, ρ=ρ,
+                deriv_B_φ=deriv_B_φ
+            )
+            v_φ = v_φ_func(
+                a_0=a_0, norm_kepler_sq=norm_kepler_sq, B_r=B_r, B_φ=B_φ,
+                B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r, ρ=ρ,
+            )
+
         deriv_B_r = (
             (
                 deriv_B_φ * (
@@ -489,8 +555,6 @@ def ode_system(
                 η_O + η_A * (1 - norm_B_φ) * (1 + norm_B_φ)
             ) - B_θ / 4
         )
-
-        deriv_B_θ = B_θ * tan(θ) - 3/4 * B_r
 
         deriv_ρ = - ρ * v_φ ** 2 * tan(θ) - a_0 * (
             B_θ * B_r / 4 + B_r * deriv_B_r + B_φ * deriv_B_φ -
@@ -546,6 +610,8 @@ def ode_system(
         derivs[ODEIndex.η_H] = deriv_η_H
 
         derivs[ODEIndex.v_θ] = 0
+        if no_v_deriv:
+            derivs[VELOCITY_INDEXES] = 0
         if __debug__:
             log.debug("θ: {}, {}", θ, degrees(θ))
 
@@ -571,7 +637,7 @@ def hydrostatic_solution(
     relative_tolerance=float_type(1e-6), absolute_tolerance=float_type(1e-10),
     max_steps=500, onroot_func=None, tstop=None, ontstop_func=None,
     η_derivs=True, store_internal=True, root_func=None, root_func_args=None,
-    θ_scale=float_type(1)
+    θ_scale=float_type(1), no_v_deriv=True
 ):
     """
     Find solution
@@ -587,7 +653,7 @@ def hydrostatic_solution(
     system, internal_data = ode_system(
         a_0=a_0, norm_kepler_sq=norm_kepler_sq,
         init_con=initial_conditions, η_derivs=η_derivs,
-        store_internal=store_internal, θ_scale=θ_scale,
+        store_internal=store_internal, θ_scale=θ_scale, no_v_deriv=no_v_deriv,
     )
 
     ode_solver = ode(
@@ -636,7 +702,7 @@ def hydrostatic_solution(
 def solution(
     soln_input, initial_conditions, *, onroot_func=None, tstop=None,
     ontstop_func=None, store_internal=True, root_func=None,
-    root_func_args=None, θ_scale=float_type(1)
+    root_func_args=None, θ_scale=float_type(1), no_v_deriv=True
 ):
     """
     Find solution
@@ -649,6 +715,15 @@ def solution(
     relative_tolerance = soln_input.relative_tolerance
     max_steps = soln_input.max_steps
     η_derivs = soln_input.η_derivs
+    if no_v_deriv:
+        if float_type != float64:
+            log.warn(
+                "Float type used unlikely to work with root solver, setting "
+                "no_v_deriv to False"
+            )
+            no_v_deriv = False
+        else:
+            init_con[VELOCITY_INDEXES] = 0
 
     soln, internal_data = hydrostatic_solution(
         angles=angles, initial_conditions=init_con, a_0=a_0,
@@ -656,7 +731,7 @@ def solution(
         absolute_tolerance=absolute_tolerance, max_steps=max_steps,
         onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
         η_derivs=η_derivs, store_internal=store_internal, root_func=root_func,
-        root_func_args=root_func_args, θ_scale=θ_scale,
+        root_func_args=root_func_args, θ_scale=θ_scale, no_v_deriv=no_v_deriv
     )
 
     return Solution(
@@ -675,6 +750,8 @@ def solver(inp, run, *, store_internal=True):
     """
     hydrostatic solver
     """
+    cons = define_conditions(inp)
+    cons.γ = 0
     hydro_solution = solution(
         inp, define_conditions(inp), store_internal=store_internal
     )

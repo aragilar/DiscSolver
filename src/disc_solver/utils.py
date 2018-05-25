@@ -9,7 +9,8 @@ from configparser import ConfigParser
 from pathlib import Path
 
 import numpy as np
-from numpy import cos, sin, sqrt
+from numpy import cos, sin, sqrt, power
+from numpy.lib.scimath import sqrt as esqrt
 
 import logbook
 
@@ -56,14 +57,14 @@ def mhd_wave_speeds(B, rho, sound_speed):
 
     v_a_sq = B_sq / (4*pi*rho)
     slow = 1/2 * (
-        v_a_sq + sound_speed**2 - np.sqrt(
+        v_a_sq + sound_speed**2 - sqrt(
             (v_a_sq + sound_speed**2)**2 -
             4 * v_a_sq * sound_speed**2 * cos_sq_psi
         )
     )
     alfven = v_a_sq * cos_sq_psi
     fast = 1/2 * (
-        v_a_sq + sound_speed**2 + np.sqrt(
+        v_a_sq + sound_speed**2 + sqrt(
             (v_a_sq + sound_speed**2)**2 -
             4 * v_a_sq * sound_speed**2 * cos_sq_psi
         )
@@ -177,6 +178,7 @@ class ODEIndex(IntEnum):
 
 
 MAGNETIC_INDEXES = [ODEIndex.B_r, ODEIndex.B_φ, ODEIndex.B_θ]
+VELOCITY_INDEXES = [ODEIndex.v_r, ODEIndex.v_φ, ODEIndex.v_θ]
 
 
 class DiscSolverError(Exception):
@@ -186,10 +188,19 @@ class DiscSolverError(Exception):
     pass
 
 
-def solve_quartic(*, a, b, c, d, e):
+def solve_quartic(*, a, b, c, d, e, use_np_roots=False):
     """
     Compute roots of quartic given coefficients
     """
+    logger.debug("a = {}".format(a))
+    logger.debug("b = {}".format(b))
+    logger.debug("c = {}".format(c))
+    logger.debug("d = {}".format(d))
+    logger.debug("e = {}".format(e))
+
+    if use_np_roots:
+        return np.roots([a, b, c, d, e])
+
     Δ = (
         256 * a**3 * e**3 - 192 * a**2 * b * d * e**2 -
         128 * a**2 * c**2 * e**2 + 144 * a**2 * c * d**2 * e -
@@ -202,22 +213,33 @@ def solve_quartic(*, a, b, c, d, e):
 
     logger.debug("Δ = {}".format(Δ))
 
-    p = (8 * a * c - 3 * b**2) / (8 * a * c)
+    p = (8 * a * c - 3 * b**2) / (8 * a**2)
     q = (b**3 - 4 * a * b * c + 8 * a**2 * d) / (8 * a**3)
 
-    Δ_0 = c**2 - 3 * b * d + 12 * a * e
+    logger.debug("p = {}".format(p))
+    logger.debug("q = {}".format(q))
+
+    Δ_0 = c**2 - 3 * (b * d + 4 * a * e)
     Δ_1 = (
-        2 * c**3 - 9 * b * c * d + 27 * b**2 * e + 27 * a * d**2 -
-        72 * a * c * e
+        2 * c**3 - 9 * (
+            b * c * d - 3 * (b**2 * e + a * d**2) +
+            8 * a * c * e
+        )
     )
 
-    Q = ((Δ_1 + sqrt(- 27 * Δ)) / 2) ** (1/3)
-    S = sqrt(- 2 * p / 3 + (Q + Δ_0 / Q) / (3 * a)) / 2
+    logger.debug("Δ_0 = {}".format(Δ_0))
+    logger.debug("Δ_1 = {}".format(Δ_1))
+
+    Q = power((Δ_1 + esqrt(Δ_1 ** 2 - 4 * Δ_0 ** 3)) / 2, 1/3)
+    S = esqrt(- 2 * p / 3 + (Q + Δ_0 / Q) / (3 * a)) / 2
+
+    logger.debug("Q = {}".format(Q))
+    logger.debug("S = {}".format(S))
 
     roots = []
-    roots.append(- b / (4 * a) - S + sqrt(- 4 * S**2 - 2 * p + q / S) / 2)
-    roots.append(- b / (4 * a) - S - sqrt(- 4 * S**2 - 2 * p + q / S) / 2)
-    roots.append(- b / (4 * a) + S + sqrt(- 4 * S**2 - 2 * p - q / S) / 2)
-    roots.append(- b / (4 * a) + S - sqrt(- 4 * S**2 - 2 * p - q / S) / 2)
+    roots.append(- b / (4 * a) - S + esqrt(- 4 * S**2 - 2 * p + q / S) / 2)
+    roots.append(- b / (4 * a) - S - esqrt(- 4 * S**2 - 2 * p + q / S) / 2)
+    roots.append(- b / (4 * a) + S + esqrt(- 4 * S**2 - 2 * p - q / S) / 2)
+    roots.append(- b / (4 * a) + S - esqrt(- 4 * S**2 - 2 * p - q / S) / 2)
 
     return roots
