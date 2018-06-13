@@ -34,22 +34,50 @@ SONIC_POINT_TOLERANCE = float_type(0.01)
 log = logbook.Logger(__name__)
 
 
-def b_func(*, C, v_r):
+def X_dash_func(
+    *, η_O, η_A, η_H, b_θ, b_r, b_φ, deriv_η_O, deriv_η_A, deriv_η_H,
+    deriv_b_θ, deriv_b_r, deriv_b_φ
+):
+    """
+    Compute the value of the variable X'
+    """
+    return (
+        (
+            deriv_η_O + deriv_η_A * (1 - b_φ ** 2) - 2 * η_A * b_φ * deriv_b_φ
+        ) * (η_H * b_θ - η_A * b_r * b_φ)
+    ) / (
+        (η_O + η_A * (1 - b_φ ** 2)) ** 2
+    ) - (
+        deriv_η_H * b_θ + η_H * deriv_b_θ - deriv_η_A * b_r * b_φ -
+        η_A * deriv_b_r * b_φ - η_A * b_r * deriv_b_φ
+    ) / (
+        η_O + η_A * (1 - b_φ ** 2)
+    )
+
+
+def X_func(*, η_O, η_A, η_H, b_θ, b_r, b_φ):
+    """
+    Compute the value of the variable X
+    """
+    return (η_H * b_θ - η_A * b_r * b_φ) / (η_O + η_A * (1 - b_φ ** 2))
+
+
+def b_func(*, X, v_r):
     """
     Compute the value of the variable b
     """
-    return C * v_r / 2
+    return X * v_r / 2
 
 
 def c_func(
-    *, θ, norm_kepler_sq, a_0, C, v_r, B_φ, B_θ, B_r, ρ, η_A, η_O, η_H, b_φ,
+    *, θ, norm_kepler_sq, a_0, X, v_r, B_φ, B_θ, B_r, ρ, η_A, η_O, η_H, b_φ,
     b_r, b_θ
 ):
     """
     Compute the value of the variable c
     """
     return v_r ** 2 / 2 + 5 / 2 - norm_kepler_sq + a_0 / ρ * (
-        B_φ ** 2 / 4 + C * B_φ * (
+        B_φ ** 2 / 4 + X * B_φ * (
             1 / 4 * B_r + B_θ * tan(θ)
         ) - B_θ / (η_O + η_A * (1 - b_φ**2)) * (
             v_r * B_θ - B_φ * (
@@ -78,15 +106,15 @@ def א_1_func(
 
 def א_2_func(
     *, a_0, θ, v_r, ρ, B_φ, B_r, B_θ, deriv_B_r, deriv_B_θ, deriv_B_φ,
-    deriv_ρ, b_r, b_θ, b_φ, deriv_b_r, deriv_b_θ, deriv_b_φ, C, A, b, c, η_O,
-    η_A, η_H, deriv_η_O, deriv_η_A, deriv_η_H
+    deriv_ρ, b_r, b_θ, b_φ, deriv_b_r, deriv_b_θ, deriv_b_φ, X, X_dash, b, c,
+    η_O, η_A, η_H, deriv_η_O, deriv_η_A, deriv_η_H
 ):
     """
     Compute the value of the variable א_2
     """
-    return - v_r * A / 4 + (
-        v_r ** 2 * C * A / 16 + a_0 * deriv_ρ / (ρ ** 2) * (
-            B_φ ** 2 / 4 + C * B_φ * (
+    return - v_r * X_dash / 4 + (
+        v_r ** 2 * X * X_dash / 16 + a_0 * deriv_ρ / (ρ ** 2) * (
+            B_φ ** 2 / 4 + X * B_φ * (
                 1 / 4 * B_r + B_θ * tan(θ)
             ) - B_θ / (η_O + η_A * (1 - b_φ**2)) * (
                 v_r * B_θ - B_φ * (
@@ -96,8 +124,8 @@ def א_2_func(
             )
         ) - a_0 / ρ * (
             1 / 2 * deriv_B_φ * B_φ +
-            (A * B_φ + C * deriv_B_φ) * (B_r / 4 + B_θ * tan(θ)) +
-            C * B_φ * (
+            (X_dash * B_φ + X * deriv_B_φ) * (B_r / 4 + B_θ * tan(θ)) +
+            X * B_φ * (
                 deriv_B_r / 4 + deriv_B_θ * tan(θ) + B_θ * sec(θ)**2
             ) - (
                 deriv_B_θ * (η_O + η_A * (1 - b_φ**2)) - B_θ * (
@@ -131,24 +159,24 @@ def א_2_func(
 
 def Z_func(
     *, a_0, B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r, v_φ, ρ,
-    deriv_B_φ, C, b, c, b_r, b_θ, b_φ
+    deriv_B_φ, C, X, b, c, b_r, b_θ, b_φ
 ):
     """
     Compute the value of the variable Z
     """
     return (
         η_O + η_A * (1 - b_r ** 2) + C * (η_H * b_θ - η_A * b_r * b_φ)
-    ) + 8 * B_θ ** 2 * a_0 / (3 * v_φ * ρ) * (
-        C - 1 / sqrt(b ** 2 - 4 * c) * (
-            v_r * (C ** 2 / 16 - 1) +
+    ) + 2 * B_θ ** 2 * a_0 / (v_φ * ρ) * (
+        C + X / 4 - 4 / (3 * sqrt(b ** 2 - 4 * c)) * (
+            v_r * (X ** 2 / 16 - 1) +
             2 * a_0 * B_θ ** 2 / (ρ * (η_O + η_A * (1 - b_φ ** 2)))
         )
     ) / (
         2 * a_0 / (v_φ ** 2 * ρ) * (
             B_θ * deriv_B_φ - B_r * B_φ / 4 - B_θ * B_φ * tan(θ)
         ) * (
-            C / 4 - 1 / sqrt(b ** 2 - 4 * c) * (
-                v_r * (C ** 2 / 16 - 1) +
+            X / 4 - 1 / sqrt(b ** 2 - 4 * c) * (
+                v_r * (X ** 2 / 16 - 1) +
                 2 * a_0 * B_θ ** 2 / (ρ * (η_O + η_A * (1 - b_φ ** 2)))
             )
         )
@@ -181,9 +209,17 @@ def dderiv_B_φ_func(
         deriv_b_θ=deriv_b_θ, deriv_b_r=deriv_b_r, deriv_b_φ=deriv_b_φ
     )
 
-    b = b_func(C=C, v_r=v_r)
+    X = X_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
+
+    X_dash = X_dash_func(
+        η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ,
+        deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H,
+        deriv_b_θ=deriv_b_θ, deriv_b_r=deriv_b_r, deriv_b_φ=deriv_b_φ
+    )
+
+    b = b_func(X=X, v_r=v_r)
     c = c_func(
-        θ=θ, norm_kepler_sq=norm_kepler_sq, a_0=a_0, C=C, v_r=v_r, B_φ=B_φ,
+        θ=θ, norm_kepler_sq=norm_kepler_sq, a_0=a_0, X=X, v_r=v_r, B_φ=B_φ,
         B_θ=B_θ, B_r=B_r, ρ=ρ, η_A=η_A, η_O=η_O, η_H=η_H, b_φ=b_φ, b_r=b_r,
         b_θ=b_θ
     )
@@ -202,7 +238,7 @@ def dderiv_B_φ_func(
     Z = Z_func(
         a_0=a_0, B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ,
         v_r=v_r, v_φ=v_φ, ρ=ρ, deriv_B_φ=deriv_B_φ, C=C, b=b, c=c, b_r=b_r,
-        b_θ=b_θ, b_φ=b_φ
+        b_θ=b_θ, b_φ=b_φ, X=X
     )
 
     א_1 = א_1_func(
@@ -215,8 +251,8 @@ def dderiv_B_φ_func(
         a_0=a_0, θ=θ, v_r=v_r, ρ=ρ, B_φ=B_φ, B_r=B_r, B_θ=B_θ,
         deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ, deriv_B_φ=deriv_B_φ,
         deriv_ρ=deriv_ρ, b_r=b_r, b_θ=b_θ, b_φ=b_φ, deriv_b_r=deriv_b_r,
-        deriv_b_θ=deriv_b_θ, deriv_b_φ=deriv_b_φ, C=C, A=A, b=b, c=c, η_O=η_O,
-        η_A=η_A, η_H=η_H, deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A,
+        deriv_b_θ=deriv_b_θ, deriv_b_φ=deriv_b_φ, X=X, X_dash=X_dash, b=b, c=c,
+        η_O=η_O, η_A=η_A, η_H=η_H, deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A,
         deriv_η_H=deriv_η_H
     )
     log.info("Z = {}".format(Z))
@@ -265,9 +301,9 @@ def dderiv_B_φ_func(
                     b_θ / 4 + b_r * tan(θ)
                 )
             )
-        ) + 4 * B_θ / 3 * (
-            C - 1 / sqrt(b ** 2 - 4 * c) * (
-                v_r * (C ** 2 / 16 - 1) +
+        ) + B_θ * (
+            C + X / 4 - 4 / (3 * sqrt(b ** 2 - 4 * c)) * (
+                v_r * (X ** 2 / 16 - 1) +
                 2 * a_0 * B_θ ** 2 / (ρ * (η_O + η_A * (1 - b_φ ** 2)))
             )
         ) * (
@@ -278,8 +314,8 @@ def dderiv_B_φ_func(
             2 * a_0 / (v_φ ** 2 * ρ) * (
                 B_θ * deriv_B_φ - B_r * B_φ / 4 - B_θ * B_φ * tan(θ)
             ) * (
-                C / 4 - 1 / sqrt(b ** 2 - 4 * c) * (
-                    v_r * (C ** 2 / 16 - 1) +
+                X / 4 - 1 / sqrt(b ** 2 - 4 * c) * (
+                    v_r * (X ** 2 / 16 - 1) +
                     2 * a_0 * B_θ ** 2 / (ρ * (η_O + η_A * (1 - b_φ ** 2)))
                 )
             )
@@ -305,17 +341,17 @@ def deriv_v_φ_func(
         deriv_B_θ=deriv_B_θ
     )
 
-    C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
+    X = X_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
 
-    A = A_func(
+    X_dash = X_dash_func(
         η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ,
         deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H,
         deriv_b_θ=deriv_b_θ, deriv_b_r=deriv_b_r, deriv_b_φ=deriv_b_φ
     )
 
-    b = b_func(C=C, v_r=v_r)
+    b = b_func(X=X, v_r=v_r)
     c = c_func(
-        θ=θ, norm_kepler_sq=norm_kepler_sq, a_0=a_0, C=C, v_r=v_r, B_φ=B_φ,
+        θ=θ, norm_kepler_sq=norm_kepler_sq, a_0=a_0, X=X, v_r=v_r, B_φ=B_φ,
         B_θ=B_θ, B_r=B_r, ρ=ρ, η_A=η_A, η_O=η_O, η_H=η_H, b_φ=b_φ, b_r=b_r,
         b_θ=b_θ
     )
@@ -324,14 +360,14 @@ def deriv_v_φ_func(
         a_0=a_0, θ=θ, v_r=v_r, ρ=ρ, B_φ=B_φ, B_r=B_r, B_θ=B_θ,
         deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ, deriv_B_φ=deriv_B_φ,
         deriv_ρ=deriv_ρ, b_r=b_r, b_θ=b_θ, b_φ=b_φ, deriv_b_r=deriv_b_r,
-        deriv_b_θ=deriv_b_θ, deriv_b_φ=deriv_b_φ, C=C, A=A, b=b, c=c, η_O=η_O,
-        η_A=η_A, η_H=η_H, deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A,
+        deriv_b_θ=deriv_b_θ, deriv_b_φ=deriv_b_φ, X=X, X_dash=X_dash, b=b, c=c,
+        η_O=η_O, η_A=η_A, η_H=η_H, deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A,
         deriv_η_H=deriv_η_H
     )
 
     return ℵ_2 - deriv_v_r * (
-        C / 4 - 1 / sqrt(b ** 2 - 4 * c) * (
-            v_r * (C ** 2 / 16 - 1) + 2 * a_0 * B_θ ** 2 / (
+        X / 4 - 1 / sqrt(b ** 2 - 4 * c) * (
+            v_r * (X ** 2 / 16 - 1) + 2 * a_0 * B_θ ** 2 / (
                 ρ * (η_O + η_A * (1 - b_φ ** 2))
             )
         )
@@ -356,17 +392,17 @@ def deriv_v_r_func(
         deriv_B_θ=deriv_B_θ
     )
 
-    C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
+    X = X_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
 
-    A = A_func(
+    X_dash = X_dash_func(
         η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ,
         deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H,
         deriv_b_θ=deriv_b_θ, deriv_b_r=deriv_b_r, deriv_b_φ=deriv_b_φ
     )
 
-    b = b_func(C=C, v_r=v_r)
+    b = b_func(X=X, v_r=v_r)
     c = c_func(
-        θ=θ, norm_kepler_sq=norm_kepler_sq, a_0=a_0, C=C, v_r=v_r, B_φ=B_φ,
+        θ=θ, norm_kepler_sq=norm_kepler_sq, a_0=a_0, X=X, v_r=v_r, B_φ=B_φ,
         B_θ=B_θ, B_r=B_r, ρ=ρ, η_A=η_A, η_O=η_O, η_H=η_H, b_φ=b_φ, b_r=b_r,
         b_θ=b_θ
     )
@@ -381,8 +417,8 @@ def deriv_v_r_func(
         a_0=a_0, θ=θ, v_r=v_r, ρ=ρ, B_φ=B_φ, B_r=B_r, B_θ=B_θ,
         deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ, deriv_B_φ=deriv_B_φ,
         deriv_ρ=deriv_ρ, b_r=b_r, b_θ=b_θ, b_φ=b_φ, deriv_b_r=deriv_b_r,
-        deriv_b_θ=deriv_b_θ, deriv_b_φ=deriv_b_φ, C=C, A=A, b=b, c=c, η_O=η_O,
-        η_A=η_A, η_H=η_H, deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A,
+        deriv_b_θ=deriv_b_θ, deriv_b_φ=deriv_b_φ, X=X, X_dash=X_dash, b=b, c=c,
+        η_O=η_O, η_A=η_A, η_H=η_H, deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A,
         deriv_η_H=deriv_η_H
     )
 
@@ -395,8 +431,8 @@ def deriv_v_r_func(
         2 * a_0 / (v_φ ** 2 * ρ) * (
             B_θ * deriv_B_φ - B_r * B_φ / 4 - B_θ * B_φ * tan(θ)
         ) * (
-            C / 4 - 1 / sqrt(b ** 2 - 4 * c) * (
-                v_r * (C ** 2 / 16 - 1) +
+            X / 4 - 1 / sqrt(b ** 2 - 4 * c) * (
+                v_r * (X ** 2 / 16 - 1) +
                 2 * a_0 * B_θ ** 2 / (ρ * (η_O + η_A * (1 - b_φ ** 2)))
             )
         )
@@ -413,14 +449,14 @@ def v_r_func(
     with errstate(invalid="ignore"):
         b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
 
-    C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
+    X = X_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
 
     a = 1/2
 
     b = - B_θ ** 2 * a_0 / (ρ * (η_O + η_A * (1 - b_φ ** 2)))
 
     c = 5 / 2 - norm_kepler_sq + a_0 / ρ * (
-        B_φ ** 2 / 4 + B_θ * deriv_B_φ * C + B_θ * B_φ / (
+        B_φ ** 2 / 4 + B_θ * deriv_B_φ * X + B_θ * B_φ / (
             η_O + η_A * (1 - b_φ**2)
         ) * (
             η_A * b_φ * (b_θ / 4 + b_r * tan(θ)) - η_H * (
@@ -447,19 +483,14 @@ def v_φ_func(
     with errstate(invalid="ignore"):
         b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
 
-    C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
+    X = X_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
 
-    b = v_r * C / 2
+    b = b_func(X=X, v_r=v_r)
 
-    c = v_r ** 2 / 2 + 5 / 2 - norm_kepler_sq + a_0 / ρ * (
-        B_φ ** 2 / 4 + C * B_φ * (
-            B_r / 4 + B_θ * tan(θ)
-        ) - B_θ / (η_O + η_A * (1 - b_φ ** 2)) * (
-            v_r * B_θ - B_φ * (
-                η_A * b_φ * (b_θ / 4 + b_r * tan(θ)) -
-                η_H * (b_r / 4 + b_θ * tan(θ))
-            )
-        )
+    c = c_func(
+        θ=θ, norm_kepler_sq=norm_kepler_sq, a_0=a_0, X=X, v_r=v_r, B_φ=B_φ,
+        B_θ=B_θ, B_r=B_r, ρ=ρ, η_A=η_A, η_O=η_O, η_H=η_H, b_φ=b_φ, b_r=b_r,
+        b_θ=b_θ
     )
 
     return - b + sqrt(b**2 - 4 * c)
