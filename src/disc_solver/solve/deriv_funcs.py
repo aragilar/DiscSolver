@@ -567,3 +567,24 @@ def get_taylor_second_order(
     second_order[ODEIndex.η_H] = derivs[ODEIndex.η_H]
 
     return second_order
+
+
+def get_taylor_third_order(
+    *, init_con, γ, a_0, η_derivs
+):
+    """
+    Return the third order constants of a taylor series off the midplane.
+
+    Note that η' is assumed to be proportional to ρ' (i.e. 0)
+    """
+    third_order = zeros(len(ODEIndex))
+
+    derivs = taylor_series(
+        γ=γ, a_0=a_0, init_con=init_con, η_derivs=η_derivs
+    )
+
+    third_order[ODEIndex.B_r] = derivs[ODEIndex.B_r]
+    third_order[ODEIndex.B_φ] = derivs[ODEIndex.B_φ_prime]
+    third_order[ODEIndex.v_θ] = derivs[ODEIndex.v_φ]
+
+    return third_order

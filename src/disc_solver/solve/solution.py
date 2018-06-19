@@ -19,7 +19,7 @@ from scikits.odes.sundials.cvode import StatusEnum
 
 from .deriv_funcs import (
     dderiv_B_φ_soln, taylor_series, deriv_v_θ_sonic, get_taylor_first_order,
-    get_taylor_second_order,
+    get_taylor_second_order, get_taylor_third_order,
 )
 from .utils import (
     gen_sonic_point_rootfn, error_handler, rad_to_scaled, scaled_to_rad,
@@ -369,10 +369,18 @@ def taylor_jump(
     second_order_taylor_values = get_taylor_second_order(
         init_con=init_con, γ=γ, a_0=a_0, η_derivs=η_derivs
     )
+    third_order_taylor_values = get_taylor_third_order(
+        init_con=init_con, γ=γ, a_0=a_0, η_derivs=η_derivs
+    )
 
     taylor_values = init_con + taylor_stop_angle * (
         first_order_taylor_values +
-        taylor_stop_angle * second_order_taylor_values
+        taylor_stop_angle * (
+            second_order_taylor_values +
+            taylor_stop_angle * (
+                third_order_taylor_values
+            )
+        )
     )
 
     return TaylorSolution(
