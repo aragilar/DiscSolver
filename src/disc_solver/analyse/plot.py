@@ -8,7 +8,7 @@ from numpy import degrees, sqrt as np_sqrt, ones as np_ones
 import matplotlib.pyplot as plt
 
 from ..utils import (
-    mhd_wave_speeds, MHD_WAVE_INDEX, ODEIndex, MAGNETIC_INDEXES,
+    mhd_wave_speeds, MHD_Wave_Index, ODEIndex, MAGNETIC_INDEXES,
 )
 
 from .utils import (
@@ -144,17 +144,17 @@ def generate_plot(
     if with_slow:
         param_names[ODEIndex.v_θ]["extras"].append({
             "label": "slow",
-            "data": wave_speeds[MHD_WAVE_INDEX["slow"]],
+            "data": wave_speeds[MHD_Wave_Index.slow],
         })
     if with_alfven:
         param_names[ODEIndex.v_θ]["extras"].append({
             "label": "alfven",
-            "data": wave_speeds[MHD_WAVE_INDEX["alfven"]],
+            "data": wave_speeds[MHD_Wave_Index.alfven],
         })
     if with_fast:
         param_names[ODEIndex.v_θ]["extras"].append({
             "label": "fast",
-            "data": wave_speeds[MHD_WAVE_INDEX["fast"]],
+            "data": wave_speeds[MHD_Wave_Index.fast],
         })
     if with_sonic:
         param_names[ODEIndex.v_θ]["extras"].append({

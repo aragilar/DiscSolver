@@ -22,11 +22,18 @@ from .constants import G, AU, M_SUN
 
 logger = logbook.Logger(__name__)
 
-MHD_WAVE_INDEX = {"slow": 0, "alfven": 1, "fast": 2}
-
 str_to_float = str_to_float_converter()
 str_to_int = str_to_int_converter()
 str_to_bool = str_to_bool_converter()
+
+
+class MHD_Wave_Index(IntEnum):
+    """
+    Enum for MHD wave speed indexes
+    """
+    slow = 0
+    alfven = 1
+    fast = 2
 
 
 def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
@@ -39,7 +46,7 @@ def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
     v_sq = np.sum(v**2, axis=v_axis)
 
     with np.errstate(invalid="ignore"):
-        return v_sq > speeds[MHD_WAVE_INDEX[mhd_wave_type]]
+        return v_sq > speeds[MHD_Wave_Index[mhd_wave_type]]
 
 
 def mhd_wave_speeds(B, rho, sound_speed):

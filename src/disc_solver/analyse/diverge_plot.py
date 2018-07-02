@@ -11,7 +11,7 @@ from .utils import (
     distinct_color_map, analyse_multisolution_wrapper,
 )
 from ..utils import (
-    mhd_wave_speeds, MHD_WAVE_INDEX, ODEIndex,
+    mhd_wave_speeds, MHD_Wave_Index, ODEIndex,
     MAGNETIC_INDEXES
 )
 
@@ -94,7 +94,7 @@ def generate_diverge_plot(
             if with_slow:
                 ax.plot(
                     degrees(angles[indexes]),
-                    wave_speeds[MHD_WAVE_INDEX["slow"]][indexes],
+                    wave_speeds[MHD_Wave_Index.slow][indexes],
                     label="slow", color=color, linestyle=SLOW_STYLE,
                 )
                 num_lines += 1

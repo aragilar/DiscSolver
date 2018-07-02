@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 from ..constants import KM
 from ..utils import (
-    mhd_wave_speeds, MHD_WAVE_INDEX, get_normalisation, ODEIndex,
+    mhd_wave_speeds, MHD_Wave_Index, get_normalisation, ODEIndex,
     MAGNETIC_INDEXES
 )
 
@@ -166,17 +166,17 @@ def generate_plot_combine(
     if with_slow:
         plot_props["velocity"]["lines"].append({
             "label": "slow",
-            "data": wave_speeds[MHD_WAVE_INDEX["slow"]],
+            "data": wave_speeds[MHD_Wave_Index.slow],
         })
     if with_alfven:
         plot_props["velocity"]["lines"].append({
             "label": "alfven",
-            "data": wave_speeds[MHD_WAVE_INDEX["alfven"]],
+            "data": wave_speeds[MHD_Wave_Index.alfven],
         })
     if with_fast:
         plot_props["velocity"]["lines"].append({
             "label": "fast",
-            "data": wave_speeds[MHD_WAVE_INDEX["fast"]],
+            "data": wave_speeds[MHD_Wave_Index.fast],
         })
     if with_sonic:
         plot_props["velocity"]["lines"].append({

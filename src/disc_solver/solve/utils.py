@@ -9,6 +9,7 @@ from numpy import (
     any as np_any,
     diff,
     abs as np_abs,
+    sqrt as np_sqrt,
 )
 
 from scikits.odes.sundials.cvode import StatusEnum
@@ -16,7 +17,10 @@ from scikits.odes.sundials.cvode import StatusEnum
 from .. import __version__ as ds_version
 from ..file_format import CONFIG_FIELDS
 from ..logging import logging_options
-from ..utils import ODEIndex, DiscSolverError
+from ..utils import (
+    ODEIndex, DiscSolverError, MHD_Wave_Index, mhd_wave_speeds,
+    MAGNETIC_INDEXES,
+)
 
 
 def error_handler(error_code, module, func, msg, user_data):
@@ -35,6 +39,25 @@ def gen_sonic_point_rootfn(c_s):
         """
         # pylint: disable=unused-argument
         out[0] = c_s - params[ODEIndex.v_θ]
+        return 0
+    return rootfn
+
+
+def gen_mhd_sonic_point_rootfn(mhd_wave_type):
+    """
+    Finds specified mhd sonic point
+    """
+    mhd_wave_type = MHD_Wave_Index[mhd_wave_type]
+
+    def rootfn(θ, params, out):
+        """
+        root function to find mhd sonic point
+        """
+        # pylint: disable=unused-argument
+        wave_speeds = np_sqrt(mhd_wave_speeds(
+            params[MAGNETIC_INDEXES], params[ODEIndex.ρ], 1
+        ))
+        out[0] = wave_speeds[mhd_wave_type] - params[ODEIndex.v_θ]
         return 0
     return rootfn
 
