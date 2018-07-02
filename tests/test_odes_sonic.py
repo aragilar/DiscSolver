@@ -16,7 +16,6 @@ from disc_solver.float_handling import float_type, FLOAT_TYPE
 from disc_solver.constants import G
 from disc_solver.utils import ODEIndex
 from disc_solver.solve.solution import ode_system
-from disc_solver.solve.dae_solution import dae_system
 
 ODE_NUMBER = len(ODEIndex)
 
@@ -148,25 +147,6 @@ def solution(initial_conditions, derivs):
     return values
 
 
-@pytest.fixture(scope='module')
-def residual(initial_conditions, derivs):
-    residual = np.zeros(ODE_NUMBER)
-    with logbook.NullHandler().applicationbound():
-        dae_rhs, internal_data = dae_system(
-            γ=initial_conditions.γ,
-            a_0=initial_conditions.a_0,
-            norm_kepler_sq=initial_conditions.norm_kepler_sq,
-            init_con=initial_conditions.params,
-        )
-        dae_rhs(
-            initial_conditions.angle,
-            initial_conditions.params,
-            derivs,
-            residual
-        )
-    return residual
-
-
 def test_continuity(initial_conditions, solution, regtest, test_info, test_id):
     eqn = (
         (5/2 - 2 * initial_conditions.β) * solution.v_r +
@@ -280,61 +260,6 @@ def test_azimuthal_induction_numeric(initial_conditions, derivs, rhs_func,
     print(eqn, file=regtest)
     assert eqn == approx(0, abs=4e-12)
 
-
-def test_dae_continuity(residual, regtest, test_info, test_id):
-    res = residual[ODEIndex.ρ]
-    test_info(res)
-    regtest.identifier = test_id
-    print(res, file=regtest)
-    assert res == approx(0)
-
-
-def test_dae_solenoid(residual, regtest, test_info, test_id):
-    res = residual[ODEIndex.B_θ]
-    test_info(res)
-    regtest.identifier = test_id
-    print(res, file=regtest)
-    assert res == approx(0)
-
-
-def test_dae_radial_momentum(residual, regtest, test_info, test_id):
-    res = residual[ODEIndex.v_r]
-    test_info(res)
-    regtest.identifier = test_id
-    print(res, file=regtest)
-    assert res == approx(0)
-
-
-def test_dae_azimuthal_mometum(residual, regtest, test_info, test_id):
-    res = residual[ODEIndex.v_φ]
-    test_info(res)
-    regtest.identifier = test_id
-    print(res, file=regtest)
-    assert res == approx(0)
-
-
-def test_dae_polar_momentum(residual, regtest, test_info, test_id):
-    res = residual[ODEIndex.v_θ]
-    test_info(res)
-    regtest.identifier = test_id
-    print(res, file=regtest)
-    assert res == approx(0)
-
-
-def test_dae_polar_induction(residual, regtest, test_info, test_id):
-    res = residual[ODEIndex.B_r]
-    test_info(res)
-    regtest.identifier = test_id
-    print(res, file=regtest)
-    assert res == approx(0)
-
-
-def test_dae_azimuthal_induction(residual, regtest, test_info, test_id):
-    res = residual[ODEIndex.B_φ_prime]
-    test_info(res)
-    regtest.identifier = test_id
-    print(res, file=regtest)
-    assert res == approx(0)
 
 # This would be useful to do when I have time
 #def test_azimuthal_induction_algebraic(self):
