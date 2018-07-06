@@ -22,11 +22,10 @@ matrix:
       env:
       - TOXENV=pylint
 
-before_install:
-  - pip install codecov # for coverage
-
 install:
-  - pip install tox
+  - source ./ci_support/ensure_sundials_installed.sh
+  - pip install -U pip setuptools wheel
+  - pip install -U tox codecov
 
 script:
   - tox
