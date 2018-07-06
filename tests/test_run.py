@@ -17,6 +17,7 @@ from disc_solver.analyse.utils import AnalysisError
 from disc_solver.solve import solve
 from disc_solver.solve.resolve import resolve
 from disc_solver.analyse.j_e_plot import j_e_plot
+from disc_solver.solve.taylor_space import main as taylor_space_main
 
 
 class TestSolve:
@@ -345,3 +346,7 @@ class TestAnalysis:
     @pytest.mark.mpl_image_compare
     def test_j_e_plot_file(self, solution, plot_file):
         return j_e_plot(solution, plot_filename=plot_file, close=False)
+
+
+def test_taylor_space(mpl_interactive):
+    taylor_space_main()
