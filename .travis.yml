@@ -10,6 +10,7 @@ sudo: false
 cache:
   directories:
     - $HOME/.cache/pip
+    - $HOME/sundials
 
 #env:
   #- TOXENV=docs
