@@ -154,7 +154,7 @@ def create_soln_splitter(method):
         problems = soln.internal_data.problems
         if any("negative velocity" in pl for pl in problems.values()):
             return "sign flip"
-        if (num_check + start > 0) and start < 0:
+        if start < 0 < num_check + start:
             log.info("Using fewer samples than requested.")
             d_v_θ = diff(v_θ[start:])
         elif num_check + start == 0:
