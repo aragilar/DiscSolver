@@ -117,7 +117,7 @@ def get_input_from_conffile(*, config_file, overrides=None):
             "config", "split_method", fallback="v_θ_deriv"
         ),
         use_taylor_jump=config.get(
-            "config", "use_taylor_jump", fallback="False"
+            "config", "use_taylor_jump", fallback="True"
         ),
         γ=config.get("initial", "γ", fallback="0.001"),
         v_rin_on_c_s=config.get("initial", "v_rin_on_c_s", fallback="1"),
