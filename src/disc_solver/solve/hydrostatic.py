@@ -157,29 +157,33 @@ def א_2_func(
     ) / sqrt(b ** 2 - 4 * c)
 
 
+def א_3_func(
+    *, a_0, v_r, ρ, B_θ, b_φ, X, b, c, η_O, η_A
+):
+    """
+    Compute the value of the variable א_3
+    """
+    return (
+        X / 4 - 1 / sqrt(b ** 2 - 4 * c) * (
+            v_r * (X ** 2 / 16 - 1) + 2 * a_0 * B_θ ** 2 / (
+                ρ * (η_O + η_A * (1 - b_φ ** 2))
+            )
+        )
+    )
+
+
 def Z_func(
-    *, a_0, B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r, v_φ, ρ,
-    deriv_B_φ, C, X, b, c, b_r, b_θ, b_φ
+    *, B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_φ, deriv_B_φ, C, b_r, b_θ, b_φ, ℵ_3
 ):
     """
     Compute the value of the variable Z
     """
     return (
         η_O + η_A * (1 - b_r ** 2) + C * (η_H * b_θ - η_A * b_r * b_φ)
-    ) + 2 * B_θ ** 2 * a_0 / (v_φ * ρ) * (
-        C + X / 4 - 4 / (3 * sqrt(b ** 2 - 4 * c)) * (
-            v_r * (X ** 2 / 16 - 1) +
-            2 * a_0 * B_θ ** 2 / (ρ * (η_O + η_A * (1 - b_φ ** 2)))
-        )
+    ) - B_θ ** 2 * v_φ * (
+        C / ℵ_3 + 1
     ) / (
-        2 * a_0 / (v_φ ** 2 * ρ) * (
-            B_θ * deriv_B_φ - B_r * B_φ / 4 - B_θ * B_φ * tan(θ)
-        ) * (
-            X / 4 - 1 / sqrt(b ** 2 - 4 * c) * (
-                v_r * (X ** 2 / 16 - 1) +
-                2 * a_0 * B_θ ** 2 / (ρ * (η_O + η_A * (1 - b_φ ** 2)))
-            )
-        )
+        B_θ * deriv_B_φ - B_r * B_φ / 4 - B_θ * B_φ * tan(θ)
     )
 
 
@@ -235,12 +239,6 @@ def dderiv_B_φ_func(
         log.debug("c = {}".format(c))
         log.debug("Discriminant not less than 0, = {}".format(b**2 - 4 * c))
 
-    Z = Z_func(
-        a_0=a_0, B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ,
-        v_r=v_r, v_φ=v_φ, ρ=ρ, deriv_B_φ=deriv_B_φ, C=C, b=b, c=c, b_r=b_r,
-        b_θ=b_θ, b_φ=b_φ, X=X
-    )
-
     א_1 = א_1_func(
         a_0=a_0, θ=θ, v_φ=v_φ, ρ=ρ, B_φ=B_φ, B_r=B_r, B_θ=B_θ,
         deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ, deriv_B_φ=deriv_B_φ,
@@ -255,70 +253,69 @@ def dderiv_B_φ_func(
         η_O=η_O, η_A=η_A, η_H=η_H, deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A,
         deriv_η_H=deriv_η_H
     )
-    log.info("Z = {}".format(Z))
+
+    א_3 = א_3_func(
+        a_0=a_0, v_r=v_r, ρ=ρ, B_θ=B_θ, b_φ=b_φ, X=X, b=b, c=c, η_O=η_O,
+        η_A=η_A
+    )
+
+    Z = Z_func(
+        B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_φ=v_φ,
+        deriv_B_φ=deriv_B_φ, C=C, b_r=b_r, b_θ=b_θ, b_φ=b_φ, ℵ_3=ℵ_3
+    )
+
     log.info("א_1 = {}".format(א_1))
     log.info("א_2 = {}".format(א_2))
+    log.info("א_3 = {}".format(א_3))
+    log.info("Z = {}".format(Z))
 
     return (
-        v_φ * B_r - 4 / 3 * (
-            ℵ_2 * B_θ + v_φ * deriv_B_θ
-        ) + (B_θ / 4 + deriv_B_r) * (
+        3 * v_φ * B_r / 4 - B_θ * ℵ_2 - v_φ * deriv_B_θ +
+        3 / 4 * (B_θ / 4 + deriv_B_r) * (
             η_H * b_r - η_A * b_θ * b_φ
-        ) + deriv_B_φ * (
-            η_O * tan(θ) - deriv_η_O - deriv_η_H * C * b_θ -
-            deriv_η_A * (
-                1 - b_r ** 2 - C * b_r * b_φ
-            ) + η_H * (
-                3 * b_φ / 4 + C * (
-                    b_r / 4 + b_θ * tan(θ) + deriv_b_θ
-                ) - A * b_θ
-            ) + η_A * (
-                tan(θ) * (1 - b_r ** 2) + b_r * b_φ / 4 - C * b_φ * (
+        ) + A * v_r * B_θ + C * v_r * deriv_B_θ + deriv_B_φ * (
+            η_O * tan(θ) - deriv_η_O + η_A * (
+                tan(θ) * (1 - b_r ** 2) + b_r / 4 * (
+                    b_φ + 3 * b_θ / 4
+                ) - C * b_φ * (
                     b_θ / 4 + b_r * tan(θ)
                 ) + 2 * b_r * deriv_b_r - A * b_r * b_φ -
-                C * deriv_b_r * b_φ - C * b_r * deriv_b_φ + b_r * b_θ
+                C * deriv_b_r * b_φ - C * b_r * deriv_b_φ
+            ) - deriv_η_H * C * b_θ - deriv_η_A * (
+                1 - b_r ** 2 - C * b_r * b_φ
+            ) + η_H * (
+                C * (b_r / 4 + b_θ * tan(θ) - deriv_b_θ) + b_φ / 2 - A * b_θ
             )
-        ) + A * v_r * B_θ + C * v_r * deriv_B_θ + B_φ * (
-            deriv_η_O * tan(θ) + η_O * (sec(θ)**2 - 1 / 4) -
-            v_r + η_H * (
+        ) + B_φ * (
+            deriv_η_O * tan(θ) + η_O * (sec(θ) ** 2 - 3 / 16) - 3 * v_r / 4 +
+            deriv_η_H * (
+                C * (b_r / 4 + b_θ * tan(θ)) - b_φ / 4
+            ) + η_H * (
                 A * (
                     b_r / 4 + b_θ * tan(θ)
-                ) + C * b_φ * (
-                    deriv_b_r / 4 + deriv_b_θ * tan(θ) + b_θ * sec(θ)**2
-                ) - b_φ * tan(θ) - deriv_b_φ / 4
-            ) + deriv_η_H * (
-                C * (b_r / 4 + b_θ * tan(θ)) - b_φ / 4
+                ) - deriv_b_φ / 4 + C * b_φ * (
+                    deriv_b_r / 4 + deriv_b_θ * tan(θ) + b_θ * sec(θ) ** 2
+                ) - 3 * b_φ * tan(θ) / 4
             ) + η_A * (
-                sec(θ)**2 * (1 - b_r ** 2) + 2 * tan(θ) * b_r * deriv_b_r +
-                deriv_b_r * b_θ / 4 + b_r * deriv_b_θ / 4 -
-                A * b_φ * (b_θ / 4 + b_r * tan(θ)) - C * deriv_b_φ * (
+                sec(θ) ** 2 * (1 - b_r ** 2) + 2 * tan(θ) * b_r * deriv_b_r +
+                deriv_b_r * b_θ / 4 + b_r * deriv_b_θ / 4 - A * b_φ * (
                     b_θ / 4 + b_r * tan(θ)
-                ) - C * b_φ * (
-                    deriv_b_θ / 4 + deriv_b_r * tan(θ) + b_r * sec(θ)**2
-                ) - (1 - b_θ ** 2) / 4 - tan(θ) * b_r * b_θ
+                ) - C * deriv_b_φ * (b_θ / 4 + b_r * tan(θ)) - C * b_φ * (
+                    deriv_b_θ / 4 + deriv_b_r * tan(θ) + b_r * sec(θ) ** 2
+                ) - 3 / 4 * (
+                    (1 - b_θ ** 2) / 4 + tan(θ) * b_r * b_θ
+                )
             ) + deriv_η_A * (
-                tan(θ) * (1 - b_r ** 2) + b_r * b_θ / 4 - C * b_φ * (
+                tan(θ) * (1 - b_r ** 2) + b_r * b_θ / 4 + C * b_φ * (
                     b_θ / 4 + b_r * tan(θ)
                 )
             )
-        ) + B_θ * (
-            C + X / 4 - 4 / (3 * sqrt(b ** 2 - 4 * c)) * (
-                v_r * (X ** 2 / 16 - 1) +
-                2 * a_0 * B_θ ** 2 / (ρ * (η_O + η_A * (1 - b_φ ** 2)))
-            )
-        ) * (
-            ℵ_1 - 2 * a_0 * ℵ_2 / (v_φ ** 2 * ρ) * (
-                B_θ * deriv_B_φ - B_r * B_φ / 4 - B_θ * B_φ * tan(θ)
-            )
-        ) / (
-            2 * a_0 / (v_φ ** 2 * ρ) * (
-                B_θ * deriv_B_φ - B_r * B_φ / 4 - B_θ * B_φ * tan(θ)
-            ) * (
-                X / 4 - 1 / sqrt(b ** 2 - 4 * c) * (
-                    v_r * (X ** 2 / 16 - 1) +
-                    2 * a_0 * B_θ ** 2 / (ρ * (η_O + η_A * (1 - b_φ ** 2)))
+        ) + B_θ * (C / ℵ_3 + 1) * (
+            ℵ_1 / (
+                2 * a_0 / (v_φ ** 2 * ρ) * (
+                    B_θ * deriv_B_φ - B_r * B_φ / 4 - B_θ * B_φ * tan(θ)
                 )
-            )
+            ) - ℵ_2
         )
     ) / Z
 
@@ -365,13 +362,12 @@ def deriv_v_φ_func(
         deriv_η_H=deriv_η_H
     )
 
-    return ℵ_2 - deriv_v_r * (
-        X / 4 - 1 / sqrt(b ** 2 - 4 * c) * (
-            v_r * (X ** 2 / 16 - 1) + 2 * a_0 * B_θ ** 2 / (
-                ρ * (η_O + η_A * (1 - b_φ ** 2))
-            )
-        )
+    א_3 = א_3_func(
+        a_0=a_0, v_r=v_r, ρ=ρ, B_θ=B_θ, b_φ=b_φ, X=X, b=b, c=c, η_O=η_O,
+        η_A=η_A
     )
+
+    return ℵ_2 - deriv_v_r * ℵ_3
 
 
 def deriv_v_r_func(
@@ -422,21 +418,16 @@ def deriv_v_r_func(
         deriv_η_H=deriv_η_H
     )
 
-    return (
-        2 * B_θ * dderiv_B_φ * a_0 / (v_φ * ρ) -
-        2 * a_0 * ℵ_2 / (v_φ ** 2 * ρ) * (
-            B_θ * deriv_B_φ - B_r * B_φ / 4 - B_θ * B_φ * tan(θ)
-        ) + ℵ_1
-    ) / (
-        2 * a_0 / (v_φ ** 2 * ρ) * (
-            B_θ * deriv_B_φ - B_r * B_φ / 4 - B_θ * B_φ * tan(θ)
-        ) * (
-            X / 4 - 1 / sqrt(b ** 2 - 4 * c) * (
-                v_r * (X ** 2 / 16 - 1) +
-                2 * a_0 * B_θ ** 2 / (ρ * (η_O + η_A * (1 - b_φ ** 2)))
-            )
-        )
+    א_3 = א_3_func(
+        a_0=a_0, v_r=v_r, ρ=ρ, B_θ=B_θ, b_φ=b_φ, X=X, b=b, c=c, η_O=η_O,
+        η_A=η_A
     )
+
+    return v_φ / ℵ_3 * (
+        B_θ * dderiv_B_φ + ℵ_1 * v_φ * ρ / (2 * a_0)
+    ) / (
+        B_θ * deriv_B_φ - B_r * B_φ / 4 - B_θ * B_φ * tan(θ)
+    ) - ℵ_2 / ℵ_3
 
 
 def v_r_func(
