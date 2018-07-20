@@ -61,6 +61,7 @@ setuptools.setup(
             "ds-diverge-plot = disc_solver.analyse.diverge_plot:diverge_main",
             "ds-conserve-plot = disc_solver.analyse.conserve_plot:conserve_main",
             "ds-filter-files = disc_solver.filter_files:main",
+            "ds-j-e-plot = disc_solver.analyse.j_e_plot:j_e_plot_main",
         ],
     },
     cmdclass=versioneer.get_cmdclass(),

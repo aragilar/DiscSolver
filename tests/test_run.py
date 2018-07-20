@@ -18,6 +18,7 @@ from disc_solver.analyse.utils import AnalysisError
 from disc_solver.solve import solve
 from disc_solver.solve.resolve import resolve
 from disc_solver.filter_files import filter_files
+from disc_solver.analyse.j_e_plot import j_e_plot
 
 
 
@@ -297,6 +298,12 @@ class TestAnalysis:
 
     def test_conserve_file(self, solution, plot_file):
         conserve_main([str(solution), '--filename', str(plot_file)])
+
+    def test_j_e_plot_show(self, solution, mpl_interactive):
+        j_e_plot(solution, show=True)
+
+    def test_j_e_plot_file(self, solution, plot_file):
+        j_e_plot(solution, plot_filename=plot_file)
 
 class TestFilter:
     pass

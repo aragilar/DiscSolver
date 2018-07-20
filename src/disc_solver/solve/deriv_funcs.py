@@ -13,6 +13,33 @@ from ..utils import sec, ODEIndex
 log = logbook.Logger(__name__)
 
 
+def deriv_B_r_func(*, θ, γ, B_r, B_θ, B_φ, v_r, v_θ, deriv_B_φ, η_O, η_A, η_H):
+    """
+    Computer the derivate of B_r
+    """
+    B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
+    norm_B_r, norm_B_φ, norm_B_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
+
+    return (
+        (
+            v_θ * B_r - v_r * B_θ + deriv_B_φ * (
+                η_H * norm_B_θ -
+                η_A * norm_B_r * norm_B_φ
+            ) + B_φ * (
+                η_A * norm_B_φ * (
+                    norm_B_θ * (1/4 - γ) +
+                    norm_B_r * tan(θ)
+                ) - η_H * (
+                    norm_B_r * (1/4 - γ) +
+                    norm_B_θ * tan(θ)
+                )
+            )
+        ) / (
+            η_O + η_A * (1 - norm_B_φ) * (1 + norm_B_φ)
+        ) - B_θ * (1/4 - γ)
+    )
+
+
 def B_unit_derivs(*, B_r, B_φ, B_θ, deriv_B_r, deriv_B_φ, deriv_B_θ):
     """
     Compute the derivatives of the unit vector of B.

@@ -19,7 +19,7 @@ from scikits.odes.sundials.cvode import StatusEnum
 
 from .deriv_funcs import (
     dderiv_B_φ_soln, taylor_series, deriv_v_θ_sonic, get_taylor_first_order,
-    get_taylor_second_order, get_taylor_third_order,
+    get_taylor_second_order, get_taylor_third_order, deriv_B_r_func,
 )
 from .utils import (
     gen_sonic_point_rootfn, error_handler, rad_to_scaled, scaled_to_rad,
@@ -116,31 +116,10 @@ def ode_system(
                 problems[θ].append("negative velocity")
             return -1
 
-        B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
-
-        with errstate(invalid="ignore"):
-            norm_B_r, norm_B_φ, norm_B_θ = (
-                B_r/B_mag, B_φ/B_mag, B_θ/B_mag
-            )
-
         deriv_B_φ = B_φ_prime
-        deriv_B_r = (
-            (
-                v_θ * B_r - v_r * B_θ + deriv_B_φ * (
-                    η_H * norm_B_θ -
-                    η_A * norm_B_r * norm_B_φ
-                ) + B_φ * (
-                    η_A * norm_B_φ * (
-                        norm_B_θ * (1/4 - γ) +
-                        norm_B_r * tan(θ)
-                    ) - η_H * (
-                        norm_B_r * (1/4 - γ) +
-                        norm_B_θ * tan(θ)
-                    )
-                )
-            ) / (
-                η_O + η_A * (1 - norm_B_φ) * (1 + norm_B_φ)
-            ) - B_θ * (1/4 - γ)
+        deriv_B_r = deriv_B_r_func(
+            B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r,
+            v_θ=v_θ, deriv_B_φ=deriv_B_φ, γ=γ,
         )
 
         deriv_B_θ = B_θ * tan(θ) - (γ + 3/4) * B_r

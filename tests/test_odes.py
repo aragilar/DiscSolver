@@ -14,6 +14,7 @@ import numpy as np
 from disc_solver.float_handling import float_type, FLOAT_TYPE
 from disc_solver.utils import ODEIndex
 from disc_solver.solve.solution import ode_system
+from disc_solver.analyse.j_e_plot import J_func, E_func
 
 ODE_NUMBER = len(ODEIndex)
 
@@ -116,8 +117,9 @@ def test_solenoid(initial_conditions, solution, regtest, test_info, test_id):
     assert eqn == approx(0)
 
 
-def test_radial_momentum(initial_conditions, solution, regtest, test_info,
-        test_id):
+def test_radial_momentum(
+    initial_conditions, solution, regtest, test_info, test_id
+):
     eqn = (solution.v_θ * solution.deriv.v_r - float_type(1)/float_type(2) * solution.v_r**2 -
         solution.v_θ**2 - solution.v_φ**2 + initial_conditions.norm_kepler_sq -
         2 * initial_conditions.β - initial_conditions.a_0 / solution.ρ * (
@@ -132,8 +134,9 @@ def test_radial_momentum(initial_conditions, solution, regtest, test_info,
     assert eqn == approx(0)
 
 
-def test_azimuthal_mometum(initial_conditions, solution, regtest, test_info,
-        test_id):
+def test_azimuthal_mometum(
+    initial_conditions, solution, regtest, test_info, test_id
+):
     eqn = (solution.v_θ * solution.deriv.v_φ + 1/2 * solution.v_r * solution.v_φ -
         tan(initial_conditions.angle) * solution.v_θ * solution.v_φ - initial_conditions.a_0 / solution.ρ * (
             solution.B_θ * solution.deriv.B_φ +
@@ -147,8 +150,9 @@ def test_azimuthal_mometum(initial_conditions, solution, regtest, test_info,
     assert eqn == approx(0)
 
 
-def test_polar_momentum(initial_conditions, solution, regtest, test_info,
-        test_id):
+def test_polar_momentum(
+    initial_conditions, solution, regtest, test_info, test_id
+):
     eqn = (solution.v_r * solution.v_θ / 2 + solution.v_θ * solution.deriv.v_θ +
         tan(initial_conditions.angle) * solution.v_φ ** 2 + solution.deriv.ρ / solution.ρ +
         initial_conditions.a_0 / solution.ρ * (
@@ -163,8 +167,9 @@ def test_polar_momentum(initial_conditions, solution, regtest, test_info,
     assert eqn == approx(0)
 
 
-def test_polar_induction(initial_conditions, solution, regtest, test_info,
-        test_id):
+def test_polar_induction(
+    initial_conditions, solution, regtest, test_info, test_id
+):
     eqn = (
         solution.v_θ * solution.B_r -
         solution.v_r * solution.B_θ + (
@@ -190,8 +195,9 @@ def test_polar_induction(initial_conditions, solution, regtest, test_info,
     assert eqn == approx(0)
 
 
-def test_azimuthal_induction_numeric(initial_conditions, derivs, rhs_func,
-        solution, regtest, test_info, test_id):
+def test_azimuthal_induction_numeric(
+    initial_conditions, derivs, rhs_func, solution, regtest, test_info, test_id
+):
     step = float_type(1e-4)
     new_params = initial_conditions.params + derivs * step
     new_angle = initial_conditions.angle + step
@@ -203,6 +209,27 @@ def test_azimuthal_induction_numeric(initial_conditions, derivs, rhs_func,
     regtest.identifier = test_id
     print(eqn, file=regtest)
     assert eqn == approx(0, abs=5e-12)
+
+
+@pytest.mark.xfail
+def test_E_φ(initial_conditions, solution, regtest, test_info, test_id):
+    J_r, J_θ, J_φ = J_func(
+        γ=initial_conditions.γ, θ=initial_conditions.angle, B_θ=solution.B_θ,
+        B_φ=solution.B_φ, deriv_B_φ=solution.deriv.B_φ,
+        deriv_B_r=solution.deriv.B_r,
+    )
+
+    E_r, E_θ, E_φ = E_func(
+        v_r=solution.v_r, v_θ=solution.v_θ, v_φ=solution.v_φ, B_r=solution.B_r,
+        B_θ=solution.B_θ, B_φ=solution.B_φ, J_r=J_r, J_θ=J_θ, J_φ=J_φ,
+        η_O=solution.η_O, η_A=solution.η_A, η_H=solution.η_H,
+    )
+
+    eqn = E_φ
+    test_info(eqn)
+    regtest.identifier = test_id
+    print(eqn, file=regtest)
+    assert eqn == approx(0)
 
 
 # This would be useful to do when I have time
