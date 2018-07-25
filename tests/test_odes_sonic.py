@@ -1,7 +1,5 @@
-
 # -*- coding: utf-8 -*-
 
-from math import pi, sqrt, tan
 from types import SimpleNamespace
 import unittest
 
@@ -11,11 +9,12 @@ from pytest import approx
 import logbook
 
 import numpy as np
+from numpy import sqrt, tan
 
 from disc_solver.float_handling import float_type, FLOAT_TYPE
-from disc_solver.constants import G
 from disc_solver.utils import ODEIndex
 from disc_solver.solve.solution import ode_system
+from disc_solver.analyse.j_e_plot import J_func, E_func
 
 ODE_NUMBER = len(ODEIndex)
 
@@ -70,8 +69,8 @@ def initial_conditions():
                     η_A * norm_B_r * norm_B_φ
                 ) + B_φ * (
                     η_A * norm_B_φ * (
-                        norm_B_θ * (1/4 - γ) +
                         norm_B_r * tan(θ)
+                        - norm_B_θ * (1/4 - γ)
                     ) - η_H * (
                         norm_B_r * (1/4 - γ) +
                         norm_B_θ * tan(θ)
@@ -234,8 +233,8 @@ def test_polar_induction(initial_conditions, solution, regtest, test_info,
             solution.η_H * (
                 solution.norm_B_r * (1 - initial_conditions.β) -
                 solution.norm_B_θ * tan(initial_conditions.angle)
-            ) - solution.η_A * solution.norm_B_φ * (
-                solution.norm_B_θ * (1 - initial_conditions.β) -
+            ) + solution.η_A * solution.norm_B_φ * (
+                solution.norm_B_θ * (1 - initial_conditions.β) +
                 solution.norm_B_r * tan(initial_conditions.angle)
             )
         )
@@ -259,6 +258,26 @@ def test_azimuthal_induction_numeric(initial_conditions, derivs, rhs_func,
     regtest.identifier = test_id
     print(eqn, file=regtest)
     assert eqn == approx(0, abs=4e-12)
+
+
+def test_E_φ(initial_conditions, solution, regtest, test_info, test_id):
+    J_r, J_θ, J_φ = J_func(
+        γ=initial_conditions.γ, θ=initial_conditions.angle, B_θ=solution.B_θ,
+        B_φ=solution.B_φ, deriv_B_φ=solution.deriv.B_φ,
+        deriv_B_r=solution.deriv.B_r,
+    )
+
+    E_r, E_θ, E_φ = E_func(
+        v_r=solution.v_r, v_θ=solution.v_θ, v_φ=solution.v_φ, B_r=solution.B_r,
+        B_θ=solution.B_θ, B_φ=solution.B_φ, J_r=J_r, J_θ=J_θ, J_φ=J_φ,
+        η_O=solution.η_O, η_A=solution.η_A, η_H=solution.η_H,
+    )
+
+    eqn = E_φ
+    test_info(eqn)
+    regtest.identifier = test_id
+    print(eqn, file=regtest)
+    assert eqn == approx(0)
 
 
 # This would be useful to do when I have time

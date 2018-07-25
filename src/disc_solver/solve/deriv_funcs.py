@@ -27,8 +27,8 @@ def deriv_B_r_func(*, θ, γ, B_r, B_θ, B_φ, v_r, v_θ, deriv_B_φ, η_O, η_A
                 η_A * norm_B_r * norm_B_φ
             ) + B_φ * (
                 η_A * norm_B_φ * (
-                    norm_B_θ * (1/4 - γ) +
-                    norm_B_r * tan(θ)
+                    norm_B_r * tan(θ) -
+                    norm_B_θ * (1/4 - γ)
                 ) - η_H * (
                     norm_B_r * (1/4 - γ) +
                     norm_B_θ * tan(θ)
@@ -129,8 +129,8 @@ def dderiv_B_φ_soln(
             (3 - 4 * γ) / 4 * (
                 η_H * b_φ + η_A * b_r * b_θ
             ) + v_θ + η_O * tan(θ) - deriv_η_O + η_A * (
-                tan(θ) * (1 - b_r ** 2) + (1 / 4 - γ) * b_r * b_φ + C * b_φ * (
-                    b_θ * (γ - 1 / 4) - b_r * tan(θ)
+                tan(θ) * (1 - b_r ** 2) + (1 / 4 - γ) * b_r * b_φ - C * b_φ * (
+                    b_θ * (γ - 1 / 4) + b_r * tan(θ)
                 ) + 2 * b_r * deriv_b_r - A * b_r * b_φ -
                 C * deriv_b_r * b_φ - C * b_r * deriv_b_φ
             ) - deriv_η_H * C * b_θ - deriv_η_A * (
@@ -158,18 +158,18 @@ def dderiv_B_φ_soln(
                 )
             ) + η_A * (
                 sec(θ)**2 * (1 - b_r ** 2) + 2 * tan(θ) * b_r * deriv_b_r +
-                (1 / 4 - γ) * deriv_b_r * b_θ + (1 / 4 - γ) * b_r * deriv_b_θ +
+                (1 / 4 - γ) * deriv_b_r * b_θ + (1 / 4 - γ) * b_r * deriv_b_θ -
                 A * b_φ * (
-                    b_θ * (γ - 1 / 4) - b_r * tan(θ)
-                ) + C * deriv_b_φ * (
-                    b_θ * (γ - 1 / 4) - b_r * tan(θ)
-                ) + C * b_φ * (
-                    deriv_b_θ * (γ - 1 / 4) - deriv_b_r * tan(θ) -
+                    b_θ * (γ - 1 / 4) + b_r * tan(θ)
+                ) - C * deriv_b_φ * (
+                    b_θ * (γ - 1 / 4) + b_r * tan(θ)
+                ) - C * b_φ * (
+                    deriv_b_θ * (γ - 1 / 4) + deriv_b_r * tan(θ) +
                     b_r * sec(θ)**2
                 )
             ) + deriv_η_A * (
-                tan(θ) * (1 - b_r ** 2) - (γ - 1 / 4) * b_r * b_θ + C * b_φ * (
-                    b_θ * (γ - 1 / 4) - b_r * tan(θ)
+                tan(θ) * (1 - b_r ** 2) - (γ - 1 / 4) * b_r * b_θ - C * b_φ * (
+                    b_θ * (γ - 1 / 4) + b_r * tan(θ)
                 )
             )
         )
@@ -236,7 +236,7 @@ def Y_3_func(
                 1 - 2 * η_A / η_P
             )
         ) + 2 * η_A * deriv_B_φ ** 2 * (
-            deriv_B_r + v_r / η_P + γ - 1/4
+            deriv_B_r + v_r / η_P - γ + 1/4
         )
     ) / η_P - dderiv_B_θ * (1/4 - γ)
 
