@@ -81,7 +81,7 @@ def c_func(
             1 / 4 * B_r + B_θ * tan(θ)
         ) - B_θ / (η_O + η_A * (1 - b_φ**2)) * (
             v_r * B_θ - B_φ * (
-                η_A * b_φ * (b_θ / 4 + b_r * tan(θ)) -
+                η_A * b_φ * (b_r * tan(θ) - b_θ / 4) -
                 η_H * (b_r / 4 + b_θ * tan(θ))
             )
         )
@@ -141,13 +141,13 @@ def א_2_func(
                 )
             ) - B_θ / (η_O + η_A * (1 - b_φ**2)) * (
                 deriv_B_θ * v_r - deriv_B_φ * (
-                    η_A * b_φ * (b_θ / 4 + b_r * tan(θ)) -
+                    η_A * b_φ * (b_r * tan(θ) - b_θ / 4) -
                     η_H * (b_r / 4 + b_θ * tan(θ))
                 ) - B_φ * (
                     (deriv_η_A * b_φ + η_A * deriv_b_φ) * (
-                        b_θ / 4 + b_r * tan(θ)
+                        b_r * tan(θ) - b_θ / 4
                     ) + η_A * b_φ * (
-                        deriv_b_θ / 4 + deriv_b_r * tan(θ) + b_r * sec(θ)**2
+                        deriv_b_r * tan(θ) + b_r * sec(θ)**2 - deriv_b_θ / 4
                     ) - deriv_η_H * (b_r / 4 + b_θ * tan(θ)) - η_H * (
                         deriv_b_r / 4 + deriv_b_θ * tan(θ) + b_θ * sec(θ)**2
                     )
@@ -278,7 +278,7 @@ def dderiv_B_φ_func(
                 tan(θ) * (1 - b_r ** 2) + b_r / 4 * (
                     b_φ + 3 * b_θ / 4
                 ) - C * b_φ * (
-                    b_θ / 4 + b_r * tan(θ)
+                    b_r * tan(θ) - b_θ / 4
                 ) + 2 * b_r * deriv_b_r - A * b_r * b_φ -
                 C * deriv_b_r * b_φ - C * b_r * deriv_b_φ
             ) - deriv_η_H * C * b_θ - deriv_η_A * (
@@ -299,15 +299,15 @@ def dderiv_B_φ_func(
             ) + η_A * (
                 sec(θ) ** 2 * (1 - b_r ** 2) + 2 * tan(θ) * b_r * deriv_b_r +
                 deriv_b_r * b_θ / 4 + b_r * deriv_b_θ / 4 - A * b_φ * (
-                    b_θ / 4 + b_r * tan(θ)
-                ) - C * deriv_b_φ * (b_θ / 4 + b_r * tan(θ)) - C * b_φ * (
-                    deriv_b_θ / 4 + deriv_b_r * tan(θ) + b_r * sec(θ) ** 2
+                    b_r * tan(θ) - b_θ / 4
+                ) - C * deriv_b_φ * (b_r * tan(θ) - b_θ / 4) - C * b_φ * (
+                    deriv_b_r * tan(θ) + b_r * sec(θ) ** 2 - deriv_b_θ / 4
                 ) - 3 / 4 * (
                     (1 - b_θ ** 2) / 4 + tan(θ) * b_r * b_θ
                 )
             ) + deriv_η_A * (
-                tan(θ) * (1 - b_r ** 2) + b_r * b_θ / 4 + C * b_φ * (
-                    b_θ / 4 + b_r * tan(θ)
+                tan(θ) * (1 - b_r ** 2) + b_r * b_θ / 4 - C * b_φ * (
+                    b_r * tan(θ) - b_θ / 4
                 )
             )
         ) + B_θ * (C / ℵ_3 + 1) * (
@@ -566,8 +566,8 @@ def ode_system(
                     η_A * norm_B_r * norm_B_φ
                 ) + B_φ * (
                     η_A * norm_B_φ * (
-                        norm_B_θ / 4 +
-                        norm_B_r * tan(θ)
+                        norm_B_r * tan(θ) -
+                        norm_B_θ / 4
                     ) - η_H * (
                         norm_B_r / 4 +
                         norm_B_θ * tan(θ)
