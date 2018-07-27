@@ -7,7 +7,7 @@ from numpy import degrees
 import matplotlib.pyplot as plt
 
 from .utils import (
-    savefig, common_plotting_options, get_common_plot_args,
+    plot_output_wrapper, common_plotting_options, get_common_plot_args,
     distinct_color_map, analyse_multisolution_wrapper,
 )
 from ..utils import (
@@ -106,7 +106,7 @@ def generate_diverge_plot(
 
 def diverge_plot(
     *solutions, plot_filename=None, show=False, stop=90, figargs=None,
-    title=None, linestyle='-', with_slow=False
+    title=None, linestyle='-', with_slow=False, close=True
 ):
     """
     Plot solution to file, with velocities, fields onto on one plot
@@ -120,8 +120,6 @@ def diverge_plot(
     else:
         fig.suptitle(title)
 
-    if plot_filename is not None:
-        savefig(fig, plot_filename)
-    if show:
-        plt.show()
-    plt.close(fig)
+    return plot_output_wrapper(
+        fig, file=plot_filename, show=show, close=close
+    )

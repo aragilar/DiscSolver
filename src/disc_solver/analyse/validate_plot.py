@@ -12,7 +12,8 @@ from ..utils import ODEIndex
 
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
-    get_common_plot_args, analysis_func_wrapper, savefig, AnalysisError
+    get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
+    AnalysisError
 )
 
 
@@ -41,7 +42,7 @@ def validate_plot_main(soln, *, soln_range, common_plot_args):
 @analysis_func_wrapper
 def validate_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
-    figargs=None, linestyle='.', title=None
+    figargs=None, linestyle='.', title=None, close=True
 ):
     """
     Show difference between original equations and ode solution
@@ -51,11 +52,10 @@ def validate_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
         title=title,
     )
-    if plot_filename is not None:
-        savefig(fig, plot_filename)
-    if show:
-        plt.show()
-    plt.close(fig)
+
+    return plot_output_wrapper(
+        fig, file=plot_filename, show=show, close=close
+    )
 
 
 @single_solution_plotter

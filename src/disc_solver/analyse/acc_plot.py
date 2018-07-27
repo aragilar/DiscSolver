@@ -11,7 +11,7 @@ from ..constants import KM, AU, M_SUN, YEAR
 from ..utils import get_normalisation, ODEIndex
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
-    get_common_plot_args, analysis_func_wrapper, savefig
+    get_common_plot_args, analysis_func_wrapper, plot_output_wrapper
 )
 
 # AU^2 * Gauss^2 / 30 km/s in Msun/year
@@ -45,7 +45,7 @@ def acc_main(soln, *, soln_range, common_plot_args):
 @analysis_func_wrapper
 def acc_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
-    figargs=None, linestyle='.', title=None
+    figargs=None, linestyle='.', title=None, close=True
 ):
     """
     Show derivatives
@@ -55,11 +55,10 @@ def acc_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
         title=title,
     )
-    if plot_filename is not None:
-        savefig(fig, plot_filename)
-    if show:
-        plt.show()
-    plt.close(fig)
+
+    return plot_output_wrapper(
+        fig, file=plot_filename, show=show, close=close
+    )
 
 
 @single_solution_plotter

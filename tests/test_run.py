@@ -210,28 +210,33 @@ class TestAnalysis:
     def test_plot_show(self, solution, mpl_interactive):
         plot(solution, show=True)
 
+    @pytest.mark.mpl_image_compare
     def test_plot_file(self, solution, plot_file):
-        plot(solution, plot_filename=plot_file)
+        return plot(solution, plot_filename=plot_file, close=False)
 
-    def test_derivs_show(self, solution_default, mpl_interactive):
-        derivs_plot(solution_default, show=True)
+    def test_derivs_show(self, solution_deriv, mpl_interactive):
+        derivs_plot(solution_deriv, show=True)
 
-    def test_derivs_file(self, solution_default, plot_file):
-        derivs_plot(solution_default, plot_filename=plot_file)
+    @pytest.mark.mpl_image_compare
+    def test_derivs_file(self, solution_deriv, plot_file):
+        return derivs_plot(solution_deriv, plot_filename=plot_file,
+                close=False)
 
-    def test_derivs_show_no_internal(self, solution_no_internal, mpl_interactive):
+    def test_derivs_show_no_internal(self, solution_deriv_no_internal, mpl_interactive):
         with pytest.raises(AnalysisError):
-            derivs_plot(solution_no_internal, show=True)
+            derivs_plot(solution_deriv_no_internal, show=True)
 
-    def test_derivs_file_no_internal(self, solution_no_internal, plot_file):
+    def test_derivs_file_no_internal(self, solution_deriv_no_internal, plot_file):
         with pytest.raises(AnalysisError):
-            derivs_plot(solution_no_internal, plot_filename=plot_file)
+            derivs_plot(solution_deriv_no_internal, plot_filename=plot_file)
 
     def test_params_show(self, solution_default, mpl_interactive):
         params_plot(solution_default, show=True)
 
+    @pytest.mark.mpl_image_compare
     def test_params_file(self, solution_default, plot_file):
-        params_plot(solution_default, plot_filename=plot_file)
+        return params_plot(solution_default, plot_filename=plot_file,
+                close=False)
 
     def test_params_show_no_internal(self, solution_no_internal, mpl_interactive):
         with pytest.raises(AnalysisError):
@@ -244,8 +249,9 @@ class TestAnalysis:
     def test_taylor_show(self, solution_taylor, mpl_interactive):
         taylor_plot(solution_taylor, show=True)
 
+    @pytest.mark.mpl_image_compare
     def test_taylor_file(self, solution_taylor, plot_file):
-        taylor_plot(solution_taylor, plot_filename=plot_file)
+        return taylor_plot(solution_taylor, plot_filename=plot_file, close=False)
 
     def test_taylor_show_no_internal(self, solution_no_internal, mpl_interactive):
         with pytest.raises(AnalysisError):
@@ -258,20 +264,24 @@ class TestAnalysis:
     def test_combine_show(self, solution, mpl_interactive):
         combine_plot(solution, show=True)
 
+    @pytest.mark.mpl_image_compare
     def test_combine_file(self, solution, plot_file):
-        combine_plot(solution, plot_filename=plot_file)
+        return combine_plot(solution, plot_filename=plot_file, close=False)
 
     def test_acc_show(self, solution, mpl_interactive):
         acc_plot(solution, show=True)
 
+    @pytest.mark.mpl_image_compare
     def test_acc_file(self, solution, plot_file):
-        acc_plot(solution, plot_filename=plot_file)
+        return acc_plot(solution, plot_filename=plot_file, close=False)
 
     def test_validate_show(self, solution_default, mpl_interactive):
         validate_plot(solution_default, show=True)
 
+    @pytest.mark.mpl_image_compare
     def test_validate_file(self, solution_default, plot_file):
-        validate_plot(solution_default, plot_filename=plot_file)
+        return validate_plot(solution_default, plot_filename=plot_file,
+                close=False)
 
     def test_validate_show_no_internal(self, solution_no_internal, mpl_interactive):
         with pytest.raises(AnalysisError):
@@ -284,8 +294,9 @@ class TestAnalysis:
     def test_jacobian_show(self, solution, mpl_interactive):
         plot(solution, show=True)
 
+    @pytest.mark.mpl_image_compare
     def test_jacobian_file(self, solution, plot_file):
-        plot(solution, plot_filename=plot_file)
+        return plot(solution, plot_filename=plot_file, close=False)
 
     def test_diverge_show(self, solution, mpl_interactive):
         diverge_main([str(solution), '--show'])
@@ -302,8 +313,9 @@ class TestAnalysis:
     def test_j_e_plot_show(self, solution, mpl_interactive):
         j_e_plot(solution, show=True)
 
+    @pytest.mark.mpl_image_compare
     def test_j_e_plot_file(self, solution, plot_file):
-        j_e_plot(solution, plot_filename=plot_file)
+        return j_e_plot(solution, plot_filename=plot_file, close=False)
 
 class TestFilter:
     pass

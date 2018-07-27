@@ -6,7 +6,7 @@ from numpy import degrees
 import matplotlib.pyplot as plt
 
 from .utils import (
-    savefig, common_plotting_options, get_common_plot_args,
+    plot_output_wrapper, common_plotting_options, get_common_plot_args,
     distinct_color_map, analyse_multisolution_wrapper,
 )
 from ..utils import ODEIndex
@@ -76,7 +76,7 @@ def generate_conserve_plot(
 
 def conserve_plot(
     *solutions, plot_filename=None, show=False, stop=90, figargs=None,
-    title=None, linestyle='-'
+    title=None, linestyle='-', close=True
 ):
     """
     Plot solution to file, with velocities, fields onto on one plot
@@ -89,8 +89,6 @@ def conserve_plot(
     else:
         fig.suptitle(title)
 
-    if plot_filename is not None:
-        savefig(fig, plot_filename)
-    if show:
-        plt.show()
-    plt.close(fig)
+    return plot_output_wrapper(
+        fig, file=plot_filename, show=show, close=close
+    )

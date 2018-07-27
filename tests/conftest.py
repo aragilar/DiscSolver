@@ -27,9 +27,17 @@ MULTI_SOLUTIONS = [
 ]
 TAYLOR_SOLUTIONS = [
     "single_solution_default",
-    #"mcmc_solution_default",
     "sonic_root_solution_default",
     "step_solution_default",
+]
+DERIV_SOLUTIONS = [
+    "single_solution_default",
+    "sonic_root_solution_default",
+    "step_solution_default",
+]
+DERIV_NO_INTERNAL_SOLUTIONS = [
+    "single_solution_no_internal",
+    "sonic_root_solution_no_internal",
 ]
 
 @pytest.fixture(scope="session")
@@ -131,6 +139,14 @@ def solutions_many(request):
 
 @pytest.fixture(scope="session", params=TAYLOR_SOLUTIONS)
 def solution_taylor(request):
+    return request.getfixturevalue(request.param)
+
+@pytest.fixture(scope="session", params=DERIV_SOLUTIONS)
+def solution_deriv(request):
+    return request.getfixturevalue(request.param)
+
+@pytest.fixture(scope="session", params=DERIV_NO_INTERNAL_SOLUTIONS)
+def solution_deriv_no_internal(request):
     return request.getfixturevalue(request.param)
 
 @pytest.fixture()

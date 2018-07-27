@@ -9,6 +9,7 @@ import sys
 
 from logbook.compat import redirected_warnings, redirected_logging
 from matplotlib.colors import TABLEAU_COLORS, XKCD_COLORS
+import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
 from h5preserve import open as h5open
@@ -75,13 +76,6 @@ def get_common_plot_args(args):
         "linestyle": args.get("linestyle", "-"),
         "title": args.get("title"),
     }
-
-
-def savefig(fig, file, *, facecolor="none", **kwargs):
-    """
-    Savefig wrapper
-    """
-    fig.savefig(fspath(file), facecolor=facecolor, **kwargs)
 
 
 def analyse_main_wrapper(
@@ -228,3 +222,20 @@ def distinct_color_map(size):
     if size > len(TABLEAU_COLORS):
         return XKCD_COLORS.keys()
     return TABLEAU_COLORS.keys()
+
+
+def plot_output_wrapper(
+    fig, *, file=None, show=False, close=True, facecolor="none", **kwargs
+):
+    """
+    Wrapper for handling whether a figure is shown, saved to file, and/or
+    closed.
+    """
+    if file is not None:
+        fig.savefig(fspath(file), facecolor=facecolor, **kwargs)
+    if show:
+        plt.show()
+    if close:
+        plt.close(fig)
+        return None
+    return fig

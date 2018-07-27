@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
-    get_common_plot_args, analysis_func_wrapper, savefig, AnalysisError
+    get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
+    AnalysisError
 )
 
 
@@ -50,7 +51,7 @@ def derivs_main(soln, *, soln_range, common_plot_args, plot_args):
 @analysis_func_wrapper
 def derivs_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
-    figargs=None, linestyle='.', title=None, nolog=False
+    figargs=None, linestyle='.', title=None, nolog=False, close=True
 ):
     """
     Show derivatives
@@ -60,11 +61,10 @@ def derivs_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
         title=title, nolog=nolog
     )
-    if plot_filename is not None:
-        savefig(fig, plot_filename)
-    if show:
-        plt.show()
-    plt.close(fig)
+
+    return plot_output_wrapper(
+        fig, file=plot_filename, show=show, close=close
+    )
 
 
 @single_solution_plotter

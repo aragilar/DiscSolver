@@ -17,7 +17,7 @@ from ..utils import (
 
 from .utils import (
     single_solution_plotter, analyse_main_wrapper, analysis_func_wrapper,
-    common_plotting_options, get_common_plot_args, savefig
+    common_plotting_options, get_common_plot_args, plot_output_wrapper
 )
 
 
@@ -70,7 +70,7 @@ def combine_main(soln, *, soln_range, common_plot_args, plot_args):
 def combine_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
     with_slow=False, with_alfven=False, with_fast=False, with_sonic=False,
-    stop=90, figargs=None, title=None
+    stop=90, figargs=None, title=None, close=True
 ):
     """
     Plot solution to file, with velocities, fields onto on one plot
@@ -82,11 +82,9 @@ def combine_plot(
         stop=stop, figargs=figargs, title=title,
     )
 
-    if plot_filename is not None:
-        savefig(fig, plot_filename)
-    if show:
-        plt.show()
-    plt.close(fig)
+    return plot_output_wrapper(
+        fig, file=plot_filename, show=show, close=close
+    )
 
 
 @single_solution_plotter
