@@ -66,7 +66,6 @@ def solver(soln_input, run, store_internal=True):
     )
     sampler = emcee.EnsembleSampler(
         soln_input.nwalkers, len(SysVars), logprobfunc,
-        threads=soln_input.threads,
     )
 
     with errstate(invalid="ignore"):
