@@ -558,6 +558,8 @@ def ode_system(
                 a_0=a_0, norm_kepler_sq=norm_kepler_sq, B_r=B_r, B_φ=B_φ,
                 B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r, ρ=ρ,
             )
+            params[ODEIndex.v_r] = v_r
+            params[ODEIndex.v_φ] = v_φ
 
         deriv_B_r = (
             (
@@ -738,7 +740,7 @@ def solution(
     max_steps = soln_input.max_steps
     η_derivs = soln_input.η_derivs
     if no_v_deriv:
-        if float_type != float64:
+        if float_type not in (float, float64):
             log.warn(
                 "Float type used unlikely to work with root solver, setting "
                 "no_v_deriv to False"
