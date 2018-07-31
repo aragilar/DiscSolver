@@ -726,7 +726,7 @@ def hydrostatic_solution(
 def solution(
     soln_input, initial_conditions, *, onroot_func=None, tstop=None,
     ontstop_func=None, store_internal=True, root_func=None,
-    root_func_args=None, θ_scale=float_type(1), no_v_deriv=True
+    root_func_args=None, θ_scale=float_type(1), no_v_deriv=False
 ):
     """
     Find solution
