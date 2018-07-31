@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from types import SimpleNamespace
-import unittest
 
 import pytest
 from pytest import approx
@@ -86,7 +85,7 @@ def solution(initial_conditions, derivs):
     values.deriv.η_A = derivs[ODEIndex.η_A]
     values.deriv.η_H = derivs[ODEIndex.η_H]
 
-    B_mag = sqrt(values.B_r**2 + values.B_φ**2 + values.B_θ **2)
+    B_mag = sqrt(values.B_r**2 + values.B_φ**2 + values.B_θ**2)
     values.norm_B_r, values.norm_B_φ, values.norm_B_θ = (
         values.B_r/B_mag, values.B_φ/B_mag, values.B_θ/B_mag)
     return values
@@ -94,7 +93,8 @@ def solution(initial_conditions, derivs):
 
 def test_continuity(initial_conditions, solution, regtest, test_info, test_id):
     eqn = (
-        (float_type(5)/float_type(2) - 2 * initial_conditions.β) * solution.v_r +
+        (float_type(5)/float_type(2) -
+            2 * initial_conditions.β) * solution.v_r +
         solution.deriv.v_θ + (
             solution.v_θ / solution.ρ
         ) * (
@@ -109,7 +109,8 @@ def test_continuity(initial_conditions, solution, regtest, test_info, test_id):
 
 def test_solenoid(initial_conditions, solution, regtest, test_info, test_id):
     eqn = solution.deriv.B_θ - (
-        (initial_conditions.β - 2) * solution.B_r + solution.B_θ * tan(initial_conditions.angle)
+        (initial_conditions.β - 2) * solution.B_r +
+        solution.B_θ * tan(initial_conditions.angle)
     )
     test_info(eqn)
     regtest.identifier = test_id
@@ -120,7 +121,9 @@ def test_solenoid(initial_conditions, solution, regtest, test_info, test_id):
 def test_radial_momentum(
     initial_conditions, solution, regtest, test_info, test_id
 ):
-    eqn = (solution.v_θ * solution.deriv.v_r - float_type(1)/float_type(2) * solution.v_r**2 -
+    eqn = (
+        solution.v_θ * solution.deriv.v_r -
+        float_type(1)/float_type(2) * solution.v_r**2 -
         solution.v_θ**2 - solution.v_φ**2 + initial_conditions.norm_kepler_sq -
         2 * initial_conditions.β - initial_conditions.a_0 / solution.ρ * (
             solution.B_θ * solution.deriv.B_r + (initial_conditions.β - 1) * (
@@ -137,8 +140,10 @@ def test_radial_momentum(
 def test_azimuthal_mometum(
     initial_conditions, solution, regtest, test_info, test_id
 ):
-    eqn = (solution.v_θ * solution.deriv.v_φ + 1/2 * solution.v_r * solution.v_φ -
-        tan(initial_conditions.angle) * solution.v_θ * solution.v_φ - initial_conditions.a_0 / solution.ρ * (
+    eqn = (
+        solution.v_θ * solution.deriv.v_φ + 1/2 * solution.v_r * solution.v_φ -
+        tan(initial_conditions.angle) * solution.v_θ * solution.v_φ -
+        initial_conditions.a_0 / solution.ρ * (
             solution.B_θ * solution.deriv.B_φ +
             (1 - initial_conditions.β) * solution.B_r * solution.B_φ -
             tan(initial_conditions.angle) * solution.B_θ * solution.B_φ
@@ -153,11 +158,14 @@ def test_azimuthal_mometum(
 def test_polar_momentum(
     initial_conditions, solution, regtest, test_info, test_id
 ):
-    eqn = (solution.v_r * solution.v_θ / 2 + solution.v_θ * solution.deriv.v_θ +
-        tan(initial_conditions.angle) * solution.v_φ ** 2 + solution.deriv.ρ / solution.ρ +
+    eqn = (
+        solution.v_r * solution.v_θ / 2 + solution.v_θ * solution.deriv.v_θ +
+        tan(initial_conditions.angle) * solution.v_φ ** 2 +
+        solution.deriv.ρ / solution.ρ +
         initial_conditions.a_0 / solution.ρ * (
             (initial_conditions.β - 1) * solution.B_θ * solution.B_r +
-            solution.B_r * solution.deriv.B_r + solution.B_φ * solution.deriv.B_φ -
+            solution.B_r * solution.deriv.B_r +
+            solution.B_φ * solution.deriv.B_φ -
             solution.B_φ ** 2 * tan(initial_conditions.angle)
         )
     )
@@ -229,11 +237,3 @@ def test_E_φ(initial_conditions, solution, regtest, test_info, test_id):
     regtest.identifier = test_id
     print(eqn, file=regtest)
     assert eqn == approx(0)
-
-
-# This would be useful to do when I have time
-#def test_azimuthal_induction_algebraic(self):
-#    eqn = 1 # FAIL
-#    test_info(eqn)
-#    self.assertAlmostEqual(0,eqn)
-
