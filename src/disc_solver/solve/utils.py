@@ -214,7 +214,7 @@ def add_overrides(*, overrides, config_input):
     """
     if overrides is None:
         return config_input
-    return attr.assoc(config_input, **overrides)
+    return attr.evolve(config_input, **overrides)
 
 
 def validate_overrides(overrides):

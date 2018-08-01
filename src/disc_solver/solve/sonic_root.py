@@ -220,32 +220,33 @@ def total_vars_to_mod_cons(*, initial_conditions, guess, sonic_stop):
             B_r/B_mag, B_φ/B_mag, B_θ/B_mag
         )
 
-    mod_cons.init_con[ODEIndex.v_r] = ρ * (
-        η_O + η_A * (1 - norm_B_φ**2)
-    ) / (
-        B_r * B_θ * a_0 - (1 / 2 - 2 * γ) * ρ * (
+    with errstate(invalid="ignore", divide="ignore"):
+        mod_cons.init_con[ODEIndex.v_r] = ρ * (
             η_O + η_A * (1 - norm_B_φ**2)
-        )
-    ) * (
-        tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
-            B_r * (
-                B_r + B_φ_prime * (
-                    η_H * norm_B_θ -
-                    η_A * norm_B_r * norm_B_φ
-                ) + B_φ * (
-                    η_A * norm_B_φ * (
-                        norm_B_θ * (1/4 - γ) +
-                        norm_B_r * tan(θ)
-                    ) - η_H * (
-                        norm_B_r * (1/4 - γ) +
-                        norm_B_θ * tan(θ)
-                    )
-                )
-            ) / (
+        ) / (
+            B_r * B_θ * a_0 - (1 / 2 - 2 * γ) * ρ * (
                 η_O + η_A * (1 - norm_B_φ**2)
-            ) + B_φ * B_φ_prime - B_φ ** 2 * tan(θ)
+            )
+        ) * (
+            tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
+                B_r * (
+                    B_r + B_φ_prime * (
+                        η_H * norm_B_θ -
+                        η_A * norm_B_r * norm_B_φ
+                    ) + B_φ * (
+                        η_A * norm_B_φ * (
+                            norm_B_θ * (1/4 - γ) +
+                            norm_B_r * tan(θ)
+                        ) - η_H * (
+                            norm_B_r * (1/4 - γ) +
+                            norm_B_θ * tan(θ)
+                        )
+                    )
+                ) / (
+                    η_O + η_A * (1 - norm_B_φ**2)
+                ) + B_φ * B_φ_prime - B_φ ** 2 * tan(θ)
+            )
         )
-    )
 
     if any(isnan(mod_cons.init_con)):
         raise SolverError("Initial conditions contains NaN: {}".format(
