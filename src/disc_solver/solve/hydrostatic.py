@@ -484,7 +484,7 @@ def v_φ_func(
         b_θ=b_θ
     )
 
-    return - b + sqrt(b**2 - 4 * c)
+    return - b / 2 + sqrt(b**2 - 4 * c) / 2
 
 
 def ode_system(
@@ -560,6 +560,12 @@ def ode_system(
             )
             params[ODEIndex.v_r] = v_r
             params[ODEIndex.v_φ] = v_φ
+        else:
+            v_φ = v_φ_func(
+                a_0=a_0, norm_kepler_sq=norm_kepler_sq, B_r=B_r, B_φ=B_φ,
+                B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r, ρ=ρ,
+            )
+            params[ODEIndex.v_φ] = v_φ
 
         deriv_B_r = (
             (
@@ -634,6 +640,7 @@ def ode_system(
         derivs[ODEIndex.η_H] = deriv_η_H
 
         derivs[ODEIndex.v_θ] = 0
+        derivs[ODEIndex.v_φ] = 0
         if no_v_deriv:
             derivs[VELOCITY_INDEXES] = 0
         if __debug__:
@@ -758,11 +765,19 @@ def solution(
         root_func_args=root_func_args, θ_scale=θ_scale, no_v_deriv=no_v_deriv
     )
 
+    out_angles = scaled_to_rad(soln.values.t, θ_scale)
+    values = soln.values.y
+    values[:, ODEIndex.v_φ] = v_φ_func(
+        a_0=a_0, norm_kepler_sq=norm_kepler_sq, B_r=values[:, ODEIndex.B_r],
+        B_φ=values[:, ODEIndex.B_φ], B_θ=values[:, ODEIndex.B_θ],
+        η_O=values[:, ODEIndex.η_O], η_H=values[:, ODEIndex.η_H],
+        η_A=values[:, ODEIndex.η_A], θ=out_angles, v_r=values[:, ODEIndex.v_r],
+        ρ=values[:, ODEIndex.ρ],
+    )
     return Solution(
         solution_input=soln_input, initial_conditions=initial_conditions,
         flag=soln.flag, coordinate_system=COORDS, internal_data=internal_data,
-        angles=scaled_to_rad(soln.values.t, θ_scale), solution=soln.values.y,
-        t_roots=(
+        angles=out_angles, solution=values, t_roots=(
             scaled_to_rad(soln.roots.t, θ_scale)
             if soln.roots.t is not None else None
         ), y_roots=soln.roots.y, sonic_point=None,
