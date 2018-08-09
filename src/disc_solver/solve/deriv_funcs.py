@@ -246,8 +246,8 @@ def Y_4_func(a_0, v_r, v_φ, deriv_B_r, deriv_B_φ, γ, Y_2, Y_1):
     Compute Y_4
     """
     return 2 * a_0 * (
-        Y_2 - deriv_B_φ * (deriv_B_r * (5/4 - γ) - Y_1 + 1)
-    ) - 8 * γ * v_r * v_φ
+        Y_2 - deriv_B_φ * (deriv_B_r * (5/4 - γ) - Y_1)
+    ) - 4 * γ * v_r * v_φ
 
 
 def Y_5_func(a_0, v_r, γ, η_perp_sq):
