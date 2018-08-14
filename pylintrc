@@ -20,7 +20,7 @@ load-plugins=
 # A comma-separated list of package or module names from where C extensions
 # may be loaded. Extensions are loading into the active Python interpreter and
 # may run arbitrary code
-extension-pkg-whitelist=numpy,scikits
+extension-pkg-whitelist=numpy,scikits.odes.sundials
 
 [REPORTS]
 
@@ -192,7 +192,7 @@ ignore-mixin-members=yes
 # List of module names for which member attributes should not be checked
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis
-ignored-modules=numpy,scikits.odes.sundials.cvode
+ignored-modules=numpy,scikits.odes.sundials.cvode,scikits.odes.sundials
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set).
