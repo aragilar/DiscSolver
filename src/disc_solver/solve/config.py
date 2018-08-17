@@ -3,11 +3,10 @@
 Define input and environment for ode system
 """
 
-from math import sqrt
-
 import logbook
 
 import numpy as np
+from numpy import sqrt
 
 from ..float_handling import float_type, FLOAT_TYPE
 from ..file_format import ConfigInput, InitialConditions, SolutionInput

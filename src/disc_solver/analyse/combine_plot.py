@@ -3,10 +3,9 @@
 Combine-plot command for DiscSolver
 """
 from collections import OrderedDict
-from math import sqrt
 
 import numpy as np
-from numpy import degrees
+from numpy import degrees, sqrt
 import matplotlib.pyplot as plt
 
 from ..constants import KM

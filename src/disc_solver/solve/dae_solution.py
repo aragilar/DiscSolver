@@ -3,11 +3,9 @@
 The system of daes
 """
 
-from math import sqrt, tan, degrees
-
 import logbook
 
-from numpy import copy
+from numpy import copy, sqrt, tan, degrees
 
 from scikits.odes import dae
 from scikits.odes.sundials import (

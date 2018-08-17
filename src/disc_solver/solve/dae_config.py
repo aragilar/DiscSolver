@@ -3,11 +3,10 @@
 Define input and environment for dae system
 """
 
-from math import sqrt
-
 import logbook
 
 import numpy as np
+from numpy import sqrt
 
 from ..file_format import DAEInitialConditions
 from ..utils import ODEIndex

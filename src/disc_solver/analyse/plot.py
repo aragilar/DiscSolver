@@ -2,9 +2,7 @@
 """
 Plot command for DiscSolver
 """
-from math import sqrt
-
-from numpy import degrees, sqrt as np_sqrt, ones as np_ones
+from numpy import degrees, sqrt, ones as np_ones
 import matplotlib.pyplot as plt
 
 from ..utils import (
@@ -101,7 +99,7 @@ def generate_plot(
     angles = soln.angles
     cons = soln.initial_conditions
 
-    wave_speeds = np_sqrt(mhd_wave_speeds(
+    wave_speeds = sqrt(mhd_wave_speeds(
         solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1
     ))
 

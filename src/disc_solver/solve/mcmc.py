@@ -4,13 +4,12 @@ Stepper related logic
 """
 
 from enum import IntEnum, unique
-from math import isfinite
 
 import logbook
 
 import emcee
 
-from numpy import any as np_any, diff, errstate
+from numpy import any as np_any, diff, errstate, isfinite
 from numpy.random import randn
 
 from .config import define_conditions
