@@ -41,7 +41,7 @@ def define_conditions(inp):
 
     try:
         v_φ = (
-            - v_r * η_H / (4 * (η_O + η_A)) + sqrt(
+            v_r * η_H / (4 * (η_O + η_A)) + sqrt(
                 norm_kepler_sq - 5/2 + 2 * γ + v_r * (
                     a_0 / (η_O + η_A) + v_r / 2 * (
                         η_H ** 2 / (8 * (η_O + η_A) ** 2) - 1
