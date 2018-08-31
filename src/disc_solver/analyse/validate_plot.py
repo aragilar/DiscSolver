@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from ..float_handling import float_type
 from ..utils import ODEIndex
 
+from .j_e_plot import J_func, E_func
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
     get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
@@ -186,6 +187,7 @@ def get_values(solution):
     )
 
     values.initial_conditions.a_0 = init_con.a_0
+    values.initial_conditions.γ = init_con.γ
     values.initial_conditions.β = float_type(5)/float_type(4) - init_con.γ
     values.initial_conditions.norm_kepler_sq = init_con.norm_kepler_sq
 
@@ -231,35 +233,21 @@ def get_E_values(initial_conditions, values):
     """
     Compute values for E
     """
-    J_r = values.deriv.B_φ - values.B_φ * tan(values.angles)
-    J_θ = (1 - initial_conditions.β) * values.B_φ
-    J_φ = values.B_θ * (1 - initial_conditions.β) - values.deriv.B_r
-
-    E_r_dash = values.η_O * J_r + values.η_H * (
-        J_θ * values.norm_B_φ - J_φ * values.norm_B_θ
-    ) - values.η_A * (
-        J_φ * values.norm_B_r * values.norm_B_φ +
-        J_θ * values.norm_B_r * values.norm_B_θ -
-        J_r * (1 - values.norm_B_r ** 2)
-    )
-    E_θ_dash = values.η_O * J_θ + values.η_H * (
-        J_φ * values.norm_B_r - J_r * values.norm_B_φ
-    ) - values.η_A * (
-        J_r * values.norm_B_r * values.norm_B_θ +
-        J_φ * values.norm_B_θ * values.norm_B_φ -
-        J_θ * (1 - values.norm_B_θ ** 2)
-    )
-    E_φ_dash = values.η_O * J_φ + values.η_H * (
-        J_r * values.norm_B_θ - J_θ * values.norm_B_r
-    ) - values.η_A * (
-        J_θ * values.norm_B_θ * values.norm_B_φ +
-        J_r * values.norm_B_r * values.norm_B_φ -
-        J_φ * (1 - values.norm_B_φ ** 2)
+    J_r, J_θ, J_φ = J_func(
+        γ=initial_conditions.γ, θ=values.angles, B_θ=values.B_θ,
+        B_φ=values.B_φ, deriv_B_φ=values.deriv.B_φ,
+        deriv_B_r=values.deriv.B_r,
     )
 
-    E_r = values.v_θ * values.B_φ - values.v_φ * values.B_θ - E_r_dash
-    E_θ = values.v_φ * values.B_r - values.v_r * values.B_φ - E_θ_dash
-    E_φ = values.v_r * values.B_θ - values.v_θ * values.B_r - E_φ_dash
+    E_r, E_θ, E_φ = E_func(
+        v_r=values.v_r, v_θ=values.v_θ, v_φ=values.v_φ, B_r=values.B_r,
+        B_θ=values.B_θ, B_φ=values.B_φ, J_r=J_r, J_θ=J_θ, J_φ=J_φ,
+        η_O=values.η_O, η_A=values.η_A, η_H=values.η_H,
+    )
+
+    E_r_dash = values.v_φ * values.B_θ - values.v_θ * values.B_φ - E_r
+    E_θ_dash = values.v_r * values.B_φ - values.v_φ * values.B_r - E_θ
+    E_φ_dash = values.v_θ * values.B_r - values.v_r * values.B_θ - E_φ
 
     return (
         (J_r, J_θ, J_φ),
