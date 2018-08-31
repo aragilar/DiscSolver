@@ -140,23 +140,24 @@ def test_polar_momentum(
     assert eqn == approx(0)
 
 
+@pytest.mark.xfail
 def test_polar_induction(
     initial_conditions, solution, regtest, test_info, test_id
 ):
     eqn = (
         solution.v_θ * solution.B_r -
-        solution.v_r * solution.B_θ + (
-            solution.B_θ * (1 - initial_conditions.β) - solution.deriv.B_r
+        solution.v_r * solution.B_θ - (
+            solution.deriv.B_r - solution.B_θ * (1 - initial_conditions.β)
         ) * (
             solution.η_O + solution.η_A * (1 - solution.norm_B_φ**2)
-        ) + solution.deriv.B_φ * (
-            solution.η_H * solution.norm_B_θ -
+        ) - solution.deriv.B_φ * (
+            solution.η_H * solution.norm_B_θ +
             solution.η_A * solution.norm_B_r * solution.norm_B_φ
-        ) + solution.B_φ * (
+        ) - solution.B_φ * (
             solution.η_H * (
                 solution.norm_B_r * (1 - initial_conditions.β) -
                 solution.norm_B_θ * tan(initial_conditions.angle)
-            ) + solution.η_A * solution.norm_B_φ * (
+            ) - solution.η_A * solution.norm_B_φ * (
                 solution.norm_B_θ * (1 - initial_conditions.β) +
                 solution.norm_B_r * tan(initial_conditions.angle)
             )
@@ -184,6 +185,7 @@ def test_azimuthal_induction_numeric(
     assert eqn == approx(0, abs=5e-12)
 
 
+@pytest.mark.xfail
 def test_E_φ(initial_conditions, solution, regtest, test_info, test_id):
     J_r, J_θ, J_φ = J_func(
         γ=initial_conditions.γ, θ=initial_conditions.angle, B_θ=solution.B_θ,

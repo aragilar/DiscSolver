@@ -22,14 +22,14 @@ def deriv_B_r_func(*, θ, γ, B_r, B_θ, B_φ, v_r, v_θ, deriv_B_φ, η_O, η_A
 
     return (
         (
-            v_θ * B_r - v_r * B_θ + deriv_B_φ * (
-                η_H * norm_B_θ -
+            v_θ * B_r - v_r * B_θ - deriv_B_φ * (
+                η_H * norm_B_θ +
                 η_A * norm_B_r * norm_B_φ
             ) + B_φ * (
                 η_A * norm_B_φ * (
                     norm_B_r * tan(θ) -
                     norm_B_θ * (1/4 - γ)
-                ) - η_H * (
+                ) + η_H * (
                     norm_B_r * (1/4 - γ) +
                     norm_B_θ * tan(θ)
                 )
@@ -69,16 +69,16 @@ def A_func(
     Compute the value of the variable A
     """
     return (
-        (
-            deriv_η_O + deriv_η_A * (1 - b_φ ** 2) - 2 * η_A * b_φ * deriv_b_φ
-        ) * (η_H * b_θ + η_A * b_r * b_φ)
-    ) / (
-        (η_O + η_A * (1 - b_φ ** 2)) ** 2
-    ) - (
-        deriv_η_H * b_θ + η_H * deriv_b_θ + deriv_η_A * b_r * b_φ +
-        η_A * deriv_b_r * b_φ + η_A * b_r * deriv_b_φ
+        deriv_η_H * b_θ + η_H * deriv_b_θ - deriv_η_A * b_r * b_φ -
+        η_A * deriv_b_r * b_φ - η_A * b_r * deriv_b_φ
     ) / (
         η_O + η_A * (1 - b_φ ** 2)
+    ) - (
+        (
+            deriv_η_O + deriv_η_A * (1 - b_φ ** 2) - 2 * η_A * b_φ * deriv_b_φ
+        ) * (η_H * b_θ - η_A * b_r * b_φ)
+    ) / (
+        (η_O + η_A * (1 - b_φ ** 2)) ** 2
     )
 
 
@@ -86,7 +86,7 @@ def C_func(*, η_O, η_A, η_H, b_θ, b_r, b_φ):
     """
     Compute the value of the variable C
     """
-    return (η_H * b_θ + η_A * b_r * b_φ) / (η_O + η_A * (1 - b_φ ** 2))
+    return (η_H * b_θ - η_A * b_r * b_φ) / (η_O + η_A * (1 - b_φ ** 2))
 
 
 def dderiv_B_φ_soln(

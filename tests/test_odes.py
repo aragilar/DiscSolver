@@ -180,18 +180,18 @@ def test_polar_induction(
 ):
     eqn = (
         solution.v_θ * solution.B_r -
-        solution.v_r * solution.B_θ + (
-            solution.B_θ * (1 - initial_conditions.β) - solution.deriv.B_r
+        solution.v_r * solution.B_θ - (
+            solution.deriv.B_r - solution.B_θ * (1 - initial_conditions.β)
         ) * (
             solution.η_O + solution.η_A * (1 - solution.norm_B_φ**2)
-        ) + solution.deriv.B_φ * (
-            solution.η_H * solution.norm_B_θ -
+        ) - solution.deriv.B_φ * (
+            solution.η_H * solution.norm_B_θ +
             solution.η_A * solution.norm_B_r * solution.norm_B_φ
-        ) + solution.B_φ * (
+        ) - solution.B_φ * (
             solution.η_H * (
                 solution.norm_B_r * (1 - initial_conditions.β) -
                 solution.norm_B_θ * tan(initial_conditions.angle)
-            ) + solution.η_A * solution.norm_B_φ * (
+            ) - solution.η_A * solution.norm_B_φ * (
                 solution.norm_B_θ * (1 - initial_conditions.β) +
                 solution.norm_B_r * tan(initial_conditions.angle)
             )
