@@ -198,30 +198,25 @@ def Y_2_func(
     """
     Compute Y_2
     """
-    return η_P / η_perp_sq * (
-        deriv_B_r * (
-            4 * γ * v_r * η_H / η_P + v_φ * (3 / 4 - γ) +
-            η_H * (1 / 4 - γ) * (3 / 4 - γ)
-        ) + deriv_B_φ * (
-            η_P * (
-                2 - (3 / 4 - γ) * (1 / 4 - γ)
-            ) - (3 / 4 - 5 * γ) * v_r - dderiv_η_P * (
-                1 + (η_H ** 2) / (η_P ** 2)
-            ) + (η_H ** 2) / η_P
-        ) + deriv_B_φ ** 2 * η_H * (
-            1 / 4 + γ + v_r / η_P - 2 * η_A / η_P * (
-                1 / 4 - γ + v_r / η_P
+    return - η_P / η_perp_sq * (
+        (3 / 4 - γ) * (
+            (1 / 4 - γ) * η_P * deriv_B_φ + (1 / 4 - γ) * η_H * deriv_B_r +
+            η_H * (deriv_B_φ ** 2 + deriv_B_r ** 2)
+        ) - (v_r + η_H * deriv_B_φ) / η_P * (
+            η_H * (
+                deriv_B_r ** 2 + deriv_B_φ ** 2
+            ) - dderiv_η_H + 2 * η_A * deriv_B_r * deriv_B_φ + η_H / η_P * (
+                dderiv_η_P - 2 * η_A * deriv_B_φ ** 2
             )
-        ) + deriv_B_r ** 2 * η_H * (
-            v_r / η_P - (3 / 4 - γ)
-        ) + deriv_B_φ * deriv_B_r * (
-            ((1 / 4 - γ) * η_H ** 2 - 2 * η_A * v_r) / η_P +
-            (1 / 4 - γ) * η_A
-        ) + dderiv_B_θ * (v_r * η_H / η_P - v_φ) +
-        dderiv_η_P * η_H * v_r / (η_P ** 2) -
-        dderiv_η_H * v_r / η_P +
-        2 * η_A * deriv_B_r ** 2 * deriv_B_φ +
-        2 * η_A * η_H ** 2 * deriv_B_φ ** 3 / (η_P ** 2)
+        ) + deriv_B_φ * (
+            η_A * (1 / 2 - 2 * γ) * deriv_B_r * (
+                1 + η_H / η_P
+            ) + η_H * (1 / 2 - 2 * γ) * deriv_B_φ * (
+                1 - η_H / η_P
+            ) + dderiv_η_P - 2 * η_A * deriv_B_r ** 2 + 4 * γ * v_r -
+            2 * η_H ** 2 / η_P
+        ) + v_φ * dderiv_B_θ + η_H * v_r * dderiv_B_θ / η_P +
+        4 * γ * v_r * deriv_B_r * η_H / η_P
     )
 
 
@@ -232,19 +227,16 @@ def Y_3_func(
     """
     Compute Y_3
     """
-    return - (
-        v_r * (
-            dderiv_B_θ + 4 * γ * deriv_B_r - dderiv_η_P / η_P
-        ) - dderiv_η_H * deriv_B_φ + η_H * deriv_B_φ * (
-            2 + dderiv_η_P / η_P + deriv_B_r * (
-                2 * (1/4 - γ) + deriv_B_r
-            ) + deriv_B_φ ** 2 * (
-                1 - 2 * η_A / η_P
-            )
-        ) + 2 * η_A * deriv_B_φ ** 2 * (
-            deriv_B_r + v_r / η_P - γ + 1/4
-        )
-    ) / η_P - dderiv_B_θ * (1/4 - γ)
+    return (
+        dderiv_η_P * v_r + dderiv_η_P * η_H * deriv_B_φ -
+        2 * v_r * η_A * deriv_B_φ ** 2 - 2 * η_A * η_H * deriv_B_φ ** 3
+    ) / (η_P ** 2) - (
+        4 * γ * v_r * deriv_B_r + (1 / 2 - 2 * γ) * η_A * deriv_B_φ ** 2 -
+        (1 / 2 - 2 * γ) * η_H * deriv_B_r * deriv_B_φ - 2 * η_H * deriv_B_φ -
+        η_H * deriv_B_r ** 2 * deriv_B_φ - η_H * deriv_B_φ ** 3 +
+        dderiv_η_H * deriv_B_φ + 2 * η_A * deriv_B_r * deriv_B_φ ** 2 +
+        v_r * dderiv_B_θ
+    ) / η_P - dderiv_B_θ * (1 / 4 - γ)
 
 
 def Y_4_func(a_0, v_r, v_φ, deriv_B_r, deriv_B_φ, γ, Y_2, Y_1):
@@ -263,15 +255,15 @@ def Y_5_func(a_0, v_r, γ, η_perp_sq):
     return v_r * (1 - 8 * γ) + 2 * a_0 / η_perp_sq
 
 
-def Y_6_func(a_0, v_r, v_φ, γ, η_perp_sq, η_H, Y_5):
+def Y_6_func(a_0, v_r, v_φ, γ, η_perp_sq, η_H, η_P, Y_5):
     """
     Compute Y_6
     """
-    return (
-        v_φ / Y_5 - a_0 * η_H / (2 * η_perp_sq * Y_5)
+    return 1 / Y_5 * (
+        2 * a_0 * η_H / η_perp_sq + v_φ
     ) * (
-        2 * a_0 * η_H / η_perp_sq - v_φ
-    ) + v_φ ** 2 / Y_5 - (2 * γ + 1 / 2) * v_r
+        1 + η_H * a_0 / (2 * η_perp_sq)
+    ) - η_P * a_0 / (2 * η_perp_sq) - (2 * γ + 1 / 2) * v_r
 
 
 def dderiv_v_r_midplane(
@@ -283,8 +275,8 @@ def dderiv_v_r_midplane(
     """
     return (
         v_φ * Y_4 / Y_5 + 4 * γ ** 2 * v_r ** 2 + a_0 / 2 * (
-            dderiv_B_θ * deriv_B_r + 2 * deriv_B_φ ** 2 * (1 / 4 - γ) + Y_3 +
-            Y_2 * η_H / η_P - η_H * Y_4 / (η_perp_sq * Y_5) +
+            dderiv_B_θ * deriv_B_r + 2 * deriv_B_φ ** 2 * (1 / 4 - γ) + Y_3 -
+            Y_2 * η_H / η_P + η_H * Y_4 / (η_perp_sq * Y_5) +
             2 * dderiv_B_θ * (1 / 4 - γ) + Y_1 * (deriv_B_r + 1 / 4 - γ)
         )
     ) / Y_6
@@ -294,7 +286,7 @@ def dderiv_v_φ_midplane(a_0, v_φ, dderiv_v_r, η_perp_sq, η_H, Y_5, Y_4):
     """
     Compute v_φ'' around the midplane
     """
-    return dderiv_v_r / Y_5 * (a_0 * η_H / η_perp_sq - v_φ) + Y_4 / Y_5
+    return Y_4 / Y_5 - dderiv_v_r / Y_5 * (2 * a_0 * η_H / η_perp_sq + v_φ)
 
 
 def ddderiv_B_φ_midplane(
@@ -303,16 +295,16 @@ def ddderiv_B_φ_midplane(
     """
     Compute B_φ''' around the midplane
     """
-    return (η_H * dderiv_v_r / η_perp_sq) - (
+    return Y_2 - (η_H * dderiv_v_r / η_perp_sq) - (
         dderiv_v_φ * η_P / η_perp_sq
-    ) + Y_2
+    )
 
 
 def ddderiv_B_r_midplane(Y_3, η_H, η_P, dderiv_v_r, dderiv_B_φ_prime):
     """
     Compute B_r''' around the midplane
     """
-    return Y_3 + (η_H * dderiv_B_φ_prime - dderiv_v_r) / η_P
+    return Y_3 - (η_H * dderiv_B_φ_prime + dderiv_v_r) / η_P
 
 
 def ddderiv_v_θ_midplane(dderiv_ρ, dderiv_v_r, v_r, γ):
@@ -365,7 +357,7 @@ def taylor_series(*, γ, a_0, init_con, η_derivs):
     )
     Y_4 = Y_4_func(a_0, v_r, v_φ, deriv_B_r, deriv_B_φ, γ, Y_2, Y_1)
     Y_5 = Y_5_func(a_0, v_r, γ, η_perp_sq)
-    Y_6 = Y_6_func(a_0, v_r, v_φ, γ, η_perp_sq, η_H, Y_5)
+    Y_6 = Y_6_func(a_0, v_r, v_φ, γ, η_perp_sq, η_H, η_P, Y_5)
 
     dderiv_v_r = dderiv_v_r_midplane(
         a_0, v_r, v_φ, deriv_B_r, deriv_B_φ, dderiv_B_θ, γ, η_perp_sq, η_H,
