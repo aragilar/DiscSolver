@@ -314,6 +314,13 @@ def ddderiv_v_θ_midplane(dderiv_ρ, dderiv_v_r, v_r, γ):
     return 4 * γ * v_r * (dderiv_ρ - 1 - dderiv_v_r / (2 * v_r))
 
 
+def deriv_B_r_midplane_func(*, γ, deriv_B_φ, η_H, η_P, v_r):
+    """
+    Compute B_r' at the midplane
+    """
+    return γ - 1/4 - (deriv_B_φ * η_H + v_r) / η_P
+
+
 def taylor_series(*, γ, a_0, init_con, η_derivs):
     """
     Compute taylor series for second and third order components.
@@ -329,7 +336,9 @@ def taylor_series(*, γ, a_0, init_con, η_derivs):
     η_P = η_O + η_A
     η_perp_sq = η_P ** 2 + η_H ** 2
 
-    deriv_B_r = γ - 1/4 + (deriv_B_φ * η_H - v_r) / η_P
+    deriv_B_r = deriv_B_r_midplane_func(
+        γ=γ, deriv_B_φ=deriv_B_φ, η_H=η_H, η_P=η_P, v_r=v_r
+    )
 
     dderiv_B_θ = 1 - (γ + 3/4) * deriv_B_r
 
@@ -414,6 +423,7 @@ def deriv_v_θ_sonic(
     """
     Compute v_θ' at the sonic point
     """
+    # THIS IS CURRENTLY INCORRECT!!!
     deriv_B_φ = B_φ_prime
 
     B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
@@ -566,10 +576,13 @@ def get_taylor_first_order(*, init_con, γ):
     η_O = init_con[ODEIndex.η_O]
     η_A = init_con[ODEIndex.η_A]
     η_H = init_con[ODEIndex.η_H]
+    η_P = η_O + η_A
 
     first_order = zeros(len(ODEIndex))
 
-    first_order[ODEIndex.B_r] = γ - 1/4 + (B_φ_prime * η_H - v_r) / (η_O + η_A)
+    first_order[ODEIndex.B_r] = deriv_B_r_midplane_func(
+        γ=γ, deriv_B_φ=B_φ_prime, η_H=η_H, η_P=η_P, v_r=v_r
+    )
     first_order[ODEIndex.B_φ] = B_φ_prime
     first_order[ODEIndex.v_θ] = - 2 * γ * v_r
 
