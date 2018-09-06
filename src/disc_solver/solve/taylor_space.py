@@ -154,6 +154,7 @@ def plot_taylor_space(taylor_space, **kwargs):
     first_order, second_order, third_order = zip(*taylor_space.taylor_orders)
     ys = np.array(second_order)
     print(min(ys[:, ODEIndex.v_r]))
+    print(min(ys[:, ODEIndex.v_φ]))
 
     in_names = [item.name for item in Parameters]
     out_names = [item.name for item in ODEIndex]
@@ -177,6 +178,7 @@ def main():
 
     limits = np.array([[0, None]] * len(ODEIndex))
     limits[ODEIndex.v_r] = [-100, 0]
+    limits[ODEIndex.v_φ] = [-100, 0]
 
     plot_taylor_space(
         taylor_space, limits=limits,
