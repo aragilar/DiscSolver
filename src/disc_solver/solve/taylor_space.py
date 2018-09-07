@@ -60,7 +60,7 @@ def compute_taylor_space(
     """
     Generate taylor space based on ranges
     """
-    taylor_orders = zeros((num_samples, TAYLOR_NUM_ORDERS, len(ODEIndex)))
+    taylor_orders = zeros((num_samples, TAYLOR_NUM_ORDERS + 1, len(ODEIndex)))
 
     γ_arr = uniform(γ[0], γ[1], size=num_samples)
     v_rin_on_c_s_arr = uniform(
@@ -91,6 +91,7 @@ def compute_taylor_values(inp):
     γ = cons.γ
     a_0 = cons.a_0
     return (
+        init_con,
         get_taylor_first_order(init_con=init_con, γ=γ),
         get_taylor_second_order(
             γ=γ, a_0=a_0, init_con=init_con, η_derivs=False
@@ -151,7 +152,9 @@ def plot_taylor_space(taylor_space, **kwargs):
         taylor_space.c_s_on_v_k_arr,
     ]).T
 
-    first_order, second_order, third_order = zip(*taylor_space.taylor_orders)
+    zero_order, first_order, second_order, third_order = zip(
+        *taylor_space.taylor_orders
+    )
     ys = np.array(second_order)
     print(min(ys[:, ODEIndex.v_r]))
     print(min(ys[:, ODEIndex.v_φ]))
