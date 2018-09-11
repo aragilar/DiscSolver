@@ -16,7 +16,6 @@ from .config import (
 )
 from .stepper import solver as stepper_solver
 from .single import solver as single_solver
-from .dae_single import solver as dae_single_solver
 from .mcmc import solver as mcmc_solver
 from .sonic_root import solver as sonic_root_solver
 from .hydrostatic import solver as hydrostatic_solver
@@ -62,11 +61,6 @@ def solve(
             )
         elif sonic_method == "single":
             single_solver(
-                config_input_to_soln_input(config_input), run,
-                store_internal=store_internal,
-            )
-        elif sonic_method == "dae_single":
-            dae_single_solver(
                 config_input_to_soln_input(config_input), run,
                 store_internal=store_internal,
             )

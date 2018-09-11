@@ -255,46 +255,6 @@ class InternalData:
         return self
 
 
-@attr.s(cmp=False, hash=False)
-class DAEInternalData:
-    """
-    Container for values computed internally during the solution
-    """
-    derivs = attr.ib(default=attr.Factory(list))
-    params = attr.ib(default=attr.Factory(list))
-    angles = attr.ib(default=attr.Factory(list))
-    residuals = attr.ib(default=attr.Factory(list))
-    problems = attr.ib(default=attr.Factory(Problems))
-
-    def _finalise(self):
-        """
-        Finalise data for storage in hdf5 files
-        """
-        self.derivs = asarray(self.derivs)
-        if self.derivs.size == 0:
-            self.derivs.shape = (0, len(ODEIndex))
-
-        self.params = asarray(self.params)
-        if self.params.size == 0:
-            self.params.shape = (0, len(ODEIndex))
-
-        self.angles = asarray(self.angles)
-        self.residuals = asarray(self.residuals)
-
-    def __add__(self, other):
-        self._finalise()
-        other._finalise()  # pylint: disable=protected-access
-        problems = Problems(**self.problems)  # pylint: disable=not-a-mapping
-        problems.update(other.problems)
-        return InternalData(
-            derivs=concatenate((self.derivs, other.derivs)),
-            params=concatenate((self.params, other.params)),
-            angles=concatenate((self.angles, other.angles)),
-            residuals=concatenate((self.residuals, other.residuals)),
-            problems=problems,
-        )
-
-
 class Solutions(MutableMapping):
     """
     Container holding the different solutions generated
@@ -430,18 +390,5 @@ class InitialConditions:
         self.η_O = η_O
         self.η_A = η_A
         self.η_H = η_H
-
-
-@attr.s(cmp=False, hash=False)
-class DAEInitialConditions:
-    """
-    Container holding the initial conditions for the solver
-    """
-    norm_kepler_sq = attr.ib()
-    a_0 = attr.ib()
-    γ = attr.ib()
-    angles = attr.ib()
-    init_con = attr.ib()
-    deriv_init_con = attr.ib()
 
 # pylint: enable=too-few-public-methods

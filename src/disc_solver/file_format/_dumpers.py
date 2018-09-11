@@ -7,27 +7,12 @@ from h5preserve import GroupContainer, OnDemandGroupContainer
 
 from ._containers import (
     Solution, SolutionInput, ConfigInput, Problems, InternalData,
-    DAEInternalData, DAEInitialConditions, Run, InitialConditions,
-    JacobianData, Solutions
+    Run, InitialConditions, JacobianData, Solutions,
 )
 from ._utils import ds_registry
 
 
 # pylint: disable=missing-docstring
-
-@ds_registry.dumper(DAEInternalData, "DAEInternalData", version=1)
-def _dae_internal_dump(internal_data):
-    # pylint: disable=protected-access
-    internal_data._finalise()
-    # pylint: enable=protected-access
-    return GroupContainer(
-        derivs=internal_data.derivs,
-        params=internal_data.params,
-        angles=internal_data.angles,
-        residuals=internal_data.residuals,
-        problems=internal_data.problems,
-    )
-
 
 @ds_registry.dumper(InternalData, "InternalData", version=3)
 def _internal_dump2(internal_data):
@@ -46,19 +31,6 @@ def _internal_dump2(internal_data):
         v_φ_taylor=internal_data.v_φ_taylor,
         ρ_taylor=internal_data.ρ_taylor,
         problems=internal_data.problems,
-    )
-
-
-@ds_registry.dumper(DAEInitialConditions, "DAEInitialConditions", version=1)
-def _dae_initial_dump(initial_conditions):
-    return GroupContainer(
-        attrs={
-            "norm_kepler_sq": initial_conditions.norm_kepler_sq,
-            "a_0": initial_conditions.a_0,
-            "γ": initial_conditions.γ,
-            "init_con": initial_conditions.init_con,
-            "deriv_init_con": initial_conditions.deriv_init_con,
-        }, angles=initial_conditions.angles,
     )
 
 

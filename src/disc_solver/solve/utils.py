@@ -150,8 +150,7 @@ def add_solver_arguments(parser):
     )
     parser.add_argument(
         "--sonic-method", choices=(
-            "step", "single", "dae_single", "mcmc", "sonic_root",
-            "hydrostatic",
+            "step", "single", "mcmc", "sonic_root", "hydrostatic",
         ), default="single",
     )
     parser.add_argument("--output-file")

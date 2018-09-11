@@ -4,24 +4,13 @@ Defines the loaders for the data strutures
 
 from ._containers import (
     Solution, SolutionInput, ConfigInput, Problems, InternalData,
-    DAEInternalData, DAEInitialConditions, Run, InitialConditions,
+    Run, InitialConditions,
     JacobianData, Solutions
 )
 from ._utils import ds_registry, _str_β_to_γ
 
 
 # pylint: disable=missing-docstring
-
-@ds_registry.loader("DAEInternalData", version=1)
-def _dae_internal_load(group):
-    return DAEInternalData(
-        derivs=group["derivs"]["data"],
-        params=group["params"]["data"],
-        angles=group["angles"]["data"],
-        residuals=group["residuals"]["data"],
-        problems=group["problems"]
-    )
-
 
 @ds_registry.loader("InternalData", version=1)
 def _internal_load(group):
@@ -70,18 +59,6 @@ def _internal_load3(group):
         ρ_taylor=group["ρ_taylor"]["data"],
         problems=group["problems"],
         jacobian_data=group["jacobian_data"],
-    )
-
-
-@ds_registry.loader("DAEInitialConditions", version=1)
-def _dae_initial_load(group):
-    return DAEInitialConditions(
-        norm_kepler_sq=group.attrs["norm_kepler_sq"],
-        a_0=group.attrs["a_0"],
-        γ=group.attrs["γ"],
-        init_con=group.attrs["init_con"],
-        deriv_init_con=group.attrs["deriv_init_con"],
-        angles=group["angles"]["data"],
     )
 
 
