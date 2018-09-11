@@ -2,12 +2,12 @@ import setuptools
 
 import versioneer
 
-#import codecs
-#with codecs.open('DESCRIPTION.rst', 'r', 'utf-8') as f:
-#    long_description = f.read()
+import codecs
+with codecs.open('DESCRIPTION.rst', 'r', 'utf-8') as f:
+    long_description = f.read()
 
 setuptools.setup(
-    name = "disc_solver",
+    name = "disc-solver",
     version = versioneer.get_version(),
     packages = setuptools.find_packages('src'),
     package_dir = {'': 'src'},
@@ -27,25 +27,17 @@ setuptools.setup(
     ],
     author = "James Tocknell",
     author_email = "aragilar@gmail.com",
-    description = "Solver thing",
-#    long_description = long_description,
-    #license = "BSD",
-    #keywords = "wheel",
-    #url = "http://disc_solver.rtfd.org",
-    #classifiers=[
-    #    'Development Status :: 3 - Alpha',
-    #    'Intended Audience :: Developers',
-    #    "Topic :: System :: Shells",
-    #    'License :: OSI Approved :: BSD License',
-    #    'Programming Language :: Python :: 2',
-    #    'Programming Language :: Python :: 2.6',
-    #    'Programming Language :: Python :: 2.7',
-    #    'Programming Language :: Python :: 3',
-    #    'Programming Language :: Python :: 3.1',
-    #    'Programming Language :: Python :: 3.2',
-    #    'Programming Language :: Python :: 3.3',
-    #    'Programming Language :: Python :: 3.4',
-    #],
+    description = "Solver for jet solutions in PPDs",
+    long_description = long_description,
+    license = "GPLv3+",
+    url = "http://disc-solver.rtfd.org",
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+    ],
     entry_points = {
         'console_scripts': [
             "ds-soln = disc_solver.solve:main",

@@ -1,1 +1,16 @@
 include versioneer.py src/disc_solver/_version_.py
+include DESCRIPTION.rst
+include pylintrc
+include tox.ini
+include README.md
+include LICENSE.txt
+include .coveragerc
+include COPYING
+include pytest.ini
+recursive-include ci_support *.sh
+recursive-include dev_hooks *.sh
+recursive-include tests *.out
+recursive-include tests *.png
+recursive-include tests *.py
+exclude dev-requirements.txt
+exclude doc-requirements.txt
