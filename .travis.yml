@@ -14,8 +14,6 @@ cache:
 
 #env:
   #- TOXENV=docs
-  #- TOXENV=check-manifest
-  #- TOXENV=checkreadme
 matrix:
   include:
     - python: 3.6
@@ -27,6 +25,12 @@ matrix:
     - python: 3.6
       env:
       - TOXENV=pylint
+    - python: 3.6
+      env:
+      - TOXENV=check-manifest
+    - python: 3.6
+      env:
+      - TOXENV=checkreadme
 
 install:
   - source ./ci_support/ensure_sundials_installed.sh
