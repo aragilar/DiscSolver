@@ -37,6 +37,8 @@ setuptools.setup(
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
+        'Topic :: Scientific/Engineering :: Astronomy',
+        'Topic :: Scientific/Engineering :: Physics',
     ],
     entry_points = {
         'console_scripts': [
