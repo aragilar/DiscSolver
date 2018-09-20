@@ -140,7 +140,6 @@ def test_polar_momentum(
     assert eqn == approx(0)
 
 
-@pytest.mark.xfail
 def test_polar_induction(
     initial_conditions, solution, regtest, test_info, test_id
 ):
@@ -185,7 +184,6 @@ def test_azimuthal_induction_numeric(
     assert eqn == approx(0, abs=5e-12)
 
 
-@pytest.mark.xfail
 def test_E_φ(initial_conditions, solution, regtest, test_info, test_id):
     J_r, J_θ, J_φ = J_func(
         γ=initial_conditions.γ, θ=initial_conditions.angle, B_θ=solution.B_θ,
