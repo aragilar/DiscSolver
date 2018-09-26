@@ -354,9 +354,9 @@ def taylor_jump(
 
     taylor_values = init_con + taylor_stop_angle * (
         first_order_taylor_values +
-        taylor_stop_angle * (
+        taylor_stop_angle / 2 * (
             second_order_taylor_values +
-            taylor_stop_angle * (
+            taylor_stop_angle / 3 * (
                 third_order_taylor_values
             )
         )
