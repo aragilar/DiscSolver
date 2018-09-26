@@ -585,6 +585,7 @@ def get_taylor_first_order(*, init_con, γ):
     )
     first_order[ODEIndex.B_φ] = B_φ_prime
     first_order[ODEIndex.v_θ] = - 2 * γ * v_r
+    log.debug("First order taylor {}".format(first_order))
 
     return first_order
 
@@ -610,6 +611,7 @@ def get_taylor_second_order(
     second_order[ODEIndex.η_O] = derivs[ODEIndex.η_O]
     second_order[ODEIndex.η_A] = derivs[ODEIndex.η_A]
     second_order[ODEIndex.η_H] = derivs[ODEIndex.η_H]
+    log.debug("Second order taylor {}".format(second_order))
 
     return second_order
 
@@ -631,5 +633,6 @@ def get_taylor_third_order(
     third_order[ODEIndex.B_r] = derivs[ODEIndex.B_r]
     third_order[ODEIndex.B_φ] = derivs[ODEIndex.B_φ_prime]
     third_order[ODEIndex.v_θ] = derivs[ODEIndex.v_φ]
+    log.debug("Third order taylor {}".format(third_order))
 
     return third_order
