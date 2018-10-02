@@ -46,6 +46,7 @@ setuptools.setup(
             "ds-resoln = disc_solver.solve.resolve:main",
             "ds-info = disc_solver.analyse.info:info_main",
             "ds-plot = disc_solver.analyse.plot:plot_main",
+            "ds-compare-plot = disc_solver.analyse.compare_plot:plot_main",
             "ds-derivs-plot = disc_solver.analyse.derivs_plot:derivs_main",
             "ds-params-plot = disc_solver.analyse.params_plot:params_main",
             "ds-taylor-plot = disc_solver.analyse.taylor_plot:taylor_main",

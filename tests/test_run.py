@@ -5,6 +5,7 @@ import pytest
 
 from disc_solver.analyse.info import info
 from disc_solver.analyse.plot import plot
+from disc_solver.analyse.compare_plot import compare_plot
 from disc_solver.analyse.derivs_plot import derivs_plot
 from disc_solver.analyse.params_plot import params_plot
 from disc_solver.analyse.taylor_plot import taylor_plot
@@ -224,6 +225,15 @@ class TestAnalysis:
 
     def test_plot_show(self, solution, mpl_interactive):
         plot(solution, show=True)
+
+    @pytest.mark.mpl_image_compare
+    def test_compare_plot_file(self, solution, plot_file):
+        solutions = [[solution, None], [solution, None]]
+        return compare_plot(solutions, plot_filename=plot_file, close=False)
+
+    def test_compare_plot_show(self, solution, mpl_interactive):
+        solutions = [[solution, None], [solution, None]]
+        compare_plot(solutions, show=True)
 
     @pytest.mark.mpl_image_compare
     def test_plot_file(self, solution, plot_file):

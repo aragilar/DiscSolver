@@ -44,6 +44,51 @@ def single_solution_plotter(func):
     return plot_wrapper
 
 
+def multiple_solution_plotter(func):
+    """
+    Pulls out common elements of plots which take multiple solutions
+    """
+    @wraps(func)
+    def plot_wrapper(solution_pairs, *args, title=None, **kwargs):
+        """
+        Wraps plot functions
+        """
+        title_list = []
+
+        def solution_loader(pairs):
+            for run, name in pairs:
+                title_list.append("{}:{}:{}".format(
+                    run.config_filename, run.config_input.label, name
+                ))
+                yield get_solutions(run, name)
+
+        fig = func(solution_loader(solution_pairs), *args, **kwargs)
+        if title is None:
+            fig.suptitle('\n'.join(title_list))
+        else:
+            fig.suptitle(title)
+        return fig
+    return plot_wrapper
+
+
+def analysis_func_wrapper_multisolution(func):
+    """
+    Wrapper for main analysis functions which take multiple solutions
+    """
+    @wraps(func)
+    def wrapper(solutions_pairs, *args, **kwargs):
+        """
+        wrapper for analysis_func_wrapper_multisolution
+        """
+        def file_loader(pairs):
+            for filename, index_str in pairs:
+                with h5open(filename, registries) as soln_file:
+                    yield soln_file["run"], index_str
+        return func(file_loader(solutions_pairs), *args, **kwargs)
+
+    return wrapper
+
+
 def common_plotting_options(parser):
     """
     Common plotting options to control appearance and output
@@ -121,6 +166,53 @@ def analyse_main_wrapper(
                         soln_range=args["soln_range"],
                         **cmd_args
                     )
+
+        return wrap_analysis_main
+
+    return decorator
+
+
+def analyse_main_wrapper_multisolution(
+    cmd_description, cmd_parser_func, cmd_parser_splitters=None
+):
+    """
+    Wrapper for main cmd for analysis cmds
+    """
+    if cmd_parser_splitters is None:
+        cmd_parser_splitters = {}
+
+    def decorator(cmd):
+        """
+        decorator for analyse_main_wrapper_multisolution
+        """
+        @wraps(cmd)
+        def wrap_analysis_main(argv=None):
+            """
+            Actual main function for analysis code, deals with parsers and
+            logging
+            """
+            if argv is None:
+                argv = sys.argv[1:]
+            cmd_args = {}
+            parser = argparse.ArgumentParser(
+                description=cmd_description,
+                argument_default=argparse.SUPPRESS,
+            )
+            parser.add_argument(
+                '--version', action='version', version='%(prog)s ' + ds_version
+            )
+            parser.add_argument(
+                "-r", "--runs", action="append", nargs=2,
+                metavar=("soln_file", "soln_range"), dest="soln_pairs",
+            )
+            logging_options(parser)
+            cmd_parser = cmd_parser_func(parser)
+            args = vars(cmd_parser.parse_args(argv))
+            for name, func in cmd_parser_splitters.items():
+                cmd_args[name] = func(args)
+            with log_handler(args):
+                with redirected_warnings(), redirected_logging():
+                    return cmd(args["soln_pairs"], **cmd_args)
 
         return wrap_analysis_main
 
