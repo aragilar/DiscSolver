@@ -7,6 +7,7 @@ include LICENSE.txt
 include .coveragerc
 include COPYING
 include pytest.ini
+include known_broken_constraints.txt
 recursive-include ci_support *.sh
 recursive-include dev_hooks *.sh
 recursive-include tests *.out
