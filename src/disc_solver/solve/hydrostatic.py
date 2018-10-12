@@ -15,7 +15,7 @@ from scikits.odes.sundials import (
 from scikits.odes.sundials.cvode import StatusEnum
 
 from .config import define_conditions
-from .deriv_funcs import B_unit_derivs, A_func, C_func
+from .deriv_funcs import B_unit_derivs, A_func, C_func, deriv_η_skw_func
 from .utils import (
     error_handler, rad_to_scaled, scaled_to_rad,
     SolverError,
@@ -290,21 +290,15 @@ def deriv_v_r_func(
 
 def ode_system(
     *, a_0, norm_kepler_sq, init_con, θ_scale=float_type(1),
-    η_derivs=True, η_derivs_func=None, store_internal=True, no_v_deriv=True
+    η_derivs=True, store_internal=True, no_v_deriv=True
 ):
     """
     Set up the system we are solving for.
     """
     # pylint: disable=too-many-statements
-    if η_derivs:
-        η_O_scale = init_con[ODEIndex.η_O] / sqrt(init_con[ODEIndex.ρ])
-        η_A_scale = init_con[ODEIndex.η_A] / sqrt(init_con[ODEIndex.ρ])
-        η_H_scale = init_con[ODEIndex.η_H] / sqrt(init_con[ODEIndex.ρ])
-    else:
-        η_O_scale = 0
-        η_A_scale = 0
-        η_H_scale = 0
-        η_derivs_func = None
+    η_O_0 = init_con[ODEIndex.η_O]
+    η_A_0 = init_con[ODEIndex.η_A]
+    η_H_0 = init_con[ODEIndex.η_H]
 
     if store_internal:
         internal_data = InternalData()
@@ -390,13 +384,14 @@ def ode_system(
             B_φ ** 2 * tan(θ)
         )
 
-        if η_derivs_func is not None:
-            deriv_η_O, deriv_η_A, deriv_η_H = η_derivs_func()
-        elif η_derivs_func is None and η_derivs:
-            deriv_ρ_scale = deriv_ρ / sqrt(ρ) / 2
-            deriv_η_O = deriv_ρ_scale * η_O_scale
-            deriv_η_A = deriv_ρ_scale * η_A_scale
-            deriv_η_H = deriv_ρ_scale * η_H_scale
+        if η_derivs:
+            deriv_η_scale = deriv_η_skw_func(
+                deriv_ρ=deriv_ρ, deriv_B_θ=deriv_B_θ, ρ=ρ, B_r=B_r, B_φ=B_φ,
+                B_θ=B_θ, deriv_B_r=deriv_B_r, deriv_B_φ=deriv_B_φ,
+            )
+            deriv_η_O = deriv_η_scale * η_O_0
+            deriv_η_A = deriv_η_scale * η_A_0
+            deriv_η_H = deriv_η_scale * η_H_0
         else:
             deriv_η_O = 0
             deriv_η_A = 0
