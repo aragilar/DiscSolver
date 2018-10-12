@@ -15,7 +15,7 @@ log = logbook.Logger(__name__)
 
 def deriv_B_r_func(*, θ, γ, B_r, B_θ, B_φ, v_r, v_θ, deriv_B_φ, η_O, η_A, η_H):
     """
-    Computer the derivate of B_r
+    Compute the derivative of B_r
     """
     B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
     norm_B_r, norm_B_φ, norm_B_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
@@ -38,6 +38,21 @@ def deriv_B_r_func(*, θ, γ, B_r, B_θ, B_φ, v_r, v_θ, deriv_B_φ, η_O, η_A
             η_O + η_A * (1 - norm_B_φ) * (1 + norm_B_φ)
         ) - B_θ * (1/4 - γ)
     )
+
+
+def deriv_η_skw_func(
+    *, ρ, B_r, B_φ, B_θ, deriv_ρ, deriv_B_r, deriv_B_φ, deriv_B_θ
+):
+    """
+    Compute the scaled part of the derivative of η assuming the same form as in
+    SKW
+    """
+    B_sq = B_r ** 2 + B_φ ** 2 + B_θ ** 2
+    return (
+        deriv_ρ - 2 * ρ * (
+            B_r * deriv_B_r + B_φ * deriv_B_φ + B_θ * deriv_B_θ
+        ) / B_sq
+    ) / B_sq
 
 
 def B_unit_derivs(*, B_r, B_φ, B_θ, deriv_B_r, deriv_B_φ, deriv_B_θ):
@@ -314,6 +329,13 @@ def ddderiv_v_θ_midplane(dderiv_ρ, dderiv_v_r, v_r, γ):
     return 4 * γ * v_r * (dderiv_ρ - 1 - dderiv_v_r / (2 * v_r))
 
 
+def dderiv_η_skw_midplane(*, dderiv_ρ, deriv_B_r, deriv_B_φ, dderiv_B_θ):
+    """
+    Compute the derivative of η assuming the same form as in SKW
+    """
+    return dderiv_ρ - 2 * (deriv_B_r ** 2 + deriv_B_φ ** 2 + dderiv_B_θ)
+
+
 def deriv_B_r_midplane_func(*, γ, deriv_B_φ, η_H, η_P, v_r):
     """
     Compute B_r' at the midplane
@@ -347,7 +369,10 @@ def taylor_series(*, γ, a_0, init_con, η_derivs):
     dderiv_ρ = - Y_1
 
     if η_derivs:
-        dderiv_η_scale = dderiv_ρ / 2
+        dderiv_η_scale = dderiv_η_skw_midplane(
+            dderiv_ρ=dderiv_ρ, dderiv_B_θ=dderiv_B_θ, deriv_B_r=deriv_B_r,
+            deriv_B_φ=deriv_B_φ,
+        )
     else:
         dderiv_η_scale = 0
 

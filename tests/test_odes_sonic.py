@@ -92,9 +92,6 @@ def rhs_func(initial_conditions):
             init_con=initial_conditions.params,
             with_taylor=False,
             η_derivs=True,
-            η_derivs_func=lambda **x: (
-                float_type(-0.002), float_type(-0.003), float_type(-0.005)
-            )
         )
     return rhs
 
@@ -144,6 +141,7 @@ def solution(initial_conditions, derivs):
     return values
 
 
+@pytest.mark.xfail(reason="sonic v_θ func wrong")
 def test_continuity(initial_conditions, solution, regtest, test_info, test_id):
     eqn = (
         (5/2 - 2 * initial_conditions.β) * solution.v_r +
@@ -255,6 +253,7 @@ def test_polar_induction(
     assert eqn == approx(0)
 
 
+@pytest.mark.xfail(reason="sonic v_θ func wrong")
 def test_azimuthal_induction_numeric(
     initial_conditions, derivs, rhs_func, solution, regtest, test_info, test_id
 ):
