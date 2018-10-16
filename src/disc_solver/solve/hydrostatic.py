@@ -186,12 +186,12 @@ def Z_5_func(*, η_O, η_A, η_H, b_r, b_θ, b_φ, C):
     return η_O + η_A * (1 - b_r ** 2) + C * (η_H * b_θ - η_A * b_r * b_φ)
 
 
-def Z_6_func(*, C, Z_3, Z_4, Z_5, a_0, B_θ, v_φ):
+def Z_6_func(*, C, Z_3, Z_4, Z_5, a_0, B_θ, v_φ, ρ):
     """
     Compute the value of the variable Z_6
     """
     return Z_5 + 2 * a_0 * B_θ ** 2 * v_φ * (C + Z_3) / (
-        1 + 2 * a_0 * Z_3 * Z_4
+        v_φ ** 2 * ρ + 2 * a_0 * Z_3 * Z_4
     )
 
 
@@ -201,7 +201,7 @@ def Z_7_func(*, C, Z_1, Z_2, Z_3, Z_4, a_0, v_φ, ρ):
     """
     return Z_2 + (
         (C + Z_3) * (Z_1 * v_φ ** 2 * ρ - Z_2 * Z_4)
-    ) / (1 + 2 * a_0 * Z_3 * Z_4)
+    ) / (v_φ ** 2 * ρ + 2 * a_0 * Z_3 * Z_4)
 
 
 def dderiv_B_φ_func(
@@ -290,7 +290,7 @@ def deriv_v_r_func(
     """
     return (
         Z_1 * v_φ ** 2 * ρ + 2 * a_0 * (v_φ * B_θ * dderiv_B_φ - Z_2 * Z_4)
-    ) / (1 + 2 * a_0 * Z_3 * Z_4)
+    ) / (v_φ ** 2 * ρ + 2 * a_0 * Z_3 * Z_4)
 
 
 def ode_system(
@@ -442,7 +442,7 @@ def ode_system(
             η_O=η_O, η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ, C=C
         )
         Z_6 = Z_6_func(
-            C=C, Z_3=Z_3, Z_4=Z_4, Z_5=Z_5, a_0=a_0, B_θ=B_θ, v_φ=v_φ
+            C=C, Z_3=Z_3, Z_4=Z_4, Z_5=Z_5, a_0=a_0, B_θ=B_θ, v_φ=v_φ, ρ=ρ,
         )
         Z_7 = Z_7_func(
             C=C, Z_1=Z_1, Z_2=Z_2, Z_3=Z_3, Z_4=Z_4, a_0=a_0, v_φ=v_φ, ρ=ρ,
