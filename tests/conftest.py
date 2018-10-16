@@ -11,11 +11,13 @@ DEFAULT_SOLUTIONS = [
     "sonic_root_solution_default",
     "step_solution_default",
     "hydrostatic_solution_default",
+    "mod_hydro_solution_default",
 ]
 NO_INTERNAL_SOLUTIONS = [
     "single_solution_no_internal",
     "sonic_root_solution_no_internal",
     "hydrostatic_solution_no_internal",
+    "mod_hydro_solution_no_internal",
 ]
 ALL_SOLUTIONS = DEFAULT_SOLUTIONS + NO_INTERNAL_SOLUTIONS
 MULTI_SOLUTIONS = [
@@ -89,6 +91,16 @@ def hydrostatic_solution_default(tmpdir_factory):
 
 
 @pytest.fixture(scope="session")
+def mod_hydro_solution_default(tmpdir_factory):
+    method = "mod_hydro"
+    tmpdir = tmpdir_factory.mktemp(method)
+    return solve(
+        sonic_method=method, output_dir=Path(str(tmpdir)),
+        output_file=None, config_file=None, store_internal=True,
+    )
+
+
+@pytest.fixture(scope="session")
 def single_solution_no_internal(tmpdir_factory):
     method = "single"
     tmpdir = tmpdir_factory.mktemp(method)
@@ -121,6 +133,16 @@ def sonic_root_solution_no_internal(tmpdir_factory):
 @pytest.fixture(scope="session")
 def hydrostatic_solution_no_internal(tmpdir_factory):
     method = "hydrostatic"
+    tmpdir = tmpdir_factory.mktemp(method)
+    return solve(
+        sonic_method=method, output_dir=Path(str(tmpdir)),
+        output_file=None, config_file=None, store_internal=False,
+    )
+
+
+@pytest.fixture(scope="session")
+def mod_hydro_solution_no_internal(tmpdir_factory):
+    method = "mod_hydro"
     tmpdir = tmpdir_factory.mktemp(method)
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),

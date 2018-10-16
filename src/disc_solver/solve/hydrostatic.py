@@ -188,17 +188,26 @@ def Z_5_func(*, η_O, η_A, η_H, b_r, b_θ, b_φ, C):
 
 def Z_6_func(*, C, Z_3, Z_4, Z_5, a_0, B_θ, v_φ):
     """
-    Compute the value of the variable Z_5
+    Compute the value of the variable Z_6
     """
     return Z_5 + 2 * a_0 * B_θ ** 2 * v_φ * (C + Z_3) / (
         1 + 2 * a_0 * Z_3 * Z_4
     )
 
 
+def Z_7_func(*, C, Z_1, Z_2, Z_3, Z_4, a_0, v_φ, ρ):
+    """
+    Compute the value of the variable Z_7
+    """
+    return Z_2 + (
+        (C + Z_3) * (Z_1 * v_φ ** 2 * ρ - Z_2 * Z_4)
+    ) / (1 + 2 * a_0 * Z_3 * Z_4)
+
+
 def dderiv_B_φ_func(
-    *, A, a_0, b_r, b_θ, B_θ, b_φ, B_φ, C, deriv_b_r, deriv_B_r, deriv_b_θ,
+    *, A, b_r, b_θ, B_θ, b_φ, B_φ, C, deriv_b_r, deriv_B_r, deriv_b_θ,
     deriv_B_θ, deriv_b_φ, deriv_B_φ, deriv_η_A, deriv_η_H, deriv_η_O, v_r, v_φ,
-    Z_1, Z_2, Z_3, Z_4, Z_6, η_A, η_H, η_O, θ, ρ
+    Z_6, Z_7, η_A, η_H, η_O, θ
 ):
     """
     Compute the derivative of B_φ
@@ -262,11 +271,7 @@ def dderiv_B_φ_func(
                     (1 - b_θ ** 2) / 4 + tan(θ) * b_r * b_θ
                 ) - η_H * b_φ * tan(θ)
             )
-        ) - B_θ * (
-            Z_2 + (
-                (C + Z_3) * (Z_1 * v_φ ** 2 * ρ - Z_2 * Z_4)
-            ) / (1 + 2 * a_0 * Z_3 * Z_4)
-        )
+        ) - B_θ * Z_7
     ) / Z_6
 
 
@@ -439,14 +444,17 @@ def ode_system(
         Z_6 = Z_6_func(
             C=C, Z_3=Z_3, Z_4=Z_4, Z_5=Z_5, a_0=a_0, B_θ=B_θ, v_φ=v_φ
         )
+        Z_7 = Z_7_func(
+            C=C, Z_1=Z_1, Z_2=Z_2, Z_3=Z_3, Z_4=Z_4, a_0=a_0, v_φ=v_φ, ρ=ρ,
+        )
 
         dderiv_B_φ = dderiv_B_φ_func(
-            a_0=a_0, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r,
-            v_φ=v_φ, ρ=ρ, deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
+            B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r,
+            v_φ=v_φ, deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
             deriv_B_φ=deriv_B_φ, deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A,
-            deriv_η_H=deriv_η_H, A=A, C=C, b_r=b_r, b_θ=b_θ, b_φ=b_φ, Z_1=Z_1,
-            Z_2=Z_2, Z_3=Z_3, Z_4=Z_4, Z_6=Z_6, deriv_b_θ=deriv_b_θ,
-            deriv_b_φ=deriv_b_φ, deriv_b_r=deriv_b_r,
+            deriv_η_H=deriv_η_H, A=A, C=C, b_r=b_r, b_θ=b_θ, b_φ=b_φ, Z_6=Z_6,
+            Z_7=Z_7, deriv_b_θ=deriv_b_θ, deriv_b_φ=deriv_b_φ,
+            deriv_b_r=deriv_b_r,
         )
 
         deriv_v_r = deriv_v_r_func(

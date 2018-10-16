@@ -16,6 +16,7 @@ from .single import solver as single_solver
 from .mcmc import solver as mcmc_solver
 from .sonic_root import solver as sonic_root_solver
 from .hydrostatic import solver as hydrostatic_solver
+from .mod_hydro import solver as mod_hydro_solver
 from .utils import add_solver_arguments, SolverError
 
 from .. import __version__ as ds_version
@@ -76,6 +77,11 @@ def resolve(
             )
         elif sonic_method == "hydrostatic":
             hydrostatic_solver(
+                old_solution.solution_input, run,
+                store_internal=store_internal,
+            )
+        elif sonic_method == "mod_hydro":
+            mod_hydro_solver(
                 old_solution.solution_input, run,
                 store_internal=store_internal,
             )

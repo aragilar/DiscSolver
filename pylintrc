@@ -71,7 +71,7 @@ disable=invalid-name,bad-continuation,too-many-arguments,too-many-locals,no-else
 [SIMILARITIES]
 
 # Minimum lines number of a similarity.
-min-similarity-lines=50
+min-similarity-lines=60
 
 # Ignore comments when computing similarities.
 ignore-comments=yes
