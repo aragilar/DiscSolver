@@ -30,6 +30,15 @@ from ..utils import expanded_path
 
 log = logbook.Logger(__name__)
 
+SONIC_METHOD_MAP = {
+    "step": stepper_solver,
+    "single": single_solver,
+    "mcmc": mcmc_solver,
+    "sonic_root": sonic_root_solver,
+    "hydrostatic": hydrostatic_solver,
+    "mod_hydro": mod_hydro_solver,
+}
+
 
 def solve(
     *, output_file, sonic_method, config_file, output_dir, store_internal,
@@ -55,38 +64,13 @@ def solve(
 
     with h5open(output_file, registries) as f:
         f["run"] = run
-        if sonic_method == "step":
-            stepper_solver(
-                config_input_to_soln_input(config_input), run,
-                store_internal=store_internal,
-            )
-        elif sonic_method == "single":
-            single_solver(
-                config_input_to_soln_input(config_input), run,
-                store_internal=store_internal,
-            )
-        elif sonic_method == "mcmc":
-            mcmc_solver(
-                config_input_to_soln_input(config_input), run,
-                store_internal=store_internal,
-            )
-        elif sonic_method == "sonic_root":
-            sonic_root_solver(
-                config_input_to_soln_input(config_input), run,
-                store_internal=store_internal,
-            )
-        elif sonic_method == "hydrostatic":
-            hydrostatic_solver(
-                config_input_to_soln_input(config_input), run,
-                store_internal=store_internal,
-            )
-        elif sonic_method == "mod_hydro":
-            mod_hydro_solver(
-                config_input_to_soln_input(config_input), run,
-                store_internal=store_internal,
-            )
-        else:
+        sonic_solver = SONIC_METHOD_MAP.get(sonic_method)
+        if sonic_solver is None:
             raise SolverError("No method chosen to cross sonic point")
+        sonic_solver(
+            config_input_to_soln_input(config_input), run,
+            store_internal=store_internal,
+        )
 
     return output_file
 

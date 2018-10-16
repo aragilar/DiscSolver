@@ -11,12 +11,7 @@ from logbook.compat import redirected_warnings, redirected_logging
 
 from h5preserve import open as h5open
 
-from .stepper import solver as stepper_solver
-from .single import solver as single_solver
-from .mcmc import solver as mcmc_solver
-from .sonic_root import solver as sonic_root_solver
-from .hydrostatic import solver as hydrostatic_solver
-from .mod_hydro import solver as mod_hydro_solver
+from . import SONIC_METHOD_MAP
 from .utils import add_solver_arguments, SolverError
 
 from .. import __version__ as ds_version
@@ -55,38 +50,13 @@ def resolve(
 
     with h5open(output_file, registries) as f:
         f["run"] = run
-        if sonic_method == "step":
-            stepper_solver(
-                old_solution.solution_input, run,
-                store_internal=store_internal,
-            )
-        elif sonic_method == "single":
-            single_solver(
-                old_solution.solution_input, run,
-                store_internal=store_internal,
-            )
-        elif sonic_method == "mcmc":
-            mcmc_solver(
-                old_solution.solution_input, run,
-                store_internal=store_internal,
-            )
-        elif sonic_method == "sonic_root":
-            sonic_root_solver(
-                old_solution.solution_input, run,
-                store_internal=store_internal,
-            )
-        elif sonic_method == "hydrostatic":
-            hydrostatic_solver(
-                old_solution.solution_input, run,
-                store_internal=store_internal,
-            )
-        elif sonic_method == "mod_hydro":
-            mod_hydro_solver(
-                old_solution.solution_input, run,
-                store_internal=store_internal,
-            )
-        else:
+        sonic_solver = SONIC_METHOD_MAP.get(sonic_method)
+        if sonic_solver is None:
             raise SolverError("No method chosen to cross sonic point")
+        sonic_solver(
+            old_solution.solution_input, run,
+            store_internal=store_internal,
+        )
 
     return output_file
 
