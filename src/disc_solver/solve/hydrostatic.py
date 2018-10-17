@@ -6,6 +6,7 @@ The system of odes
 import logbook
 
 # DO NOT IMPORT MATH, BREAKS FLOAT SUPPORT
+import numpy as np
 from numpy import sqrt, tan, copy, errstate, degrees, float64
 
 from scikits.odes import ode
@@ -14,15 +15,14 @@ from scikits.odes.sundials import (
 )
 from scikits.odes.sundials.cvode import StatusEnum
 
-from .config import define_conditions
 from .deriv_funcs import B_unit_derivs, A_func, C_func, deriv_η_skw_func
 from .utils import (
     error_handler, rad_to_scaled, scaled_to_rad,
     SolverError,
 )
 
-from ..float_handling import float_type
-from ..file_format import InternalData, Solution
+from ..float_handling import float_type, FLOAT_TYPE
+from ..file_format import InternalData, Solution, InitialConditions
 from ..utils import ODEIndex, sec, VELOCITY_INDEXES
 
 INTEGRATOR = "cvode"
@@ -32,6 +32,63 @@ SOLUTION_TYPE = "hydrostatic"
 SONIC_POINT_TOLERANCE = float_type(0.01)
 
 log = logbook.Logger(__name__)
+
+
+def hydrostatic_define_conditions(inp):
+    """
+    Compute initial conditions based on input
+    """
+    ρ = float_type(1)
+    B_θ = float_type(1)
+    v_θ = float_type(0)
+    B_r = float_type(0)
+    B_φ = float_type(0)
+
+    v_r = - inp.v_rin_on_c_s
+    a_0 = inp.v_a_on_c_s ** 2
+    norm_kepler_sq = 1 / inp.c_s_on_v_k ** 2
+
+    η_O = inp.η_O
+    η_A = inp.η_A
+    η_H = inp.η_H
+
+    try:
+        v_φ = (
+            v_r * η_H / (4 * (η_O + η_A)) + sqrt(
+                norm_kepler_sq - 5/2 + v_r * (
+                    a_0 / (η_O + η_A) + v_r / 2 * (
+                        η_H ** 2 / (8 * (η_O + η_A) ** 2) - 1
+                    )
+                )
+            )
+        )
+    except ValueError:
+        raise SolverError("Input implies complex v_φ")
+
+    B_φ_prime = v_φ * v_r / (2 * a_0)
+
+    init_con = np.zeros(11, dtype=FLOAT_TYPE)
+
+    init_con[ODEIndex.B_r] = B_r
+    init_con[ODEIndex.B_φ] = B_φ
+    init_con[ODEIndex.B_θ] = B_θ
+    init_con[ODEIndex.v_r] = v_r
+    init_con[ODEIndex.v_φ] = v_φ
+    init_con[ODEIndex.v_θ] = v_θ
+    init_con[ODEIndex.ρ] = ρ
+    init_con[ODEIndex.B_φ_prime] = B_φ_prime
+    init_con[ODEIndex.η_O] = η_O
+    init_con[ODEIndex.η_A] = η_A
+    init_con[ODEIndex.η_H] = η_H
+
+    angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
+    if np.any(np.isnan(init_con)):
+        raise SolverError("Input implies NaN")
+
+    return InitialConditions(
+        norm_kepler_sq=norm_kepler_sq, a_0=a_0, init_con=init_con,
+        angles=angles, γ=0
+    )
 
 
 def X_dash_func(
@@ -616,10 +673,8 @@ def solver(inp, run, *, store_internal=True):
     """
     hydrostatic solver
     """
-    cons = define_conditions(inp)
-    cons.γ = 0
     hydro_solution = solution(
-        inp, define_conditions(inp), store_internal=store_internal
+        inp, hydrostatic_define_conditions(inp), store_internal=store_internal
     )
     run.solutions["0"] = hydro_solution
     run.final_solution = run.solutions["0"]
