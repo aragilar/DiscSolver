@@ -4,7 +4,7 @@ Validate-plot command for DiscSolver
 """
 from types import SimpleNamespace
 
-from numpy import sqrt, tan, degrees
+from numpy import sqrt, tan, degrees, absolute
 import matplotlib.pyplot as plt
 
 from ..float_handling import float_type
@@ -119,7 +119,7 @@ def generate_validate_plot(
         difference = settings["func"](
             values.initial_conditions, values
         )[indexes]
-        print("{}: {}".format(settings["name"], max(difference)))
+        print("{}: {}".format(settings["name"], max(absolute(difference))))
 
         ax_val.plot(
             degrees(values.angles[indexes]), difference, linestyle,
