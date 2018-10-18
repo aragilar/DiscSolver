@@ -120,6 +120,45 @@ def test_solenoid(initial_conditions, solution, regtest, test_info, test_id):
     assert eqn == approx(0)
 
 
+@pytest.mark.xfail
+def test_radial_momentum(
+    initial_conditions, solution, regtest, test_info, test_id
+):
+    eqn = (
+        solution.v_θ * solution.deriv.v_r -
+        float_type(1)/float_type(2) * solution.v_r**2 -
+        solution.v_θ**2 - solution.v_φ**2 + initial_conditions.norm_kepler_sq -
+        2 * initial_conditions.β - initial_conditions.a_0 / solution.ρ * (
+            solution.B_θ * solution.deriv.B_r + (initial_conditions.β - 1) * (
+                solution.B_θ**2 + solution.B_φ**2
+            )
+        )
+    )
+    test_info(eqn)
+    regtest.identifier = test_id
+    print(eqn, file=regtest)
+    assert eqn == approx(0)
+
+
+@pytest.mark.xfail
+def test_azimuthal_mometum(
+    initial_conditions, solution, regtest, test_info, test_id
+):
+    eqn = (
+        solution.v_θ * solution.deriv.v_φ + 1/2 * solution.v_r * solution.v_φ -
+        tan(initial_conditions.angle) * solution.v_θ * solution.v_φ -
+        initial_conditions.a_0 / solution.ρ * (
+            solution.B_θ * solution.deriv.B_φ +
+            (1 - initial_conditions.β) * solution.B_r * solution.B_φ -
+            tan(initial_conditions.angle) * solution.B_θ * solution.B_φ
+        )
+    )
+    test_info(eqn)
+    regtest.identifier = test_id
+    print(eqn, file=regtest)
+    assert eqn == approx(0)
+
+
 def test_polar_momentum(
     initial_conditions, solution, regtest, test_info, test_id
 ):
