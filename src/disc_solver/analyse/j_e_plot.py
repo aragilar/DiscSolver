@@ -44,7 +44,7 @@ def j_e_plot_main(soln, *, soln_range, common_plot_args):
 @analysis_func_wrapper
 def j_e_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
-    stop=90, figargs=None, title=None, close=True
+    stop=90, figargs=None, title=None, close=True, filename
 ):
     """
     Plot solution to file
@@ -52,7 +52,7 @@ def j_e_plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title,
+        title=title, filename=filename,
     )
 
     return plot_output_wrapper(

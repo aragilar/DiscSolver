@@ -40,23 +40,25 @@ def info_parser(parser):
         "group": lambda args: args["group"]
     }
 )
-def info_main(soln_file, *, group, soln_range):
+def info_main(soln_file, *, group, soln_range, filename):
     """
     Entry point for ds-info
     """
     return info(
-        soln_file, group=group, soln_range=soln_range, output_file=stdout
+        soln_file, group=group, soln_range=soln_range, output_file=stdout,
+        filename=filename,
     )
 
 
 @analysis_func_wrapper
-def info(soln_file, *, group, soln_range, output_file):
+def info(soln_file, *, group, soln_range, output_file, filename):
     """
     Output info about the solution
     """
     soln_instance = get_solutions(soln_file, soln_range)
     if group == "run":
         print("run properties:", file=output_file)
+        print("filename: {}".format(filename), file=output_file)
         print(
             "label: {}".format(soln_file.config_input.label),
             file=output_file,

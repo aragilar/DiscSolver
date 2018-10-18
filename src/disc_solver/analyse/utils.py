@@ -25,19 +25,24 @@ def single_solution_plotter(func):
     Pulls out common elements of plots which take a single solution
     """
     @wraps(func)
-    def plot_wrapper(h5file, solution, *args, title=None, **kwargs):
+    def plot_wrapper(
+        h5file, solution, *args, title=None, filename=None, **kwargs
+    ):
         """
         Wraps plot functions
         """
         if solution is None:
             solution = "0"
+        if filename is None:
+            filename = "{}:{}".format(
+                h5file.config_filename, h5file.config_input.label
+            )
+
         fig = func(
             get_solutions(h5file, solution), *args, **kwargs
         )
         if title is None:
-            fig.suptitle("{}:{}:{}".format(
-                h5file.config_filename, h5file.config_input.label, solution
-            ))
+            fig.suptitle("{}:{}".format(filename, solution))
         else:
             fig.suptitle(title)
         return fig
@@ -55,11 +60,15 @@ def multiple_solution_plotter(func):
         """
         title_list = []
 
-        def solution_loader(pairs):
-            for run, name in pairs:
-                title_list.append("{}:{}:{}".format(
-                    run.config_filename, run.config_input.label, name
-                ))
+        def solution_loader(solns):
+            for run, name, filename in solns:
+                if filename is None:
+                    filename = "{}:{}".format(
+                        run.config_filename, run.config_input.label
+                    )
+
+                title_list.append("{}:{}".format(filename, name))
+
                 yield get_solutions(run, name)
 
         fig = func(solution_loader(solution_pairs), *args, **kwargs)
@@ -83,7 +92,7 @@ def analysis_func_wrapper_multisolution(func):
         def file_loader(pairs):
             for filename, index_str in pairs:
                 with h5open(filename, registries) as soln_file:
-                    yield soln_file["run"], index_str
+                    yield soln_file["run"], index_str, filename
         return func(file_loader(solutions_pairs), *args, **kwargs)
 
     return wrapper
@@ -275,7 +284,7 @@ def analysis_func_wrapper(func):
         wrapper for analysis_func_wrapper
         """
         with h5open(filename, registries) as soln_file:
-            return func(soln_file["run"], *args, **kwargs)
+            return func(soln_file["run"], *args, filename=filename, **kwargs)
     return wrapper
 
 

@@ -69,7 +69,7 @@ def combine_main(soln, *, soln_range, common_plot_args, plot_args):
 def combine_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
     with_slow=False, with_alfven=False, with_fast=False, with_sonic=False,
-    stop=90, figargs=None, title=None, close=True
+    stop=90, figargs=None, title=None, close=True, filename
 ):
     """
     Plot solution to file, with velocities, fields onto on one plot
@@ -78,7 +78,7 @@ def combine_plot(
     fig = generate_plot_combine(
         soln, soln_range, linestyle=linestyle, with_slow=with_slow,
         with_alfven=with_alfven, with_fast=with_fast, with_sonic=with_sonic,
-        stop=stop, figargs=figargs, title=title,
+        stop=stop, figargs=figargs, title=title, filename=filename,
     )
 
     return plot_output_wrapper(

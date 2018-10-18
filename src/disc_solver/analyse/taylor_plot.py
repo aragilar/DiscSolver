@@ -54,7 +54,8 @@ def taylor_main(soln, *, soln_range, plot_args, common_plot_args):
 @analysis_func_wrapper
 def taylor_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
-    figargs=None, linestyle='.', title=None, show_values=False, close=True
+    figargs=None, linestyle='.', title=None, show_values=False, close=True,
+    filename
 ):
     """
     Show solution at every step the solver takes.
@@ -62,7 +63,7 @@ def taylor_plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_taylor_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title, show_values=show_values,
+        title=title, show_values=show_values, filename=filename,
     )
 
     return plot_output_wrapper(

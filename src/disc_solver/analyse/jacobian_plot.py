@@ -39,7 +39,7 @@ def jacobian_main(soln, *, soln_range, common_plot_args):
 @analysis_func_wrapper
 def jacobian_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
-    figargs=None, linestyle='.', title=None, close=True
+    figargs=None, linestyle='.', title=None, close=True, filename
 ):
     """
     Show jacobian
@@ -47,7 +47,7 @@ def jacobian_plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_jacobian_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title,
+        title=title, filename=filename,
     )
 
     return plot_output_wrapper(

@@ -53,7 +53,7 @@ def plot_main(soln, *, soln_range, common_plot_args, plot_args):
 @analysis_func_wrapper
 def plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
-    stop=90, figargs=None, title=None, close=True, only=None,
+    stop=90, figargs=None, title=None, close=True, only=None, filename
 ):
     """
     Plot solution to file
@@ -61,7 +61,7 @@ def plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_plot(
         soln, soln_range, linestyle=linestyle, figargs=figargs, title=title,
-        stop=stop, only=only
+        stop=stop, only=only, filename=filename,
     )
 
     return plot_output_wrapper(

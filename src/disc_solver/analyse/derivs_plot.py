@@ -51,7 +51,7 @@ def derivs_main(soln, *, soln_range, common_plot_args, plot_args):
 @analysis_func_wrapper
 def derivs_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
-    figargs=None, linestyle='.', title=None, nolog=False, close=True
+    figargs=None, linestyle='.', title=None, nolog=False, close=True, filename
 ):
     """
     Show derivatives
@@ -59,7 +59,7 @@ def derivs_plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_derivs_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title, nolog=nolog
+        title=title, nolog=nolog, filename=filename,
     )
 
     return plot_output_wrapper(
