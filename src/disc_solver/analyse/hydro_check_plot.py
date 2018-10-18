@@ -2,8 +2,10 @@
 """
 hydro-check-plot command for DiscSolver
 """
-from numpy import tan, degrees, absolute
+from numpy import tan, degrees, absolute, sqrt
 import matplotlib.pyplot as plt
+
+from ..solve.hydrostatic import X_func
 
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
@@ -73,6 +75,10 @@ def generate_hydro_check_plot(
             "name": "approximate momenta",
             "func": validate_hydro_approximate_momenta
         },
+        {
+            "name": "radial momentum (approx method)",
+            "func": validate_radial_momentum_mod_φ
+        },
     ]
 
     if soln.internal_data is None:
@@ -119,3 +125,71 @@ def validate_hydro_approximate_momenta(initial_conditions, values):
     return 1 - 2 * initial_conditions.a_0 * values.B_θ * values.deriv.B_φ / (
         values.ρ * values.v_r * values.v_φ
     )
+
+
+def validate_radial_momentum_hydro(initial_conditions, values):
+    """
+    Validate radial momentum equation
+    """
+    b_r = values.norm_B_r
+    b_φ = values.norm_B_φ
+    b_θ = values.norm_B_θ
+
+    X = X_func(
+        η_O=values.η_O, η_A=values.η_A, η_H=values.η_H, b_θ=b_θ, b_r=b_r,
+        b_φ=b_φ
+    )
+
+    return (
+        1 / 2 * values.v_r**2 - values.v_φ**2 +
+        initial_conditions.norm_kepler_sq + 5 / 2 -
+        X * values.v_r * values.v_φ / 2 -
+        initial_conditions.a_0 / values.ρ * (
+            values.B_φ ** 2 / 4 - X * values.B_φ * (
+                values.B_r / 4 + values.B_θ * tan(values.angles)
+            ) - values.B_θ / (
+                values.η_O + values.η_A * (1 - b_φ ** 2)
+            ) * (
+                values.v_r * values.B_θ - values.B_φ * (
+                    values.η_A * b_φ * (
+                        b_r * tan(values.angles) - b_θ / 4
+                    ) + values.η_H * (
+                        b_r / 4 + b_θ * tan(values.angles)
+                    )
+                )
+            )
+        )
+    )
+
+
+def validate_radial_momentum_mod_φ(initial_conditions, values):
+    """
+    Validate radial momentum equation
+    """
+    b_r = values.norm_B_r
+    b_φ = values.norm_B_φ
+    b_θ = values.norm_B_θ
+
+    X = X_func(
+        η_O=values.η_O, η_A=values.η_A, η_H=values.η_H, b_θ=b_θ, b_r=b_r,
+        b_φ=b_φ
+    )
+
+    norm_kepler = sqrt(initial_conditions.norm_kepler_sq)
+
+    return norm_kepler - values.v_φ - (
+        1 / 2 * values.v_r**2 + 5 / 2 + initial_conditions.a_0 / values.ρ * (
+            values.B_φ ** 2 / 4 - X * values.deriv.B_φ * values.B_θ -
+            values.B_θ / (
+                values.η_O + values.η_A * (1 - b_φ ** 2)
+            ) * (
+                values.v_r * values.B_θ - values.B_φ * (
+                    values.η_A * b_φ * (
+                        b_r * tan(values.angles) - b_θ / 4
+                    ) + values.η_H * (
+                        b_r / 4 + b_θ * tan(values.angles)
+                    )
+                )
+            )
+        )
+    ) / (2 * norm_kepler)
