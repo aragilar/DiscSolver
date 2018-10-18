@@ -12,6 +12,7 @@ from disc_solver.analyse.taylor_plot import taylor_plot
 from disc_solver.analyse.combine_plot import combine_plot
 from disc_solver.analyse.acc_plot import acc_plot
 from disc_solver.analyse.validate_plot import validate_plot
+from disc_solver.analyse.hydro_check_plot import hydro_check_plot
 from disc_solver.analyse.diverge_plot import diverge_main
 from disc_solver.analyse.conserve_plot import conserve_main
 from disc_solver.analyse.utils import AnalysisError
@@ -330,6 +331,27 @@ class TestAnalysis:
     def test_validate_file_no_internal(self, solution_no_internal, plot_file):
         with pytest.raises(AnalysisError):
             validate_plot(solution_no_internal, plot_filename=plot_file)
+
+    def test_hydro_check_show(self, solution_default, mpl_interactive):
+        hydro_check_plot(solution_default, show=True)
+
+    @pytest.mark.mpl_image_compare
+    def test_hydro_check_file(self, solution_default, plot_file):
+        return hydro_check_plot(
+            solution_default, plot_filename=plot_file, close=False
+        )
+
+    def test_hydro_check_show_no_internal(
+        self, solution_no_internal, mpl_interactive
+    ):
+        with pytest.raises(AnalysisError):
+            hydro_check_plot(solution_no_internal, show=True)
+
+    def test_hydro_check_file_no_internal(
+        self, solution_no_internal, plot_file
+    ):
+        with pytest.raises(AnalysisError):
+            hydro_check_plot(solution_no_internal, plot_filename=plot_file)
 
     def test_jacobian_show(self, solution, mpl_interactive):
         plot(solution, show=True)

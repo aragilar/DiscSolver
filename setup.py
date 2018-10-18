@@ -53,6 +53,7 @@ setuptools.setup(
             "ds-combine-plot = disc_solver.analyse.combine_plot:combine_main",
             "ds-jacobian-plot = disc_solver.analyse.jacobian_plot:jacobian_main",
             "ds-validate-plot = disc_solver.analyse.validate_plot:validate_plot_main",
+            "ds-hydro-check-plot = disc_solver.analyse.hydro_check_plot:hydro_check_plot_main",
             "ds-acc-plot = disc_solver.analyse.acc_plot:acc_main",
             "ds-diverge-plot = disc_solver.analyse.diverge_plot:diverge_main",
             "ds-conserve-plot = disc_solver.analyse.conserve_plot:conserve_main",
