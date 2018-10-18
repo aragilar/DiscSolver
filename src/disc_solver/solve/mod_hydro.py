@@ -89,48 +89,59 @@ def mod_hydro_define_conditions(inp):
 def Z_2_func(
     *, θ, a_0, X, v_r, B_φ, B_θ, ρ, η_A, η_O, η_H, b_φ, b_r, b_θ, X_dash,
     deriv_B_φ, deriv_B_θ, deriv_b_θ, deriv_b_φ, deriv_b_r, deriv_η_O,
-    deriv_η_A, deriv_η_H, norm_kepler
+    deriv_η_A, deriv_η_H, deriv_ρ, norm_kepler
 ):
     """
     Compute the value of the variable Z_2
     """
-    return - (
-        5 / 2 + a_0 / ρ * (
-            deriv_B_φ * B_φ / 2 - deriv_B_θ * deriv_B_φ * X -
-            B_θ * deriv_B_φ * X_dash - B_θ / (
+    return - a_0 / ρ * (
+        deriv_B_φ * B_φ / 2 - deriv_B_θ * deriv_B_φ * X -
+        B_θ * deriv_B_φ * X_dash - deriv_ρ / ρ * (
+            B_φ ** 2 / 4 - X * deriv_B_φ * B_θ -
+            B_θ / (
                 η_O + η_A * (1 - b_φ ** 2)
             ) * (
-                v_r * deriv_B_θ - deriv_B_φ * (
+                v_r * B_θ - B_φ * (
                     η_A * b_φ * (
                         b_r * tan(θ) - b_θ / 4
-                    ) + η_H * (b_r / 4 + b_θ * tan(θ))
-                ) - B_φ * (
-                    deriv_η_A * b_φ * (b_r * tan(θ) - b_θ / 4) +
-                    η_A * deriv_b_φ * (b_r * tan(θ) - b_θ / 4) + η_A * b_φ * (
-                        deriv_b_r * tan(θ) + b_r * (tan(θ) ** 2 + 1) -
-                        deriv_b_θ / 4
-                    ) + deriv_η_H * (b_r / 4 + b_θ * tan(θ)) + η_H * (
-                        deriv_b_r / 4 + deriv_b_θ * tan(θ) + b_θ * (
-                            tan(θ) ** 2 + 1
-                        )
+                    ) + η_H * (
+                        b_r / 4 + b_θ * tan(θ)
                     )
                 )
+            )
+        ) - B_θ / (
+            η_O + η_A * (1 - b_φ ** 2)
+        ) * (
+            v_r * deriv_B_θ - deriv_B_φ * (
+                η_A * b_φ * (
+                    b_r * tan(θ) - b_θ / 4
+                ) + η_H * (b_r / 4 + b_θ * tan(θ))
+            ) - B_φ * (
+                deriv_η_A * b_φ * (b_r * tan(θ) - b_θ / 4) +
+                η_A * deriv_b_φ * (b_r * tan(θ) - b_θ / 4) + η_A * b_φ * (
+                    deriv_b_r * tan(θ) + b_r * (tan(θ) ** 2 + 1) -
+                    deriv_b_θ / 4
+                ) + deriv_η_H * (b_r / 4 + b_θ * tan(θ)) + η_H * (
+                    deriv_b_r / 4 + deriv_b_θ * tan(θ) + b_θ * (
+                        tan(θ) ** 2 + 1
+                    )
+                )
+            )
+        ) - (
+            deriv_B_θ / (
+                η_O + η_A * (1 - b_φ ** 2)
             ) - (
-                deriv_B_θ / (
-                    η_O + η_A * (1 - b_φ ** 2)
-                ) - (
-                    B_θ * (
-                        deriv_η_O + deriv_η_A * (1 - b_φ ** 2) -
-                        2 * η_A * deriv_b_φ * b_φ
-                    )
-                ) / (
-                    (η_O + η_A * (1 - b_φ ** 2)) ** 2
+                B_θ * (
+                    deriv_η_O + deriv_η_A * (1 - b_φ ** 2) -
+                    2 * η_A * deriv_b_φ * b_φ
                 )
-            ) * (
-                v_r * B_θ - B_φ * (
-                    η_A * b_φ * (b_r * tan(θ) - b_θ / 4) +
-                    η_H * (b_r / 4 + b_θ * tan(θ))
-                )
+            ) / (
+                (η_O + η_A * (1 - b_φ ** 2)) ** 2
+            )
+        ) * (
+            v_r * B_θ - B_φ * (
+                η_A * b_φ * (b_r * tan(θ) - b_θ / 4) +
+                η_H * (b_r / 4 + b_θ * tan(θ))
             )
         )
     ) / (2 * norm_kepler)
@@ -308,7 +319,8 @@ def ode_system(
             η_O=η_O, η_H=η_H, b_φ=b_φ, b_r=b_r, b_θ=b_θ, X_dash=X_dash,
             deriv_B_φ=deriv_B_φ, deriv_B_θ=deriv_B_θ, deriv_b_θ=deriv_b_θ,
             deriv_b_φ=deriv_b_φ, deriv_b_r=deriv_b_r, deriv_η_O=deriv_η_O,
-            deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H, norm_kepler=norm_kepler,
+            deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H, deriv_ρ=deriv_ρ,
+            norm_kepler=norm_kepler,
         )
         Z_3 = Z_3_func(
             v_r=v_r, B_θ=B_θ, norm_kepler=norm_kepler, η_O=η_O, η_A=η_A,
