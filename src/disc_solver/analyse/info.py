@@ -66,6 +66,10 @@ def info(soln_file, *, group, soln_range, output_file):
             file=output_file
         )
         print(
+            "sonic method: {}".format(soln_file.sonic_method),
+            file=output_file
+        )
+        print(
             "number of solutions: {}".format(len(soln_file.solutions)),
             file=output_file
         )
