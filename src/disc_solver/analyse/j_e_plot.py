@@ -174,28 +174,28 @@ def E_func(*, v_r, v_θ, v_φ, B_r, B_θ, B_φ, J_r, J_θ, J_φ, η_O, η_A, η_
     B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
     b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
 
-    E_r = v_φ * B_θ - v_θ * B_φ - (
+    E_r = (
         η_O * J_r + η_H * (
             J_φ * b_θ - J_θ * b_φ
         ) - η_A * (
             J_φ * b_r * b_φ + J_θ * b_r * b_θ - J_r * (1 - b_r ** 2)
         )
-    )
+    ) - v_φ * B_θ + v_θ * B_φ
 
-    E_θ = v_r * B_φ - v_φ * B_r - (
+    E_θ = (
         η_O * J_θ + η_H * (
             J_r * b_φ - J_φ * b_r
         ) - η_A * (
             J_r * b_r * b_θ + J_φ * b_θ * b_φ - J_θ * (1 - b_θ ** 2)
         )
-    )
+    ) - v_r * B_φ + v_φ * B_r
 
-    E_φ = v_θ * B_r - v_r * B_θ - (
+    E_φ = (
         η_O * J_φ + η_H * (
             J_θ * b_r - J_r * b_θ
         ) - η_A * (
             J_θ * b_θ * b_φ + J_r * b_r * b_φ - J_φ * (1 - b_φ ** 2)
         )
-    )
+    ) - v_θ * B_r + v_r * B_θ
 
     return E_r, E_θ, E_φ

@@ -245,9 +245,9 @@ def get_E_values(initial_conditions, values):
         η_O=values.η_O, η_A=values.η_A, η_H=values.η_H,
     )
 
-    E_r_dash = values.v_φ * values.B_θ - values.v_θ * values.B_φ - E_r
-    E_θ_dash = values.v_r * values.B_φ - values.v_φ * values.B_r - E_θ
-    E_φ_dash = values.v_θ * values.B_r - values.v_r * values.B_θ - E_φ
+    E_r_dash = E_r + values.v_φ * values.B_θ - values.v_θ * values.B_φ
+    E_θ_dash = E_θ + values.v_r * values.B_φ - values.v_φ * values.B_r
+    E_φ_dash = E_φ + values.v_θ * values.B_r - values.v_r * values.B_θ
 
     return (
         (J_r, J_θ, J_φ),
