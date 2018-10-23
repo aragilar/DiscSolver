@@ -35,6 +35,7 @@ matrix:
 install:
   - source ./ci_support/ensure_sundials_installed.sh
   - pip install -U pip setuptools wheel
+  - pip install -c known_broken_constraints.txt --pre -U coverage # coverage major versions need to match
   - pip install -U tox codecov
 
 script:
