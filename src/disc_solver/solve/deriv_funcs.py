@@ -10,7 +10,33 @@ import logbook
 
 from ..utils import sec, ODEIndex
 
+from .j_e_funcs import E_θ_func, J_func
+
 log = logbook.Logger(__name__)
+
+
+def deriv_B_φ_func(
+    *, C, Z_5, θ, γ, B_r, B_θ, B_φ, v_r, v_φ, v_θ, η_O, η_A, η_H, b_r, b_θ,
+    b_φ, E_r
+):
+    """
+    Compute the derivative of B_φ, assuming E_r is being used
+    """
+    return (
+        C * (v_θ * B_r - v_r * B_θ) - E_r - v_φ * B_θ + B_φ * (
+            v_θ + tan(θ) * (η_O + η_A * (1 - b_r ** 2)) + (1 / 4 - γ) * (
+                η_H * b_φ + η_A * b_r * b_θ
+            ) - C * (
+                η_A * b_φ * (
+                    b_r * tan(θ) -
+                    b_θ * (1/4 - γ)
+                ) + η_H * (
+                    b_r * (1/4 - γ) +
+                    b_θ * tan(θ)
+                )
+            )
+        )
+    ) / Z_5
 
 
 def deriv_B_r_func(*, θ, γ, B_r, B_θ, B_φ, v_r, v_θ, deriv_B_φ, η_O, η_A, η_H):
@@ -37,6 +63,23 @@ def deriv_B_r_func(*, θ, γ, B_r, B_θ, B_φ, v_r, v_θ, deriv_B_φ, η_O, η_A
         ) / (
             η_O + η_A * (1 - norm_B_φ) * (1 + norm_B_φ)
         ) - B_θ * (1/4 - γ)
+    )
+
+
+def deriv_E_r_func(
+    *, γ, θ, v_r, v_φ, B_r, B_θ, B_φ, η_O, η_A, η_H, b_r, b_θ, b_φ, deriv_B_r,
+    deriv_B_φ
+):
+    """
+    Compute the derivative of E_r
+    """
+    J_r, J_θ, J_φ = J_func(
+        γ=γ, θ=θ, B_θ=B_θ, B_φ=B_φ, deriv_B_φ=deriv_B_φ, deriv_B_r=deriv_B_r,
+    )
+
+    return (γ - 3 / 4) * E_θ_func(
+        v_r=v_r, v_φ=v_φ, B_r=B_r, B_φ=B_φ, J_r=J_r, J_θ=J_θ, J_φ=J_φ, η_O=η_O,
+        η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ
     )
 
 
