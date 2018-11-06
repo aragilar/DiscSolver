@@ -117,13 +117,6 @@ def find_in_array(array, item):
         return None
 
 
-def cli_to_var(cmd):
-    """
-    Convert cli style argument to valid python name
-    """
-    return cmd.replace("-", "_")
-
-
 def get_normalisation(inp, radius=AU, mass=M_SUN, density=1.5e-9):
     """
     Get normalisation based on location and density
