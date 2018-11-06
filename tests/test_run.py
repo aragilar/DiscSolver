@@ -10,6 +10,7 @@ from disc_solver.analyse.derivs_plot import derivs_plot
 from disc_solver.analyse.params_plot import params_plot
 from disc_solver.analyse.taylor_plot import taylor_plot
 from disc_solver.analyse.combine_plot import combine_plot
+from disc_solver.analyse.component_plot import plot as component_plot
 from disc_solver.analyse.acc_plot import acc_plot
 from disc_solver.analyse.validate_plot import validate_plot
 from disc_solver.analyse.hydro_check_plot import hydro_check_plot
@@ -305,6 +306,13 @@ class TestAnalysis:
     @pytest.mark.mpl_image_compare
     def test_combine_file(self, solution, plot_file):
         return combine_plot(solution, plot_filename=plot_file, close=False)
+
+    def test_component_show(self, solution, mpl_interactive):
+        component_plot(solution, show=True)
+
+    @pytest.mark.mpl_image_compare
+    def test_component_file(self, solution, plot_file):
+        return component_plot(solution, plot_filename=plot_file, close=False)
 
     def test_acc_show(self, solution, mpl_interactive):
         acc_plot(solution, show=True)

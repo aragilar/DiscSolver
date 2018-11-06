@@ -2,6 +2,7 @@
 plot.png
 pylint_*.txt
 .coverage
+.coverage.*
 .coverage_html
 .cache
 .tox
