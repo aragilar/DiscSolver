@@ -424,7 +424,7 @@ def solution(
     onroot_func=None, find_sonic_point=False, tstop=None,
     ontstop_func=None, store_internal=True, root_func=None,
     root_func_args=None, with_taylor=True, modified_initial_conditions=None,
-    θ_scale=float_type(1)
+    θ_scale=float_type(1), use_E_r=False
 ):
     """
     Find solution
@@ -439,7 +439,14 @@ def solution(
     max_steps = soln_input.max_steps
     η_derivs = soln_input.η_derivs
     use_taylor_jump = soln_input.use_taylor_jump
-    if with_taylor:
+
+    if with_taylor and use_E_r:
+        raise SolverError(
+            "Cannot use taylor series and E_r at the same time currently"
+        )
+    elif use_E_r:
+        raise SolverError("Using E_r not ready yet")
+    elif with_taylor:
         taylor_stop_angle = radians(soln_input.taylor_stop_angle)
     else:
         taylor_stop_angle = None

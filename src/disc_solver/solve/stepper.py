@@ -176,7 +176,7 @@ def create_soln_splitter(method):
     return method_dict.get(method) or v_θ_deriv
 
 
-def solution_generator(store_internal=True):
+def solution_generator(*, store_internal=True, run):
     """
     Generate solution func
     """
@@ -189,8 +189,9 @@ def solution_generator(store_internal=True):
         """
         inp = SolutionInput(**vars(inp))
         soln = solution(
-            inp, define_conditions(inp), onroot_func=onroot_continue,
-            find_sonic_point=True, store_internal=store_internal
+            inp, define_conditions(inp, use_E_r=run.use_E_r),
+            onroot_func=onroot_continue, find_sonic_point=True,
+            store_internal=store_internal, use_E_r=run.use_E_r,
         )
         return validate_solution(soln)
 
@@ -229,7 +230,7 @@ def solver(soln_input, run, store_internal=True):
     writer = writer_generator(run)
     cleanup = cleanup_generator(run, writer)
     binary_searcher(
-        solution_generator(store_internal=store_internal), cleanup,
+        solution_generator(store_internal=store_internal, run=run), cleanup,
         stepper_creator(
             writer, step_func,
             create_soln_splitter(soln_input.split_method)

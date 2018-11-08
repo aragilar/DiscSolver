@@ -688,6 +688,21 @@ def _run_loader4(group):
     )
 
 
+@ds_registry.loader("Run", version=5)
+def _run_loader5(group):
+    return Run(
+        config_input=group["config_input"],
+        config_filename=group["config_filename"],
+        time=group["time"],
+        final_solution=group["final_solution"],
+        solutions=group["solutions"],
+        disc_solver_version=group["disc_solver_version"],
+        float_type=group["float_type"],
+        sonic_method=group["sonic_method"],
+        use_E_r=group["use_E_r"],
+    )
+
+
 @ds_registry.loader("Problems", version=1)
 def _problems_loader(group):
     problems = Problems()

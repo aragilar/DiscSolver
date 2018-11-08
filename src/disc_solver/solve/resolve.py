@@ -25,7 +25,7 @@ log = logbook.Logger(__name__)
 
 def resolve(
     *, output_file, sonic_method, soln_filename, soln_range, output_dir,
-    store_internal
+    store_internal, use_E_r=False
 ):
     """
     Main function to generate solution
@@ -40,6 +40,7 @@ def resolve(
         disc_solver_version=ds_version,
         float_type=str(float_type),
         sonic_method=sonic_method,
+        use_E_r=use_E_r
     )
 
     if output_file is None:
@@ -78,10 +79,12 @@ def main():
     sonic_method = args["sonic_method"]
     output_file = args.get("output_file", None)
     store_internal = args.get("store_internal", True)
+    use_E_r = args.get("use_E_r", False)
 
     with log_handler(args), redirected_warnings(), redirected_logging():
         print(resolve(
             soln_filename=soln_filename, soln_range=soln_range,
             sonic_method=sonic_method, output_dir=output_dir,
             store_internal=store_internal, output_file=output_file,
+            use_E_r=use_E_r,
         ))

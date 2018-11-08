@@ -42,7 +42,7 @@ SONIC_METHOD_MAP = {
 
 def solve(
     *, output_file, sonic_method, config_file, output_dir, store_internal,
-    overrides=None
+    overrides=None, use_E_r=False
 ):
     """
     Main function to generate solution
@@ -56,6 +56,7 @@ def solve(
         disc_solver_version=ds_version,
         float_type=str(float_type),
         sonic_method=sonic_method,
+        use_E_r=use_E_r
     )
 
     if output_file is None:
@@ -91,10 +92,12 @@ def main():
     output_file = args.get("output_file", None)
     store_internal = args.get("store_internal", True)
     overrides = validate_overrides(args.get("override", []))
+    use_E_r = args.get("use_E_r", False)
 
     with log_handler(args), redirected_warnings(), redirected_logging():
         print(solve(
             output_file=output_file, sonic_method=sonic_method,
             config_file=config_file, output_dir=output_dir,
             store_internal=store_internal, overrides=overrides,
+            use_E_r=use_E_r,
         ))

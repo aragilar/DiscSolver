@@ -325,6 +325,7 @@ class Run:
     float_type = attr.ib()
     sonic_method = attr.ib()
     time = attr.ib(default=None)
+    use_E_r = attr.ib(default=False)
     _final_solution = attr.ib(default=attr.Factory(DelayedContainer))
     solutions = attr.ib(default=attr.Factory(Solutions))
 

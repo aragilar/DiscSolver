@@ -15,6 +15,9 @@ from scikits.odes.sundials import (
 )
 from scikits.odes.sundials.cvode import StatusEnum
 
+from .config import (
+    B_φ_prime_boundary_func, E_r_boundary_func,
+)
 from .deriv_funcs import B_unit_derivs, A_func, C_func, deriv_η_skw_func
 from .hydrostatic import (
     X_dash_func, X_func, Z_1_func, Z_4_func, Z_5_func, dderiv_B_φ_func
@@ -37,7 +40,7 @@ SONIC_POINT_TOLERANCE = float_type(0.01)
 log = logbook.Logger(__name__)
 
 
-def mod_hydro_define_conditions(inp):
+def mod_hydro_define_conditions(inp, run):
     """
     Compute initial conditions based on input
     """
@@ -54,13 +57,13 @@ def mod_hydro_define_conditions(inp):
     η_O = inp.η_O
     η_A = inp.η_A
     η_H = inp.η_H
+
     η_P = η_O + η_A
+    η_perp_sq = η_P ** 2 + η_H ** 2
 
     v_φ = (2 * norm_kepler_sq - 5 / 2 + v_r * (a_0 / η_P - v_r / 2)) / (
         2 * sqrt(norm_kepler_sq) - v_r * η_H / (2 * η_P)
     )
-
-    B_φ_prime = v_φ * v_r / (2 * a_0)
 
     init_con = np.zeros(11, dtype=FLOAT_TYPE)
 
@@ -71,10 +74,18 @@ def mod_hydro_define_conditions(inp):
     init_con[ODEIndex.v_φ] = v_φ
     init_con[ODEIndex.v_θ] = v_θ
     init_con[ODEIndex.ρ] = ρ
-    init_con[ODEIndex.B_φ_prime] = B_φ_prime
     init_con[ODEIndex.η_O] = η_O
     init_con[ODEIndex.η_A] = η_A
     init_con[ODEIndex.η_H] = η_H
+
+    if run.use_E_r:
+        E_r = E_r_boundary_func(
+            v_r=v_r, v_φ=v_φ, η_P=η_P, η_H=η_H, η_perp_sq=η_perp_sq, a_0=a_0
+        )
+        init_con[ODEIndex.E_r] = E_r
+    else:
+        B_φ_prime = B_φ_prime_boundary_func(v_r=v_r, v_φ=v_φ, a_0=a_0)
+        init_con[ODEIndex.B_φ_prime] = B_φ_prime
 
     angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
     if np.any(np.isnan(init_con)):
@@ -460,7 +471,7 @@ def mod_hydro_solution(
 def solution(
     soln_input, initial_conditions, *, onroot_func=None, tstop=None,
     ontstop_func=None, store_internal=True, root_func=None,
-    root_func_args=None, θ_scale=float_type(1)
+    root_func_args=None, θ_scale=float_type(1), use_E_r=False
 ):
     """
     Find solution
@@ -473,6 +484,9 @@ def solution(
     relative_tolerance = soln_input.relative_tolerance
     max_steps = soln_input.max_steps
     η_derivs = soln_input.η_derivs
+
+    if use_E_r:
+        raise SolverError("Using E_r not ready yet")
 
     soln, internal_data = mod_hydro_solution(
         angles=angles, initial_conditions=init_con, a_0=a_0,
@@ -500,7 +514,8 @@ def solver(inp, run, *, store_internal=True):
     mod_hydro solver
     """
     hydro_solution = solution(
-        inp, mod_hydro_define_conditions(inp), store_internal=store_internal
+        inp, mod_hydro_define_conditions(inp, run),
+        store_internal=store_internal, use_E_r=run.use_E_r,
     )
     run.solutions["0"] = hydro_solution
     run.final_solution = run.solutions["0"]

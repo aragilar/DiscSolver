@@ -171,6 +171,7 @@ class ODEIndex(IntEnum):
     v_θ = 5
     ρ = 6
     B_φ_prime = 7
+    E_r = 7
     η_O = 8
     η_A = 9
     η_H = 10

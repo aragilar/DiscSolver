@@ -15,6 +15,9 @@ from scikits.odes.sundials import (
 )
 from scikits.odes.sundials.cvode import StatusEnum
 
+from .config import (
+    v_φ_boundary_func, B_φ_prime_boundary_func, E_r_boundary_func,
+)
 from .deriv_funcs import B_unit_derivs, A_func, C_func, deriv_η_skw_func
 from .utils import (
     error_handler, rad_to_scaled, scaled_to_rad,
@@ -34,7 +37,7 @@ SONIC_POINT_TOLERANCE = float_type(0.01)
 log = logbook.Logger(__name__)
 
 
-def hydrostatic_define_conditions(inp):
+def hydrostatic_define_conditions(inp, run):
     """
     Compute initial conditions based on input
     """
@@ -52,20 +55,12 @@ def hydrostatic_define_conditions(inp):
     η_A = inp.η_A
     η_H = inp.η_H
 
-    try:
-        v_φ = (
-            v_r * η_H / (4 * (η_O + η_A)) + sqrt(
-                norm_kepler_sq - 5/2 + v_r * (
-                    a_0 / (η_O + η_A) + v_r / 2 * (
-                        η_H ** 2 / (8 * (η_O + η_A) ** 2) - 1
-                    )
-                )
-            )
-        )
-    except ValueError:
-        raise SolverError("Input implies complex v_φ")
+    η_P = η_O + η_A
+    η_perp_sq = η_P ** 2 + η_H ** 2
 
-    B_φ_prime = v_φ * v_r / (2 * a_0)
+    v_φ = v_φ_boundary_func(
+        v_r=v_r, η_H=η_H, η_P=η_P, norm_kepler_sq=norm_kepler_sq, a_0=a_0, γ=0
+    )
 
     init_con = np.zeros(11, dtype=FLOAT_TYPE)
 
@@ -76,10 +71,18 @@ def hydrostatic_define_conditions(inp):
     init_con[ODEIndex.v_φ] = v_φ
     init_con[ODEIndex.v_θ] = v_θ
     init_con[ODEIndex.ρ] = ρ
-    init_con[ODEIndex.B_φ_prime] = B_φ_prime
     init_con[ODEIndex.η_O] = η_O
     init_con[ODEIndex.η_A] = η_A
     init_con[ODEIndex.η_H] = η_H
+
+    if run.use_E_r:
+        E_r = E_r_boundary_func(
+            v_r=v_r, v_φ=v_φ, η_P=η_P, η_H=η_H, η_perp_sq=η_perp_sq, a_0=a_0
+        )
+        init_con[ODEIndex.E_r] = E_r
+    else:
+        B_φ_prime = B_φ_prime_boundary_func(v_r=v_r, v_φ=v_φ, a_0=a_0)
+        init_con[ODEIndex.B_φ_prime] = B_φ_prime
 
     angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
     if np.any(np.isnan(init_con)):
@@ -625,7 +628,7 @@ def hydrostatic_solution(
 def solution(
     soln_input, initial_conditions, *, onroot_func=None, tstop=None,
     ontstop_func=None, store_internal=True, root_func=None,
-    root_func_args=None, θ_scale=float_type(1), no_v_deriv=False
+    root_func_args=None, θ_scale=float_type(1), no_v_deriv=False, use_E_r=False
 ):
     """
     Find solution
@@ -638,6 +641,10 @@ def solution(
     relative_tolerance = soln_input.relative_tolerance
     max_steps = soln_input.max_steps
     η_derivs = soln_input.η_derivs
+
+    if use_E_r:
+        raise SolverError("Using E_r not ready yet")
+
     if no_v_deriv:
         if float_type not in (float, float64):
             log.warn(
@@ -674,7 +681,8 @@ def solver(inp, run, *, store_internal=True):
     hydrostatic solver
     """
     hydro_solution = solution(
-        inp, hydrostatic_define_conditions(inp), store_internal=store_internal
+        inp, hydrostatic_define_conditions(inp, run),
+        store_internal=store_internal, use_E_r=run.use_E_r,
     )
     run.solutions["0"] = hydro_solution
     run.final_solution = run.solutions["0"]

@@ -20,7 +20,37 @@ from .utils import SolverError, add_overrides
 log = logbook.Logger(__name__)
 
 
-def define_conditions(inp):
+def v_φ_boundary_func(*, v_r, η_H, η_P, norm_kepler_sq, a_0, γ):
+    """
+    Compute v_φ at the midplane
+    """
+    try:
+        return v_r * η_H / (4 * η_P) + sqrt(
+            norm_kepler_sq - 5/2 + 2 * γ + v_r * (
+                a_0 / η_P + v_r / 2 * (
+                    η_H ** 2 / (8 * η_P ** 2) - 1
+                )
+            )
+        )
+    except ValueError:
+        raise SolverError("Input implies complex v_φ")
+
+
+def B_φ_prime_boundary_func(*, v_r, v_φ, a_0):
+    """
+    Compute B_φ_prime at the midplane
+    """
+    return v_φ * v_r / (2 * a_0)
+
+
+def E_r_boundary_func(*, v_r, v_φ, η_P, η_H, η_perp_sq, a_0):
+    """
+    Compute E_r at the midplane
+    """
+    return - v_φ - v_r / η_P * (η_H + η_perp_sq * v_φ / (2 * a_0))
+
+
+def define_conditions(inp, *, use_E_r=False):
     """
     Compute initial conditions based on input
     """
@@ -39,20 +69,12 @@ def define_conditions(inp):
     η_A = inp.η_A
     η_H = inp.η_H
 
-    try:
-        v_φ = (
-            v_r * η_H / (4 * (η_O + η_A)) + sqrt(
-                norm_kepler_sq - 5/2 + 2 * γ + v_r * (
-                    a_0 / (η_O + η_A) + v_r / 2 * (
-                        η_H ** 2 / (8 * (η_O + η_A) ** 2) - 1
-                    )
-                )
-            )
-        )
-    except ValueError:
-        raise SolverError("Input implies complex v_φ")
+    η_P = η_O + η_A
+    η_perp_sq = η_P ** 2 + η_H ** 2
 
-    B_φ_prime = v_φ * v_r / (2 * a_0)
+    v_φ = v_φ_boundary_func(
+        v_r=v_r, η_H=η_H, η_P=η_P, norm_kepler_sq=norm_kepler_sq, a_0=a_0, γ=γ
+    )
 
     init_con = np.zeros(11, dtype=FLOAT_TYPE)
 
@@ -63,10 +85,18 @@ def define_conditions(inp):
     init_con[ODEIndex.v_φ] = v_φ
     init_con[ODEIndex.v_θ] = v_θ
     init_con[ODEIndex.ρ] = ρ
-    init_con[ODEIndex.B_φ_prime] = B_φ_prime
     init_con[ODEIndex.η_O] = η_O
     init_con[ODEIndex.η_A] = η_A
     init_con[ODEIndex.η_H] = η_H
+
+    if use_E_r:
+        E_r = E_r_boundary_func(
+            v_r=v_r, v_φ=v_φ, η_P=η_P, η_H=η_H, η_perp_sq=η_perp_sq, a_0=a_0
+        )
+        init_con[ODEIndex.E_r] = E_r
+    else:
+        B_φ_prime = B_φ_prime_boundary_func(v_r=v_r, v_φ=v_φ, a_0=a_0)
+        init_con[ODEIndex.B_φ_prime] = B_φ_prime
 
     angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
     if np.any(np.isnan(init_con)):
