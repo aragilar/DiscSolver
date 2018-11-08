@@ -314,7 +314,10 @@ class TestAnalysis:
             taylor_plot(solution_no_internal, plot_filename=plot_file)
 
     def test_combine_show(self, solution, mpl_interactive):
-        combine_plot(solution, show=True)
+        combine_plot(
+            solution, show=True, with_slow=True, with_alfven=True,
+            with_fast=True, with_sonic=True,
+        )
 
     @pytest.mark.mpl_image_compare
     def test_combine_file(self, solution, plot_file):
