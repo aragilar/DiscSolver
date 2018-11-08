@@ -86,7 +86,9 @@ def constrain_text(fig, text):
                 )
 
 
-def get_common_arguments(params, *, v_θ_scale="linear", initial_conditions):
+def get_common_arguments(
+    params, *, v_θ_scale="linear", initial_conditions, no_v_φ_offest=False
+):
     """
     Return a list containing what to plot based on a particular set of
     parameters
@@ -96,7 +98,7 @@ def get_common_arguments(params, *, v_θ_scale="linear", initial_conditions):
     if "v_θ" in params:
         args[ODEIndex.v_θ]["scale"] = v_θ_scale
         args[ODEIndex.v_θ]["extras"] = []
-    if "v_φ" in params:
+    if not no_v_φ_offest and "v_φ" in params:
         args[ODEIndex.v_φ]["offset"] = sqrt(initial_conditions.norm_kepler_sq)
 
     return args

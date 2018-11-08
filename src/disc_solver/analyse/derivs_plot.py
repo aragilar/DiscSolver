@@ -8,7 +8,7 @@ from numpy import degrees
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
     get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
-    AnalysisError, DEFAULT_MPL_STYLE,
+    AnalysisError, DEFAULT_MPL_STYLE, get_common_arguments, B_φ_PRIME_ORDERING,
 )
 
 
@@ -76,36 +76,16 @@ def generate_derivs_plot(
     """
     if use_E_r:
         raise AnalysisError("Function needs modification to work with use_E_r")
-    param_names = [
-        {
-            "name": "B_r",
-        },
-        {
-            "name": "B_φ",
-        },
-        {
-            "name": "B_θ",
-        },
-        {
-            "name": "v_r",
-        },
-        {
-            "name": "v_φ",
-        },
-        {
-            "name": "v_θ",
-        },
-        {
-            "name": "ρ",
-        },
-        {
-            "name": "B_φ_prime",
-        },
-    ]
 
     internal_data = soln.internal_data
     if internal_data is None:
         raise AnalysisError("Internal data required to generate plot")
+
+    cons = soln.initial_conditions
+    param_names = get_common_arguments(
+        B_φ_PRIME_ORDERING, initial_conditions=cons, no_v_φ_offest=True,
+    )
+
     deriv_angles = internal_data.angles
     derivs = internal_data.derivs
     npnot = np.logical_not
@@ -132,7 +112,7 @@ def generate_derivs_plot(
                 degrees(deriv_angles[npand(npnot(pos_deriv), indexes)]),
                 - derivs[npand(npnot(pos_deriv), indexes), i], linestyle + "g",
             )
-            ax.set_yscale(settings.get("scale", "log"))
+            ax.set_yscale("log")
 
         ax.set_xlabel("angle from plane (°)")
         ax.set_title(settings["name"])
