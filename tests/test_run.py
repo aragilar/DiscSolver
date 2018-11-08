@@ -290,6 +290,16 @@ class TestAnalysis:
             solution_taylor, plot_filename=plot_file, close=False
         )
 
+    def test_taylor_show_values(self, solution_taylor, mpl_interactive):
+        taylor_plot(solution_taylor, show=True, show_values=True)
+
+    @pytest.mark.mpl_image_compare
+    def test_taylor_file_values(self, solution_taylor, plot_file):
+        return taylor_plot(
+            solution_taylor, plot_filename=plot_file, close=False,
+            show_values=True
+        )
+
     def test_taylor_show_no_internal(
         self, solution_no_internal, mpl_interactive
     ):
