@@ -226,7 +226,14 @@ class TestAnalysis:
         )
 
     def test_plot_show(self, solution, mpl_interactive):
-        plot(solution, show=True)
+        plot(
+            solution, show=True, with_slow=True, with_alfven=True,
+            with_fast=True, with_sonic=True,
+        )
+
+    @pytest.mark.mpl_image_compare
+    def test_plot_file(self, solution, plot_file):
+        return plot(solution, plot_filename=plot_file, close=False)
 
     @pytest.mark.mpl_image_compare
     def test_compare_plot_file(self, solution, plot_file):
@@ -236,10 +243,6 @@ class TestAnalysis:
     def test_compare_plot_show(self, solution, mpl_interactive):
         solutions = [[solution, None], [solution, None]]
         compare_plot(solutions, show=True)
-
-    @pytest.mark.mpl_image_compare
-    def test_plot_file(self, solution, plot_file):
-        return plot(solution, plot_filename=plot_file, close=False)
 
     def test_derivs_show(self, solution_deriv, mpl_interactive):
         derivs_plot(solution_deriv, show=True)
