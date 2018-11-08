@@ -24,16 +24,32 @@ from disc_solver.solve.taylor_space import main as taylor_space_main
 
 
 class TestSolve:
-    def test_single_default(self, tmpdir):
+    def test_single_default_taylor_solution(self, tmpdir):
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="single",
             config_file=None, output_file=None, store_internal=True,
+            overrides={"use_taylor_jump": "False"},
         )
 
-    def test_single_no_internal(self, tmpdir):
+    def test_single_no_internal_taylor_solution(self, tmpdir):
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="single",
             config_file=None, output_file=None, store_internal=False,
+            overrides={"use_taylor_jump": "False"},
+        )
+
+    def test_single_default_step_sonic(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="single",
+            config_file=None, output_file=None, store_internal=True,
+            overrides={"use_taylor_jump": "True"},
+        )
+
+    def test_single_no_internal_step_sonic(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="single",
+            config_file=None, output_file=None, store_internal=False,
+            overrides={"use_taylor_jump": "True"},
         )
 
     def test_step_default(self, tmpdir):
@@ -64,20 +80,6 @@ class TestSolve:
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="sonic_root",
             config_file=None, output_file=None, store_internal=False,
-        )
-
-    def test_single_default_step_sonic(self, tmpdir):
-        solve(
-            output_dir=Path(str(tmpdir)), sonic_method="single",
-            config_file=None, output_file=None, store_internal=True,
-            overrides={"use_taylor_jump": "True"},
-        )
-
-    def test_single_no_internal_step_sonic(self, tmpdir):
-        solve(
-            output_dir=Path(str(tmpdir)), sonic_method="single",
-            config_file=None, output_file=None, store_internal=False,
-            overrides={"use_taylor_jump": "True"},
         )
 
     def test_hydrostatic_default(self, tmpdir):
