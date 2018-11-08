@@ -12,6 +12,7 @@ from matplotlib.colors import TABLEAU_COLORS, XKCD_COLORS
 import matplotlib.pyplot as plt
 from matplotlib.style import context as use_style
 import matplotlib._layoutbox as layoutbox
+from numpy import sqrt
 from scipy.interpolate import interp1d
 
 from h5preserve import open as h5open
@@ -22,6 +23,43 @@ from ..logging import log_handler, logging_options
 from ..utils import ODEIndex, str_to_float, get_solutions, DiscSolverError
 
 DEFAULT_MPL_STYLE = "bmh"
+
+B_φ_PRIME_ORDERING = [
+    "B_r", "B_φ", "B_θ", "v_r", "v_φ", "v_θ", "ρ", "B_φ_prime"
+]
+E_r_ORDERING = ["B_r", "B_φ", "B_θ", "v_r", "v_φ", "v_θ", "ρ", "E_r"]
+
+COMMON_ARGUMENTS = {
+    "B_r": {
+        "name": "$B_r/B_0$",
+    },
+    "B_φ": {
+        "name": "$B_φ/B_0$",
+    },
+    "B_θ": {
+        "name": "$B_θ/B_0$",
+    },
+    "v_r": {
+        "name": "$v_r/c_s$",
+    },
+    "v_φ": {
+        "name": "$(v_φ - v_k)/c_s$",
+    },
+    "v_θ": {
+        "name": "$v_θ/c_s$",
+        "legend": True,
+    },
+    "ρ": {
+        "name": "$ρ/ρ_0$",
+        "scale": "log",
+    },
+    "B_φ_prime": {
+        "name": "$B_φ'/B_0$",
+    },
+    "E_r": {
+        "name": "$E_r/E_0$",
+    },
+}
 
 
 def constrain_text(fig, text):
@@ -46,6 +84,22 @@ def constrain_text(fig, text):
                     [child, text._layoutbox],
                     padding=h_pad*2., strength='required'
                 )
+
+
+def get_common_arguments(params, *, v_θ_scale="linear", initial_conditions):
+    """
+    Return a list containing what to plot based on a particular set of
+    parameters
+    """
+    args = [COMMON_ARGUMENTS[param] for param in params]
+
+    if "v_θ" in params:
+        args[ODEIndex.v_θ]["scale"] = v_θ_scale
+        args[ODEIndex.v_θ]["extras"] = []
+    if "v_φ" in params:
+        args[ODEIndex.v_φ]["offset"] = sqrt(initial_conditions.norm_kepler_sq)
+
+    return args
 
 
 def single_solution_plotter(func):

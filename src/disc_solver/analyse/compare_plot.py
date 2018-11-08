@@ -2,12 +2,13 @@
 """
 Plot command for DiscSolver
 """
-from numpy import degrees, sqrt
+from numpy import degrees
 
 from .utils import (
     multiple_solution_plotter, analyse_main_wrapper_multisolution,
     analysis_func_wrapper_multisolution, common_plotting_options,
     get_common_plot_args, plot_output_wrapper, DEFAULT_MPL_STYLE,
+    get_common_arguments, B_φ_PRIME_ORDERING,
 )
 
 
@@ -86,36 +87,9 @@ def generate_plot(fig, solns, *, linestyle='-', stop=90, v_θ_scale="linear"):
 
         indexes = degrees(angles) <= stop
 
-        param_names = [
-            {
-                "name": "$B_r/B_0$",
-            },
-            {
-                "name": "$B_φ/B_0$",
-            },
-            {
-                "name": "$B_θ/B_0$",
-            },
-            {
-                "name": "$v_r/c_s$",
-            },
-            {
-                "name": "$(v_φ - v_k)/c_s$",
-                "offset": sqrt(cons.norm_kepler_sq)
-            },
-            {
-                "name": "$v_θ/c_s$",
-                "legend": True,
-                "scale": v_θ_scale,
-            },
-            {
-                "name": "$ρ/ρ_0$",
-                "scale": "log",
-            },
-            {
-                "name": "$B_φ'/B_0$",
-            },
-        ]
+        param_names = get_common_arguments(
+            B_φ_PRIME_ORDERING, v_θ_scale=v_θ_scale, initial_conditions=cons
+        )
 
         for i, settings in enumerate(param_names):
             ax = axes[i]

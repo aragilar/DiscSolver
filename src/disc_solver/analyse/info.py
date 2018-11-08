@@ -60,8 +60,7 @@ def info(soln_file, *, group, soln_range, output_file, filename):
         print("run properties:", file=output_file)
         print("filename: {}".format(filename), file=output_file)
         print(
-            "label: {}".format(soln_file.config_input.label),
-            file=output_file,
+            "label: {}".format(soln_file.config_input.label), file=output_file,
         )
         print(
             "config filename: {}".format(soln_file.config_filename),
@@ -69,11 +68,14 @@ def info(soln_file, *, group, soln_range, output_file, filename):
         )
         print(
             "sonic method: {}".format(soln_file.sonic_method),
-            file=output_file
+            file=output_file,
+        )
+        print(
+            "using E_r: {}".format(soln_file.use_E_r), file=output_file,
         )
         print(
             "number of solutions: {}".format(len(soln_file.solutions)),
-            file=output_file
+            file=output_file,
         )
         print("config:", file=output_file)
         for name, value in vars(soln_file.config_input).items():

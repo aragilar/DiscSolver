@@ -11,7 +11,7 @@ from ..utils import (
 from .utils import (
     single_solution_plotter, analyse_main_wrapper, analysis_func_wrapper,
     common_plotting_options, get_common_plot_args, plot_output_wrapper,
-    DEFAULT_MPL_STYLE,
+    DEFAULT_MPL_STYLE, get_common_arguments, B_φ_PRIME_ORDERING,
 )
 
 
@@ -101,37 +101,9 @@ def generate_plot(
 
     indexes = degrees(angles) <= stop
 
-    param_names = [
-        {
-            "name": "$B_r/B_0$",
-        },
-        {
-            "name": "$B_φ/B_0$",
-        },
-        {
-            "name": "$B_θ/B_0$",
-        },
-        {
-            "name": "$v_r/c_s$",
-        },
-        {
-            "name": "$(v_φ - v_k)/c_s$",
-            "offset": sqrt(cons.norm_kepler_sq)
-        },
-        {
-            "name": "$v_θ/c_s$",
-            "legend": True,
-            "scale": v_θ_scale,
-            "extras": []
-        },
-        {
-            "name": "$ρ/ρ_0$",
-            "scale": "log",
-        },
-        {
-            "name": "$B_φ'/B_0$",
-        },
-    ]
+    param_names = get_common_arguments(
+        B_φ_PRIME_ORDERING, v_θ_scale=v_θ_scale, initial_conditions=cons
+    )
 
     if with_slow:
         param_names[ODEIndex.v_θ]["extras"].append({
