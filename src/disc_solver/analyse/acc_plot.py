@@ -10,7 +10,8 @@ from ..constants import KM, AU, M_SUN, YEAR
 from ..utils import get_normalisation, ODEIndex
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
-    get_common_plot_args, analysis_func_wrapper, plot_output_wrapper
+    get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
+    DEFAULT_MPL_STYLE,
 )
 
 # AU^2 * Gauss^2 / 30 km/s in Msun/year
@@ -44,7 +45,8 @@ def acc_main(soln, *, soln_range, common_plot_args):
 @analysis_func_wrapper
 def acc_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
-    figargs=None, linestyle='.', title=None, close=True, filename
+    figargs=None, linestyle='.', title=None, close=True, filename,
+    mpl_style=DEFAULT_MPL_STYLE
 ):
     """
     Show derivatives
@@ -52,7 +54,7 @@ def acc_plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_acc_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title, filename=filename,
+        title=title, filename=filename, mpl_style=mpl_style,
     )
 
     return plot_output_wrapper(

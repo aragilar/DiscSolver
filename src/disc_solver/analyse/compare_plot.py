@@ -7,7 +7,7 @@ from numpy import degrees, sqrt
 from .utils import (
     multiple_solution_plotter, analyse_main_wrapper_multisolution,
     analysis_func_wrapper_multisolution, common_plotting_options,
-    get_common_plot_args, plot_output_wrapper,
+    get_common_plot_args, plot_output_wrapper, DEFAULT_MPL_STYLE,
 )
 
 
@@ -47,7 +47,8 @@ def plot_main(solns, *, common_plot_args, plot_args):
 @analysis_func_wrapper_multisolution
 def compare_plot(
     solns, *, plot_filename=None, show=False, linestyle='-', stop=90,
-    figargs=None, v_θ_scale="linear", title=None, close=True
+    figargs=None, v_θ_scale="linear", title=None, close=True,
+    mpl_style=DEFAULT_MPL_STYLE
 ):
     """
     Plot solutions to file
@@ -56,7 +57,7 @@ def compare_plot(
     # pylint: disable=no-value-for-parameter
     fig = generate_plot(
         solns, linestyle=linestyle, stop=stop, figargs=figargs,
-        v_θ_scale=v_θ_scale, title=title,
+        v_θ_scale=v_θ_scale, title=title, mpl_style=mpl_style,
     )
 
     return plot_output_wrapper(

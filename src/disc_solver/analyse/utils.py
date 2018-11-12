@@ -20,6 +20,8 @@ from ..file_format import registries
 from ..logging import log_handler, logging_options
 from ..utils import ODEIndex, str_to_float, get_solutions, DiscSolverError
 
+DEFAULT_MPL_STYLE = "bmh"
+
 
 def single_solution_plotter(func):
     """
@@ -28,7 +30,7 @@ def single_solution_plotter(func):
     @wraps(func)
     def plot_wrapper(
         h5file, solution, *args, title=None, filename=None, figargs=None,
-        mpl_style="bmh", **kwargs
+        mpl_style=DEFAULT_MPL_STYLE, **kwargs
     ):
         """
         Wraps plot functions
@@ -60,8 +62,8 @@ def multiple_solution_plotter(func):
     """
     @wraps(func)
     def plot_wrapper(
-        solution_pairs, *args, title=None, figargs=None, mpl_style="bmh",
-        **kwargs
+        solution_pairs, *args, title=None, figargs=None,
+        mpl_style=DEFAULT_MPL_STYLE, **kwargs
     ):
         """
         Wraps plot functions
@@ -121,6 +123,7 @@ def common_plotting_options(parser):
     parser.add_argument("--stop")
     parser.add_argument("--linestyle")
     parser.add_argument("--title")
+    parser.add_argument("--style")
     return parser
 
 
@@ -142,6 +145,7 @@ def get_common_plot_args(args):
         "stop": str_to_float(args.get("stop", "90")),
         "linestyle": args.get("linestyle", "-"),
         "title": args.get("title"),
+        "mpl_style": args.get("style", DEFAULT_MPL_STYLE),
     }
 
 

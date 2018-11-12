@@ -10,7 +10,7 @@ from ..utils import ODEIndex
 from .utils import (
     single_solution_plotter, analyse_main_wrapper, analysis_func_wrapper,
     common_plotting_options, get_common_plot_args, plot_output_wrapper,
-    AnalysisError,
+    AnalysisError, DEFAULT_MPL_STYLE,
 )
 
 
@@ -50,7 +50,8 @@ def plot_main(soln, *, soln_range, common_plot_args, plot_args):
 @analysis_func_wrapper
 def plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
-    stop=90, figargs=None, title=None, close=True, only=None, filename
+    stop=90, figargs=None, title=None, close=True, only=None, filename,
+    mpl_style=DEFAULT_MPL_STYLE
 ):
     """
     Plot solution to file
@@ -58,7 +59,7 @@ def plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_plot(
         soln, soln_range, linestyle=linestyle, figargs=figargs, title=title,
-        stop=stop, only=only, filename=filename,
+        stop=stop, only=only, filename=filename, mpl_style=mpl_style,
     )
 
     return plot_output_wrapper(

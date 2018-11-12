@@ -9,7 +9,7 @@ from ..solve.hydrostatic import X_func
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
     get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
-    AnalysisError
+    AnalysisError, DEFAULT_MPL_STYLE,
 )
 from .validate_plot import get_values
 
@@ -39,7 +39,8 @@ def hydro_check_plot_main(soln, *, soln_range, common_plot_args):
 @analysis_func_wrapper
 def hydro_check_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
-    figargs=None, linestyle='.', title=None, close=True, filename
+    figargs=None, linestyle='.', title=None, close=True, filename,
+    mpl_style=DEFAULT_MPL_STYLE
 ):
     """
     Show difference between original equations and ode solution
@@ -47,7 +48,7 @@ def hydro_check_plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_hydro_check_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title, filename=filename,
+        title=title, filename=filename, mpl_style=mpl_style
     )
 
     return plot_output_wrapper(

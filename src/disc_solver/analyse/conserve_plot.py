@@ -4,10 +4,11 @@ Conserve-plot command for DiscSolver
 """
 from numpy import degrees
 import matplotlib.pyplot as plt
+from matplotlib.style import context as use_style
 
 from .utils import (
     plot_output_wrapper, common_plotting_options, get_common_plot_args,
-    distinct_color_map, analyse_multisolution_wrapper,
+    distinct_color_map, analyse_multisolution_wrapper, DEFAULT_MPL_STYLE,
 )
 from ..utils import ODEIndex
 
@@ -76,18 +77,19 @@ def generate_conserve_plot(
 
 def conserve_plot(
     *solutions, plot_filename=None, show=False, stop=90, figargs=None,
-    title=None, linestyle='-', close=True
+    title=None, linestyle='-', close=True, mpl_style=DEFAULT_MPL_STYLE
 ):
     """
     Plot solution to file, with velocities, fields onto on one plot
     """
-    fig = generate_conserve_plot(
-        *solutions, stop=stop, figargs=figargs, linestyle=linestyle,
-    )
-    if title is None:
-        fig.suptitle("Conservation of $ρ v_θ$")
-    else:
-        fig.suptitle(title)
+    with use_style(mpl_style):
+        fig = generate_conserve_plot(
+            *solutions, stop=stop, figargs=figargs, linestyle=linestyle,
+        )
+        if title is None:
+            fig.suptitle("Conservation of $ρ v_θ$")
+        else:
+            fig.suptitle(title)
 
     return plot_output_wrapper(
         fig, file=plot_filename, show=show, close=close

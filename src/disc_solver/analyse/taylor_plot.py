@@ -8,7 +8,7 @@ from numpy import degrees
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
     get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
-    AnalysisError
+    AnalysisError, DEFAULT_MPL_STYLE,
 )
 
 
@@ -54,7 +54,7 @@ def taylor_main(soln, *, soln_range, plot_args, common_plot_args):
 def taylor_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
     figargs=None, linestyle='.', title=None, show_values=False, close=True,
-    filename
+    filename, mpl_style=DEFAULT_MPL_STYLE
 ):
     """
     Show solution at every step the solver takes.
@@ -63,6 +63,7 @@ def taylor_plot(
     fig = generate_taylor_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
         title=title, show_values=show_values, filename=filename,
+        mpl_style=mpl_style,
     )
 
     return plot_output_wrapper(
