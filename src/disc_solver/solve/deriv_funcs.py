@@ -15,13 +15,24 @@ from .j_e_funcs import E_θ_func, J_func
 log = logbook.Logger(__name__)
 
 
-def deriv_B_φ_func(
-    *, C, Z_5, θ, γ, B_r, B_θ, B_φ, v_r, v_φ, v_θ, η_O, η_A, η_H, b_r, b_θ,
-    b_φ, E_r
-):
+def Z_5_func(*, η_O, η_A, η_H, b_r, b_θ, b_φ, C):
+    """
+    Compute the value of the variable Z_5
+    """
+    return η_O + η_A * (1 - b_r ** 2) + C * (η_H * b_θ - η_A * b_r * b_φ)
+
+
+def deriv_B_φ_func(*, θ, γ, B_r, B_θ, B_φ, v_r, v_φ, v_θ, η_O, η_A, η_H, E_r):
     """
     Compute the derivative of B_φ, assuming E_r is being used
     """
+    B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
+    b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
+
+    C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
+
+    Z_5 = Z_5_func(η_O=η_O, η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ, C=C)
+
     return (
         C * (v_θ * B_r - v_r * B_θ) - E_r - v_φ * B_θ + B_φ * (
             v_θ + tan(θ) * (η_O + η_A * (1 - b_r ** 2)) + (1 / 4 - γ) * (

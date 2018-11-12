@@ -20,7 +20,7 @@ from scikits.odes.sundials.cvode import StatusEnum
 from .deriv_funcs import (
     dderiv_B_φ_soln, taylor_series, get_taylor_first_order,
     get_taylor_second_order, get_taylor_third_order, deriv_B_r_func,
-    deriv_η_skw_func,
+    deriv_η_skw_func, deriv_B_φ_func, deriv_E_r_func
 )
 from .utils import (
     gen_sonic_point_rootfn, error_handler, rad_to_scaled, scaled_to_rad,
@@ -47,7 +47,7 @@ TaylorSolution = namedtuple(
 
 def ode_system(
     *, γ, a_0, norm_kepler_sq, init_con, θ_scale=float_type(1),
-    with_taylor=False, η_derivs=True, store_internal=True
+    with_taylor=False, η_derivs=True, store_internal=True, use_E_r=False
 ):
     """
     Set up the system we are solving for.
@@ -93,10 +93,13 @@ def ode_system(
         v_φ = params[ODEIndex.v_φ]
         v_θ = params[ODEIndex.v_θ]
         ρ = params[ODEIndex.ρ]
-        B_φ_prime = params[ODEIndex.B_φ_prime]
         η_O = params[ODEIndex.η_O]
         η_A = params[ODEIndex.η_A]
         η_H = params[ODEIndex.η_H]
+        if use_E_r:
+            E_r = params[ODEIndex.E_r]
+        else:
+            B_φ_prime = params[ODEIndex.B_φ_prime]
 
         # check sanity of input values
         if ρ < 0:
@@ -110,7 +113,14 @@ def ode_system(
                 problems[θ].append("negative velocity")
             return -1
 
-        deriv_B_φ = B_φ_prime
+        if use_E_r:
+            deriv_B_φ = deriv_B_φ_func(
+                θ=θ, γ=γ, B_r=B_r, B_θ=B_θ, B_φ=B_φ, v_r=v_r, v_φ=v_φ, v_θ=v_θ,
+                η_O=η_O, η_A=η_A, η_H=η_H, E_r=E_r
+            )
+        else:
+            deriv_B_φ = B_φ_prime
+
         deriv_B_r = deriv_B_r_func(
             B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r,
             v_θ=v_θ, deriv_B_φ=deriv_B_φ, γ=γ,
@@ -174,13 +184,23 @@ def ode_system(
             deriv_η_A = 0
             deriv_η_H = 0
 
-        dderiv_B_φ = dderiv_B_φ_soln(
-            B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r,
-            v_θ=v_θ, v_φ=v_φ, deriv_v_r=deriv_v_r, deriv_v_θ=deriv_v_θ,
-            deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
-            deriv_B_φ=deriv_B_φ, γ=γ, deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A,
-            deriv_η_H=deriv_η_H
-        )
+        if use_E_r:
+            B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
+            b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
+
+            deriv_E_r = deriv_E_r_func(
+                γ=γ, θ=θ, v_r=v_r, v_φ=v_φ, B_r=B_r, B_θ=B_θ, B_φ=B_φ, η_O=η_O,
+                η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ,
+                deriv_B_r=deriv_B_r, deriv_B_φ=deriv_B_φ
+            )
+        else:
+            dderiv_B_φ = dderiv_B_φ_soln(
+                B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ,
+                v_r=v_r, v_θ=v_θ, v_φ=v_φ, deriv_v_r=deriv_v_r,
+                deriv_v_θ=deriv_v_θ, deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r,
+                deriv_B_θ=deriv_B_θ, deriv_B_φ=deriv_B_φ, γ=γ,
+                deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H
+            )
 
         derivs[ODEIndex.B_r] = deriv_B_r
         derivs[ODEIndex.B_φ] = deriv_B_φ
@@ -189,10 +209,15 @@ def ode_system(
         derivs[ODEIndex.v_φ] = deriv_v_φ
         derivs[ODEIndex.v_θ] = deriv_v_θ
         derivs[ODEIndex.ρ] = deriv_ρ
-        derivs[ODEIndex.B_φ_prime] = dderiv_B_φ
         derivs[ODEIndex.η_O] = deriv_η_O
         derivs[ODEIndex.η_A] = deriv_η_A
         derivs[ODEIndex.η_H] = deriv_η_H
+
+        if use_E_r:
+            derivs[ODEIndex.E_r] = deriv_E_r
+        else:
+            derivs[ODEIndex.B_φ_prime] = dderiv_B_φ
+
         if __debug__:
             log.debug("θ: {}, {}", θ, degrees(θ))
 
@@ -347,7 +372,7 @@ def main_solution(
     absolute_tolerance=float_type(1e-10), max_steps=500, onroot_func=None,
     find_sonic_point=False, tstop=None, ontstop_func=None, η_derivs=True,
     store_internal=True, root_func=None, root_func_args=None,
-    θ_scale=float_type(1)
+    θ_scale=float_type(1), use_E_r=False
 ):
     """
     Find solution
@@ -369,6 +394,7 @@ def main_solution(
         γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,
         init_con=system_initial_conditions, η_derivs=η_derivs,
         store_internal=store_internal, with_taylor=False, θ_scale=θ_scale,
+        use_E_r=use_E_r,
     )
 
     solver = ode(
@@ -444,8 +470,6 @@ def solution(
         raise SolverError(
             "Cannot use taylor series and E_r at the same time currently"
         )
-    elif use_E_r:
-        raise SolverError("Using E_r not ready yet")
     elif with_taylor:
         taylor_stop_angle = radians(soln_input.taylor_stop_angle)
     else:
@@ -486,7 +510,7 @@ def solution(
         onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
         η_derivs=η_derivs, store_internal=store_internal,
         find_sonic_point=find_sonic_point, root_func=root_func,
-        root_func_args=root_func_args, θ_scale=θ_scale,
+        root_func_args=root_func_args, θ_scale=θ_scale, use_E_r=use_E_r,
     )
 
     if store_internal and taylor_stop_angle is not None:

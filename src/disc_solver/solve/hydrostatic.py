@@ -18,7 +18,9 @@ from scikits.odes.sundials.cvode import StatusEnum
 from .config import (
     v_φ_boundary_func, B_φ_prime_boundary_func, E_r_boundary_func,
 )
-from .deriv_funcs import B_unit_derivs, A_func, C_func, deriv_η_skw_func
+from .deriv_funcs import (
+    B_unit_derivs, A_func, C_func, deriv_η_skw_func, Z_5_func,
+)
 from .utils import (
     error_handler, rad_to_scaled, scaled_to_rad,
     SolverError,
@@ -237,13 +239,6 @@ def Z_4_func(*, B_θ, B_r, B_φ, deriv_B_φ, θ):
     Compute the value of the variable Z_4
     """
     return B_θ * deriv_B_φ - B_r * B_φ / 4 - B_θ * B_φ * tan(θ)
-
-
-def Z_5_func(*, η_O, η_A, η_H, b_r, b_θ, b_φ, C):
-    """
-    Compute the value of the variable Z_5
-    """
-    return η_O + η_A * (1 - b_r ** 2) + C * (η_H * b_θ - η_A * b_r * b_φ)
 
 
 def Z_6_func(*, C, Z_3, Z_4, Z_5, a_0, B_θ, v_φ, ρ):
