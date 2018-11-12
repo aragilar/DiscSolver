@@ -10,6 +10,7 @@ import sys
 from logbook.compat import redirected_warnings, redirected_logging
 from matplotlib.colors import TABLEAU_COLORS, XKCD_COLORS
 import matplotlib.pyplot as plt
+from matplotlib.style import context as use_style
 from scipy.interpolate import interp1d
 
 from h5preserve import open as h5open
@@ -26,7 +27,8 @@ def single_solution_plotter(func):
     """
     @wraps(func)
     def plot_wrapper(
-        h5file, solution, *args, title=None, filename=None, **kwargs
+        h5file, solution, *args, title=None, filename=None, figargs=None,
+        mpl_style="bmh", **kwargs
     ):
         """
         Wraps plot functions
@@ -37,15 +39,18 @@ def single_solution_plotter(func):
             filename = "{}:{}".format(
                 h5file.config_filename, h5file.config_input.label
             )
-
-        fig = func(
-            get_solutions(h5file, solution), *args, **kwargs
-        )
-        if title is None:
-            fig.suptitle("{}:{}".format(filename, solution))
-        else:
-            fig.suptitle(title)
-        return fig
+        if figargs is None:
+            figargs = {}
+        with use_style(mpl_style):
+            fig = plt.figure(constrained_layout=True, **figargs)
+            func(
+                fig, get_solutions(h5file, solution), *args, **kwargs
+            )
+            if title is None:
+                fig.suptitle("{}:{}".format(filename, solution))
+            else:
+                fig.suptitle(title)
+            return fig
     return plot_wrapper
 
 
@@ -54,11 +59,17 @@ def multiple_solution_plotter(func):
     Pulls out common elements of plots which take multiple solutions
     """
     @wraps(func)
-    def plot_wrapper(solution_pairs, *args, title=None, **kwargs):
+    def plot_wrapper(
+        solution_pairs, *args, title=None, figargs=None, mpl_style="bmh",
+        **kwargs
+    ):
         """
         Wraps plot functions
         """
         title_list = []
+
+        if figargs is None:
+            figargs = {}
 
         def solution_loader(solns):
             for run, name, filename in solns:
@@ -71,12 +82,14 @@ def multiple_solution_plotter(func):
 
                 yield get_solutions(run, name)
 
-        fig = func(solution_loader(solution_pairs), *args, **kwargs)
-        if title is None:
-            fig.suptitle('\n'.join(title_list))
-        else:
-            fig.suptitle(title)
-        return fig
+        with use_style(mpl_style):
+            fig = plt.figure(constrained_layout=True, **figargs)
+            func(fig, solution_loader(solution_pairs), *args, **kwargs)
+            if title is None:
+                fig.suptitle('\n'.join(title_list))
+            else:
+                fig.suptitle(title)
+            return fig
     return plot_wrapper
 
 

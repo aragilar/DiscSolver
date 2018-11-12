@@ -6,7 +6,6 @@ from collections import OrderedDict
 
 import numpy as np
 from numpy import degrees, sqrt
-import matplotlib.pyplot as plt
 
 from ..constants import KM
 from ..utils import (
@@ -88,16 +87,13 @@ def combine_plot(
 
 @single_solution_plotter
 def generate_plot_combine(
-    soln, *, linestyle='-', with_slow=False, with_alfven=False,
-    with_fast=False, with_sonic=False, stop=90, figargs=None
+    fig, soln, *, linestyle='-', with_slow=False, with_alfven=False,
+    with_fast=False, with_sonic=False, stop=90
 ):
     """
     Generate plot, with enough freedom to be able to format fig.
     Combine velocities, fields onto on plot
     """
-    if figargs is None:
-        figargs = {}
-
     solution = soln.solution
     angles = soln.angles
     cons = soln.initial_conditions
@@ -183,10 +179,8 @@ def generate_plot_combine(
 
     indexes = degrees(angles) <= stop
 
-    fig, axes = plt.subplots(
-        nrows=3, ncols=1, constrained_layout=True, sharex=True,
-        gridspec_kw=dict(hspace=0),
-        **figargs
+    axes = fig.subplots(
+        nrows=3, ncols=1, sharex=True, gridspec_kw=dict(hspace=0),
     )
     axes.shape = len(plot_props)
     for i, plot_name in enumerate(plot_props):

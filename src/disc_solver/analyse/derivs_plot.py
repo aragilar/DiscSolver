@@ -4,7 +4,6 @@ Deriv-plot command for DiscSolver
 """
 import numpy as np
 from numpy import degrees
-import matplotlib.pyplot as plt
 
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
@@ -69,14 +68,11 @@ def derivs_plot(
 
 @single_solution_plotter
 def generate_derivs_plot(
-    soln, *, linestyle='.', figargs=None, stop=90, nolog=False
+    fig, soln, *, linestyle='.', stop=90, nolog=False
 ):
     """
     Generate plot of derivatives
     """
-    if figargs is None:
-        figargs = {}
-
     param_names = [
         {
             "name": "B_r",
@@ -113,9 +109,7 @@ def generate_derivs_plot(
     npand = np.logical_and
     indexes = degrees(deriv_angles) <= stop
 
-    fig, axes = plt.subplots(
-        nrows=2, ncols=4, constrained_layout=True, sharex=True, **figargs
-    )
+    axes = fig.subplots(nrows=2, ncols=4, sharex=True)
     axes.shape = len(param_names)
     for i, settings in enumerate(param_names):
         ax = axes[i]

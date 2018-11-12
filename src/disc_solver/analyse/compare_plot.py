@@ -3,15 +3,12 @@
 Plot command for DiscSolver
 """
 from numpy import degrees, sqrt
-import matplotlib.pyplot as plt
 
 from .utils import (
     multiple_solution_plotter, analyse_main_wrapper_multisolution,
     analysis_func_wrapper_multisolution, common_plotting_options,
     get_common_plot_args, plot_output_wrapper,
 )
-
-plt.style.use("bmh")
 
 
 def plot_parser(parser):
@@ -56,6 +53,7 @@ def compare_plot(
     Plot solutions to file
     """
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
+    # pylint: disable=no-value-for-parameter
     fig = generate_plot(
         solns, linestyle=linestyle, stop=stop, figargs=figargs,
         v_θ_scale=v_θ_scale, title=title,
@@ -67,18 +65,12 @@ def compare_plot(
 
 
 @multiple_solution_plotter
-def generate_plot(
-    solns, *, linestyle='-', stop=90, figargs=None, v_θ_scale="linear"
-):
+def generate_plot(fig, solns, *, linestyle='-', stop=90, v_θ_scale="linear"):
     """
     Generate plot, with enough freedom to be able to format fig
     """
-    if figargs is None:
-        figargs = {}
-
-    fig, axes = plt.subplots(
-        nrows=2, ncols=4, constrained_layout=True, sharex=True,
-        gridspec_kw=dict(hspace=0), **figargs
+    axes = fig.subplots(
+        nrows=2, ncols=4, sharex=True, gridspec_kw=dict(hspace=0)
     )
 
     # only add label to bottom plots

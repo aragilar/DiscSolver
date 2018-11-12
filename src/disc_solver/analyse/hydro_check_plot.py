@@ -3,7 +3,6 @@
 hydro-check-plot command for DiscSolver
 """
 from numpy import tan, degrees, absolute, sqrt
-import matplotlib.pyplot as plt
 
 from ..solve.hydrostatic import X_func
 
@@ -57,15 +56,10 @@ def hydro_check_plot(
 
 
 @single_solution_plotter
-def generate_hydro_check_plot(
-    soln, *, linestyle='.', figargs=None, stop=90
-):
+def generate_hydro_check_plot(fig, soln, *, linestyle='.', stop=90):
     """
     Generate plot of difference between original equations and ode solution
     """
-    if figargs is None:
-        figargs = {}
-
     param_names = [
         {
             "name": "azimuthal momentum",
@@ -86,7 +80,7 @@ def generate_hydro_check_plot(
     values = get_values(soln)
     indexes = degrees(values.angles) <= stop
 
-    fig, axes = plt.subplots(**figargs)
+    axes = fig.subplots()
 
     ax_val = axes
     ax_val.set_xlabel("angle from plane (°)")

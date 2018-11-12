@@ -3,7 +3,6 @@
 Plot J and E command for DiscSolver
 """
 from numpy import degrees
-import matplotlib.pyplot as plt
 
 from ..solve.deriv_funcs import deriv_B_r_func
 from ..solve.j_e_funcs import J_func, E_func
@@ -14,8 +13,6 @@ from .utils import (
     single_solution_plotter, analyse_main_wrapper, analysis_func_wrapper,
     common_plotting_options, get_common_plot_args, plot_output_wrapper,
 )
-
-plt.style.use("bmh")
 
 
 def plot_parser(parser):
@@ -62,15 +59,10 @@ def j_e_plot(
 
 
 @single_solution_plotter
-def generate_plot(
-    soln, *, linestyle='-', stop=90, figargs=None
-):
+def generate_plot(fig, soln, *, linestyle='-', stop=90):
     """
     Generate plot, with enough freedom to be able to format fig
     """
-    if figargs is None:
-        figargs = {}
-
     solution = soln.solution
     angles = soln.angles
     cons = soln.initial_conditions
@@ -98,9 +90,8 @@ def generate_plot(
         η_A=solution[:, ODEIndex.η_A], η_H=solution[:, ODEIndex.η_H],
     )
 
-    fig, axes = plt.subplots(
-        nrows=2, ncols=3, constrained_layout=True, sharex=True,
-        gridspec_kw=dict(hspace=0), **figargs
+    axes = fig.subplots(
+        nrows=2, ncols=3, sharex=True, gridspec_kw=dict(hspace=0),
     )
 
     # only add label to bottom plots

@@ -5,7 +5,6 @@ Validate-plot command for DiscSolver
 from types import SimpleNamespace
 
 from numpy import sqrt, tan, degrees, absolute
-import matplotlib.pyplot as plt
 
 from ..float_handling import float_type
 from ..utils import ODEIndex
@@ -61,14 +60,11 @@ def validate_plot(
 
 @single_solution_plotter
 def generate_validate_plot(
-    soln, *, linestyle='.', figargs=None, stop=90
+    fig, soln, *, linestyle='.', stop=90
 ):
     """
     Generate plot of difference between original equations and ode solution
     """
-    if figargs is None:
-        figargs = {}
-
     param_names = [
         {
             "name": "continuity",
@@ -106,9 +102,8 @@ def generate_validate_plot(
     values = get_values(soln)
     indexes = degrees(values.angles) <= stop
 
-    fig, axes = plt.subplots(
-        nrows=2, ncols=2, sharex=True, constrained_layout=True,
-        gridspec_kw=dict(hspace=0), **figargs
+    axes = fig.subplots(
+        nrows=2, ncols=2, sharex=True, gridspec_kw=dict(hspace=0),
     )
     for ax in axes[1]:
         ax.set_xlabel("angle from plane (°)")

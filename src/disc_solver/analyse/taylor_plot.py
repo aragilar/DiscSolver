@@ -4,7 +4,6 @@ Check-taylor command for DiscSolver
 """
 import numpy as np
 from numpy import degrees
-import matplotlib.pyplot as plt
 
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
@@ -73,14 +72,12 @@ def taylor_plot(
 
 @single_solution_plotter
 def generate_taylor_plot(
-    soln, *, figargs=None, show_values=False, stop=90, linestyle='.'
+    fig, soln, *, show_values=False, stop=90, linestyle='.'
 ):
     # pylint: disable=unused-variable,unused-argument
     """
     Compare derivatives from taylor series to full version
     """
-    if figargs is None:
-        figargs = {}
     if soln.internal_data is None:
         raise AnalysisError("Internal data required to generate plot")
 
@@ -92,7 +89,7 @@ def generate_taylor_plot(
     ρ_taylor = soln.internal_data.ρ_taylor
 
     deriv_angles = degrees(soln.internal_data.angles)
-    fig, axes = plt.subplots(ncols=3, constrained_layout=True, **figargs)
+    axes = fig.subplots(ncols=3)
     if show_values:
         axes[0].plot(
             deriv_angles[v_r_normal >= 0],

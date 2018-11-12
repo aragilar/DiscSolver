@@ -3,7 +3,6 @@
 Plot command for DiscSolver
 """
 from numpy import degrees, sqrt, tan
-import matplotlib.pyplot as plt
 
 from ..solve.deriv_funcs import deriv_B_r_func
 from ..utils import ODEIndex
@@ -13,8 +12,6 @@ from .utils import (
     common_plotting_options, get_common_plot_args, plot_output_wrapper,
     AnalysisError,
 )
-
-plt.style.use("bmh")
 
 
 def plot_parser(parser):
@@ -70,15 +67,10 @@ def plot(
 
 
 @single_solution_plotter
-def generate_plot(
-    soln, *, linestyle='-', stop=90, figargs=None, only=None
-):
+def generate_plot(fig, soln, *, linestyle='-', stop=90, only=None):
     """
     Generate plot, with enough freedom to be able to format fig
     """
-    if figargs is None:
-        figargs = {}
-
     angles = soln.angles
     indexes = degrees(angles) <= stop
     plot_angles = degrees(angles[indexes])
@@ -86,7 +78,7 @@ def generate_plot(
     components = compute_components(soln, indexes, angles[indexes])
 
     if only:
-        fig, ax = plt.subplots(constrained_layout=True, **figargs)
+        ax = fig.subplots()
         comps = components.get(only)
         if comps is None:
             raise AnalysisError("{} not found".format(only))
@@ -99,9 +91,8 @@ def generate_plot(
         ax.legend(loc=0)
 
     else:
-        fig, axes = plt.subplots(
-            nrows=2, ncols=4, constrained_layout=True, sharex=True,
-            gridspec_kw=dict(hspace=0), **figargs
+        axes = fig.subplots(
+            nrows=2, ncols=4, sharex=True, gridspec_kw=dict(hspace=0),
         )
 
         # only add label to bottom plots

@@ -5,7 +5,6 @@ Acc-plot command for DiscSolver
 from math import pi
 
 from numpy import degrees
-import matplotlib.pyplot as plt
 
 from ..constants import KM, AU, M_SUN, YEAR
 from ..utils import get_normalisation, ODEIndex
@@ -63,14 +62,12 @@ def acc_plot(
 
 @single_solution_plotter
 def generate_acc_plot(
-    soln, *, linestyle='.', figargs=None, stop=90
+    fig, soln, *, linestyle='.', stop=90
 ):
     """
     Friendlier plot for talks
     """
     # pylint: disable=unused-variable,unused-argument
-    if figargs is None:
-        figargs = {}
 
     solution = soln.solution
     angles = soln.angles
@@ -85,7 +82,7 @@ def generate_acc_plot(
     ρ = solution[:, ODEIndex.ρ] * ρ_norm
     xpos = degrees(angles) < 1
 
-    fig, (ax_in, ax_wind) = plt.subplots(ncols=2, **figargs)
+    ax_in, ax_wind = fig.subplots(ncols=2)
     acc_in = B_θ * B_φ * ACC_CONSTANT
     acc_wind = v_θ * ρ * WIND_CONSTANT
     ax_in.plot(degrees(angles[xpos]), acc_in[xpos])
