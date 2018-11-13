@@ -19,6 +19,7 @@ from disc_solver.analyse.conserve_plot import conserve_main
 from disc_solver.analyse.utils import AnalysisError
 from disc_solver.solve import solve
 from disc_solver.solve.resolve import resolve
+from disc_solver.solve.utils import SolverError
 from disc_solver.analyse.j_e_plot import j_e_plot
 from disc_solver.solve.taylor_space import main as taylor_space_main
 
@@ -51,6 +52,14 @@ class TestSolve:
             config_file=None, output_file=None, store_internal=False,
             overrides={"use_taylor_jump": "True"},
         )
+
+    def test_single_default_use_E_r(self, tmpdir):
+        with pytest.raises(SolverError):
+            solve(
+                output_dir=Path(str(tmpdir)), sonic_method="single",
+                config_file=None, output_file=None, store_internal=True,
+                use_E_r=True,
+            )
 
     def test_step_default(self, tmpdir):
         solve(
@@ -93,6 +102,34 @@ class TestSolve:
             output_dir=Path(str(tmpdir)), sonic_method="hydrostatic",
             config_file=None, output_file=None, store_internal=False,
         )
+
+    def test_hydrostatic_use_E_r(self, tmpdir):
+        with pytest.raises(SolverError):
+            solve(
+                output_dir=Path(str(tmpdir)), sonic_method="hydrostatic",
+                config_file=None, output_file=None, store_internal=True,
+                use_E_r=True,
+            )
+
+    def test_mod_hydro_default(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="mod_hydro",
+            config_file=None, output_file=None, store_internal=True,
+        )
+
+    def test_mod_hydro_no_internal(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="mod_hydro",
+            config_file=None, output_file=None, store_internal=False,
+        )
+
+    def test_mod_hydro_use_E_r(self, tmpdir):
+        with pytest.raises(SolverError):
+            solve(
+                output_dir=Path(str(tmpdir)), sonic_method="mod_hydro",
+                config_file=None, output_file=None, store_internal=True,
+                use_E_r=True,
+            )
 
 
 class TestReSolve:
