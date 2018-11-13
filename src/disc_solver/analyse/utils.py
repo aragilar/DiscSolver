@@ -11,6 +11,7 @@ from logbook.compat import redirected_warnings, redirected_logging
 from matplotlib.colors import TABLEAU_COLORS, XKCD_COLORS
 import matplotlib.pyplot as plt
 from matplotlib.style import context as use_style
+import matplotlib._layoutbox as layoutbox
 from scipy.interpolate import interp1d
 
 from h5preserve import open as h5open
@@ -21,6 +22,30 @@ from ..logging import log_handler, logging_options
 from ..utils import ODEIndex, str_to_float, get_solutions, DiscSolverError
 
 DEFAULT_MPL_STYLE = "bmh"
+
+
+def constrain_text(fig, text):
+    """
+    Hack to constrain text on the bottom of the figure
+
+    from matplotlib.figure.Figure.suptitle
+    """
+    # pylint: disable=unused-variable,protected-access
+    if fig._layoutbox is not None:
+        w_pad, h_pad, wspace, hspace = fig.get_constrained_layout_pads(
+            relative=True
+        )
+        figlb = fig._layoutbox
+        text._layoutbox = layoutbox.LayoutBox(
+            parent=figlb, artist=text, name=figlb.name+'.textinfo'
+        )
+        # stack the text on bottom of all the children.
+        for child in figlb.children:
+            if child is not text._layoutbox:
+                layoutbox.vstack(
+                    [child, text._layoutbox],
+                    padding=h_pad*2., strength='required'
+                )
 
 
 def single_solution_plotter(func):
@@ -52,6 +77,8 @@ def single_solution_plotter(func):
                 fig.suptitle("{}:{}".format(filename, solution))
             else:
                 fig.suptitle(title)
+            version_text = fig.text(0, 0.01, ds_version)
+            constrain_text(fig, version_text)
             return fig
     return plot_wrapper
 
