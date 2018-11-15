@@ -24,6 +24,7 @@ setuptools.setup(
         "attrs",
         "emcee",
         "spaceplot",
+        "root-solver",
     ],
     author = "James Tocknell",
     author_email = "aragilar@gmail.com",

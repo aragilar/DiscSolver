@@ -15,6 +15,8 @@ from scikits.odes.sundials import (
 )
 from scikits.odes.sundials.cvode import StatusEnum
 
+from root_solver import CubicTracker
+
 from .config import (
     B_φ_prime_boundary_func, E_r_boundary_func,
 )
@@ -185,6 +187,98 @@ def Z_7_func(*, a_0, X, v_r, B_θ, ρ, Z_5, norm_kepler, C, v_φ, Z_4):
             2 * norm_kepler * v_φ - Z_4 * X
         ) / (v_φ ** 2 * ρ * norm_kepler - Z_4 * a_0 * v_r)
     )
+
+
+def Z_8_func(*, θ, b_r, b_θ, b_φ, B_φ, η_O, η_A, η_H, E_r, Z_5, C):
+    """
+    Compute the value of the variable Z_8
+    """
+    return (
+        - E_r + B_φ * (
+            tan(θ) * (η_O + η_A * (1 - b_r ** 2)) + (
+                η_H * b_φ + η_A * b_r * b_θ
+            ) / 4 - C * (
+                η_A * b_φ * (
+                    b_r * tan(θ) - b_θ / 4
+                ) + η_H * (
+                    b_r / 4 + b_θ * tan(θ)
+                )
+            )
+        )
+    ) / Z_5
+
+
+def deriv_B_φ_func(*, Z_5, Z_8, v_r, v_φ, B_θ, C):
+    """
+    Compute the derivative of B_φ
+    """
+    return - B_θ / Z_5 * (v_φ + C * v_r) + Z_8
+
+
+def v_φ_func(*, θ, a_0, ρ, Z_5, Z_8, v_r, B_r, B_θ, B_φ, C):
+    """
+    Compute the value of v_φ
+    """
+    return (
+        B_θ * Z_8 - B_θ ** 2 * C * v_r / Z_5 - B_r * B_φ / 4 -
+        B_θ * B_φ * tan(θ)
+    ) / (
+        B_θ ** 2 / Z_5 + v_r * ρ / (2 * a_0)
+    )
+
+
+def v_r_func_generator(initial_v_r):
+    """
+    Compute the value of v_r
+    """
+    cubic_solver = CubicTracker(
+        start_root=initial_v_r, is_real=True, dtype=FLOAT_TYPE,
+    )
+
+    def v_r_func(
+        *, θ, a_0, norm_kepler, ρ, Z_5, Z_8, B_r, B_θ, B_φ, b_r, b_θ, b_φ, η_O,
+        η_A, η_H, C, X
+    ):
+        a_3 = ρ / (8 * norm_kepler * a_0)
+
+        a_2 = B_θ ** 2 / (4 * norm_kepler) * (
+            (1 + C * X) / Z_5 - 1 / (η_O + η_A * (1 - b_φ ** 2))
+        )
+
+        a_1 = - B_θ ** 2 * C / Z_5 * (
+            1 + a_0 * B_θ ** 2 * X / (2 * norm_kepler * ρ * Z_5)
+        ) - ρ / (2 * a_0) * (
+            norm_kepler - (
+                5 / 2 + a_0 / ρ * (
+                    B_φ ** 2 / 4 - Z_8 * B_θ * X +
+                    B_θ * B_φ / (η_O + η_A * (1 - b_φ ** 2)) * (
+                        η_A * b_φ * (b_r * tan(θ) - b_θ / 4) +
+                        η_H * (b_r / 4 + b_θ * tan(θ))
+                    )
+                )
+            ) / (2 * norm_kepler)
+        ) + B_θ ** 4 * a_0 / (2 * norm_kepler * Z_5 * ρ) * (
+            C * X / Z_5 - 1 / (η_O + η_A * (1 - b_φ ** 2))
+        )
+
+        a_0 = (
+            B_θ * Z_8 - B_r * B_φ / 4 - B_θ * B_φ * tan(θ)
+        ) * (
+            1 + (a_0 * B_θ ** 2 * X) / (2 * norm_kepler * ρ * Z_5)
+        ) - B_θ ** 2 / Z_5 * (
+            norm_kepler - (
+                5 / 2 + a_0 / ρ * (
+                    B_φ ** 2 / 4 - Z_8 * B_θ * X +
+                    B_θ * B_φ / (η_O + η_A * (1 - b_φ ** 2)) * (
+                        η_A * b_φ * (b_r * tan(θ) - b_θ / 4) +
+                        η_H * (b_r / 4 + b_θ * tan(θ))
+                    )
+                )
+            ) / (2 * norm_kepler)
+        )
+
+        return cubic_solver.solve_root([a_3, a_2, a_1, a_0])
+    return v_r_func
 
 
 def deriv_v_φ_func(*, Z_2, deriv_v_r, dderiv_B_φ, norm_kepler, v_r, X, B_θ):
