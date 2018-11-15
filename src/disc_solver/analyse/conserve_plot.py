@@ -77,11 +77,13 @@ def generate_conserve_plot(
 
 def conserve_plot(
     *solutions, plot_filename=None, show=False, stop=90, figargs=None,
-    title=None, linestyle='-', close=True, mpl_style=DEFAULT_MPL_STYLE
+    title=None, linestyle='-', close=True, mpl_style=DEFAULT_MPL_STYLE,
+    use_E_r=False
 ):
     """
     Plot solution to file, with velocities, fields onto on one plot
     """
+    # pylint: disable=unused-argument
     with use_style(mpl_style):
         fig = generate_conserve_plot(
             *solutions, stop=stop, figargs=figargs, linestyle=linestyle,

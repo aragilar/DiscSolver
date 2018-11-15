@@ -68,10 +68,14 @@ def plot(
 
 
 @single_solution_plotter
-def generate_plot(fig, soln, *, linestyle='-', stop=90, only=None):
+def generate_plot(
+    fig, soln, *, linestyle='-', stop=90, only=None, use_E_r=False
+):
     """
     Generate plot, with enough freedom to be able to format fig
     """
+    if use_E_r:
+        raise AnalysisError("Function needs modification to work with use_E_r")
     angles = soln.angles
     indexes = degrees(angles) <= stop
     plot_angles = degrees(angles[indexes])

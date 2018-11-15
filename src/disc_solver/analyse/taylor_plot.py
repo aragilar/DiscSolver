@@ -73,7 +73,7 @@ def taylor_plot(
 
 @single_solution_plotter
 def generate_taylor_plot(
-    fig, soln, *, show_values=False, stop=90, linestyle='.'
+    fig, soln, *, show_values=False, stop=90, linestyle='.', use_E_r=False
 ):
     # pylint: disable=unused-variable,unused-argument
     """

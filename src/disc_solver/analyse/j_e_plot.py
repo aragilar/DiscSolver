@@ -12,7 +12,7 @@ from ..utils import ODEIndex
 from .utils import (
     single_solution_plotter, analyse_main_wrapper, analysis_func_wrapper,
     common_plotting_options, get_common_plot_args, plot_output_wrapper,
-    DEFAULT_MPL_STYLE,
+    DEFAULT_MPL_STYLE, AnalysisError,
 )
 
 
@@ -61,10 +61,12 @@ def j_e_plot(
 
 
 @single_solution_plotter
-def generate_plot(fig, soln, *, linestyle='-', stop=90):
+def generate_plot(fig, soln, *, linestyle='-', stop=90, use_E_r=False):
     """
     Generate plot, with enough freedom to be able to format fig
     """
+    if use_E_r:
+        raise AnalysisError("Function needs modification to work with use_E_r")
     solution = soln.solution
     angles = soln.angles
     cons = soln.initial_conditions

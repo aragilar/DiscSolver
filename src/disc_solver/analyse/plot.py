@@ -11,7 +11,7 @@ from ..utils import (
 from .utils import (
     single_solution_plotter, analyse_main_wrapper, analysis_func_wrapper,
     common_plotting_options, get_common_plot_args, plot_output_wrapper,
-    DEFAULT_MPL_STYLE, get_common_arguments, B_φ_PRIME_ORDERING,
+    DEFAULT_MPL_STYLE, get_common_arguments, B_φ_PRIME_ORDERING, E_r_ORDERING,
 )
 
 
@@ -86,7 +86,8 @@ def plot(
 @single_solution_plotter
 def generate_plot(
     fig, soln, *, linestyle='-', with_slow=False, with_alfven=False,
-    with_fast=False, with_sonic=False, stop=90, v_θ_scale="linear"
+    with_fast=False, with_sonic=False, stop=90, v_θ_scale="linear",
+    use_E_r=False
 ):
     """
     Generate plot, with enough freedom to be able to format fig
@@ -101,8 +102,10 @@ def generate_plot(
 
     indexes = degrees(angles) <= stop
 
+    ordering = E_r_ORDERING if use_E_r else B_φ_PRIME_ORDERING
+
     param_names = get_common_arguments(
-        B_φ_PRIME_ORDERING, v_θ_scale=v_θ_scale, initial_conditions=cons
+        ordering, v_θ_scale=v_θ_scale, initial_conditions=cons
     )
 
     if with_slow:

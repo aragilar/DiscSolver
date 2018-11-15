@@ -125,7 +125,8 @@ def single_solution_plotter(func):
         with use_style(mpl_style):
             fig = plt.figure(constrained_layout=True, **figargs)
             func(
-                fig, get_solutions(h5file, solution), *args, **kwargs
+                fig, get_solutions(h5file, solution), *args,
+                use_E_r=h5file.use_E_r, **kwargs
             )
             if title is None:
                 fig.suptitle("{}:{}".format(filename, solution))

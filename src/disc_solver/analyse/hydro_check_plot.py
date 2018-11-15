@@ -57,10 +57,14 @@ def hydro_check_plot(
 
 
 @single_solution_plotter
-def generate_hydro_check_plot(fig, soln, *, linestyle='.', stop=90):
+def generate_hydro_check_plot(
+    fig, soln, *, linestyle='.', stop=90, use_E_r=False
+):
     """
     Generate plot of difference between original equations and ode solution
     """
+    if use_E_r:
+        raise AnalysisError("Function needs modification to work with use_E_r")
     param_names = [
         {
             "name": "azimuthal momentum",

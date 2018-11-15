@@ -91,12 +91,13 @@ def combine_plot(
 @single_solution_plotter
 def generate_plot_combine(
     fig, soln, *, linestyle='-', with_slow=False, with_alfven=False,
-    with_fast=False, with_sonic=False, stop=90
+    with_fast=False, with_sonic=False, stop=90, use_E_r=False
 ):
     """
     Generate plot, with enough freedom to be able to format fig.
     Combine velocities, fields onto on plot
     """
+    # pylint: disable=unused-argument
     solution = soln.solution
     angles = soln.angles
     cons = soln.initial_conditions

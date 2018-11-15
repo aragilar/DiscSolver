@@ -64,7 +64,7 @@ def acc_plot(
 
 @single_solution_plotter
 def generate_acc_plot(
-    fig, soln, *, linestyle='.', stop=90
+    fig, soln, *, linestyle='.', stop=90, use_E_r=False
 ):
     """
     Friendlier plot for talks

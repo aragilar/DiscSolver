@@ -69,11 +69,13 @@ def derivs_plot(
 
 @single_solution_plotter
 def generate_derivs_plot(
-    fig, soln, *, linestyle='.', stop=90, nolog=False
+    fig, soln, *, linestyle='.', stop=90, nolog=False, use_E_r=False
 ):
     """
     Generate plot of derivatives
     """
+    if use_E_r:
+        raise AnalysisError("Function needs modification to work with use_E_r")
     param_names = [
         {
             "name": "B_r",
