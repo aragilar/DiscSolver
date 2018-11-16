@@ -20,7 +20,9 @@ from root_solver import CubicTracker
 from .config import (
     B_φ_prime_boundary_func, E_r_boundary_func,
 )
-from .deriv_funcs import B_unit_derivs, A_func, C_func, deriv_η_skw_func
+from .deriv_funcs import (
+    B_unit_derivs, A_func, C_func, deriv_η_skw_func, deriv_E_r_func,
+)
 from .hydrostatic import (
     X_dash_func, X_func, Z_1_func, Z_4_func, Z_5_func, dderiv_B_φ_func
 )
@@ -304,9 +306,70 @@ def deriv_v_r_func(
     )
 
 
+def fix_solution(
+    soln, *, a_0, norm_kepler_sq, init_con, θ_scale=float_type(1),
+    use_E_r=False
+):
+    """
+    Fix solution due to not being able to store non-derivatives
+    """
+    if not use_E_r:
+        return soln
+
+    norm_kepler = sqrt(norm_kepler_sq)
+    vals = soln.values.y
+    angles = scaled_to_rad(soln.values.t, θ_scale)
+    v_r_func = v_r_func_generator(init_con[ODEIndex.v_r])
+
+    def single_solve(params, θ):
+        B_r = params[ODEIndex.B_r]
+        B_φ = params[ODEIndex.B_φ]
+        B_θ = params[ODEIndex.B_θ]
+        ρ = params[ODEIndex.ρ]
+        η_O = params[ODEIndex.η_O]
+        η_A = params[ODEIndex.η_A]
+        η_H = params[ODEIndex.η_H]
+
+        E_r = params[ODEIndex.E_r]
+
+        B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
+
+        with errstate(invalid="ignore"):
+            b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
+
+        C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
+        X = X_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
+        Z_5 = Z_5_func(
+            η_O=η_O, η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ, C=C
+        )
+        Z_8 = Z_8_func(
+            θ=θ, b_r=b_r, b_θ=b_θ, b_φ=b_φ, B_φ=B_φ, η_O=η_O, η_A=η_A,
+            η_H=η_H, E_r=E_r, Z_5=Z_5, C=C,
+        )
+
+        v_r = v_r_func(
+            θ=θ, a_0=a_0, norm_kepler=norm_kepler, ρ=ρ, Z_5=Z_5, Z_8=Z_8,
+            B_r=B_r, B_θ=B_θ, B_φ=B_φ, b_r=b_r, b_θ=b_θ, b_φ=b_φ, η_O=η_O,
+            η_A=η_A, η_H=η_H, C=C, X=X,
+        )
+
+        v_φ = v_φ_func(
+            θ=θ, a_0=a_0, ρ=ρ, Z_5=Z_5, Z_8=Z_8, v_r=v_r, B_r=B_r, B_θ=B_θ,
+            B_φ=B_φ, C=C,
+        )
+
+        params[ODEIndex.v_r] = v_r
+        params[ODEIndex.v_φ] = v_φ
+
+    for θ, params in zip(angles, vals):
+        single_solve(θ=θ, params=params)
+
+    return soln
+
+
 def ode_system(
     *, a_0, norm_kepler_sq, init_con, θ_scale=float_type(1), η_derivs=True,
-    store_internal=True
+    store_internal=True, use_E_r=False
 ):
     """
     Set up the system we are solving for.
@@ -327,6 +390,9 @@ def ode_system(
     else:
         internal_data = None
 
+    if use_E_r:
+        v_r_func = v_r_func_generator(init_con[ODEIndex.v_r])
+
     def rhs_equation(x, params, derivs):
         """
         Compute the ODEs
@@ -339,10 +405,13 @@ def ode_system(
         v_r = params[ODEIndex.v_r]
         v_φ = params[ODEIndex.v_φ]
         ρ = params[ODEIndex.ρ]
-        B_φ_prime = params[ODEIndex.B_φ_prime]
         η_O = params[ODEIndex.η_O]
         η_A = params[ODEIndex.η_A]
         η_H = params[ODEIndex.η_H]
+        if use_E_r:
+            E_r = params[ODEIndex.E_r]
+        else:
+            B_φ_prime = params[ODEIndex.B_φ_prime]
 
         # check sanity of input values
         if ρ < 0:
@@ -356,10 +425,39 @@ def ode_system(
         with errstate(invalid="ignore"):
             b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
 
+        C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
         X = X_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
+        Z_5 = Z_5_func(
+            η_O=η_O, η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ, C=C
+        )
 
-        deriv_B_φ = B_φ_prime
         deriv_B_θ = B_θ * tan(θ) - 3/4 * B_r
+
+        if use_E_r:
+            Z_8 = Z_8_func(
+                θ=θ, b_r=b_r, b_θ=b_θ, b_φ=b_φ, B_φ=B_φ, η_O=η_O, η_A=η_A,
+                η_H=η_H, E_r=E_r, Z_5=Z_5, C=C,
+            )
+
+            v_r = v_r_func(
+                θ=θ, a_0=a_0, norm_kepler=norm_kepler, ρ=ρ, Z_5=Z_5, Z_8=Z_8,
+                B_r=B_r, B_θ=B_θ, B_φ=B_φ, b_r=b_r, b_θ=b_θ, b_φ=b_φ, η_O=η_O,
+                η_A=η_A, η_H=η_H, C=C, X=X,
+            )
+
+            v_φ = v_φ_func(
+                θ=θ, a_0=a_0, ρ=ρ, Z_5=Z_5, Z_8=Z_8, v_r=v_r, B_r=B_r, B_θ=B_θ,
+                B_φ=B_φ, C=C,
+            )
+
+            params[ODEIndex.v_r] = v_r
+            params[ODEIndex.v_φ] = v_φ
+
+            deriv_B_φ = deriv_B_φ_func(
+                Z_5=Z_5, Z_8=Z_8, v_r=v_r, v_φ=v_φ, B_θ=B_θ, C=C,
+            )
+        else:
+            deriv_B_φ = B_φ_prime
 
         deriv_B_r = (
             B_φ * (
@@ -396,84 +494,92 @@ def ode_system(
             deriv_η_A = 0
             deriv_η_H = 0
 
-        deriv_b_r, deriv_b_φ, deriv_b_θ = B_unit_derivs(
-            B_r=B_r, B_φ=B_φ, B_θ=B_θ, deriv_B_r=deriv_B_r,
-            deriv_B_φ=deriv_B_φ, deriv_B_θ=deriv_B_θ
-        )
+        if use_E_r:
+            deriv_E_r = deriv_E_r_func(
+                γ=0, θ=θ, v_r=v_r, v_φ=v_φ, B_r=B_r, B_θ=B_θ, B_φ=B_φ, η_O=η_O,
+                η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ,
+                deriv_B_r=deriv_B_r, deriv_B_φ=deriv_B_φ
+            )
+        else:
+            deriv_b_r, deriv_b_φ, deriv_b_θ = B_unit_derivs(
+                B_r=B_r, B_φ=B_φ, B_θ=B_θ, deriv_B_r=deriv_B_r,
+                deriv_B_φ=deriv_B_φ, deriv_B_θ=deriv_B_θ
+            )
 
-        C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
+            A = A_func(
+                η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ,
+                deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H,
+                deriv_b_θ=deriv_b_θ, deriv_b_r=deriv_b_r, deriv_b_φ=deriv_b_φ
+            )
+            X_dash = X_dash_func(
+                η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ,
+                deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H,
+                deriv_b_θ=deriv_b_θ, deriv_b_r=deriv_b_r, deriv_b_φ=deriv_b_φ
+            )
 
-        A = A_func(
-            η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ,
-            deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H,
-            deriv_b_θ=deriv_b_θ, deriv_b_r=deriv_b_r, deriv_b_φ=deriv_b_φ
-        )
+            Z_1 = Z_1_func(
+                θ=θ, a_0=a_0, B_φ=B_φ, B_θ=B_θ, B_r=B_r, ρ=ρ,
+                deriv_B_r=deriv_B_r, deriv_B_φ=deriv_B_φ, deriv_B_θ=deriv_B_θ,
+                v_φ=v_φ, deriv_ρ=deriv_ρ
+            )
+            Z_2 = Z_2_func(
+                θ=θ, a_0=a_0, X=X, v_r=v_r, B_φ=B_φ, B_θ=B_θ, ρ=ρ, η_A=η_A,
+                η_O=η_O, η_H=η_H, b_φ=b_φ, b_r=b_r, b_θ=b_θ, X_dash=X_dash,
+                deriv_B_φ=deriv_B_φ, deriv_B_θ=deriv_B_θ, deriv_b_θ=deriv_b_θ,
+                deriv_b_φ=deriv_b_φ, deriv_b_r=deriv_b_r, deriv_η_O=deriv_η_O,
+                deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H, deriv_ρ=deriv_ρ,
+                norm_kepler=norm_kepler,
+            )
+            Z_3 = Z_3_func(
+                v_r=v_r, B_θ=B_θ, norm_kepler=norm_kepler, η_O=η_O, η_A=η_A,
+                b_φ=b_φ,
+            )
+            Z_4 = Z_4_func(B_θ=B_θ, B_r=B_r, B_φ=B_φ, deriv_B_φ=deriv_B_φ, θ=θ)
+            Z_6 = Z_6_func(
+                a_0=a_0, X=X, v_r=v_r, B_θ=B_θ, ρ=ρ, Z_5=Z_5,
+                norm_kepler=norm_kepler, C=C, v_φ=v_φ, Z_4=Z_4, Z_3=Z_3,
+            )
+            Z_7 = Z_7_func(
+                a_0=a_0, X=X, v_r=v_r, B_θ=B_θ, ρ=ρ, Z_5=Z_5,
+                norm_kepler=norm_kepler, C=C, v_φ=v_φ, Z_4=Z_4,
+            )
 
-        X_dash = X_dash_func(
-            η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ,
-            deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H,
-            deriv_b_θ=deriv_b_θ, deriv_b_r=deriv_b_r, deriv_b_φ=deriv_b_φ
-        )
+            dderiv_B_φ = dderiv_B_φ_func(
+                B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r,
+                v_φ=v_φ, deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
+                deriv_B_φ=deriv_B_φ, deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A,
+                deriv_η_H=deriv_η_H, A=A, C=C, b_r=b_r, b_θ=b_θ, b_φ=b_φ,
+                Z_6=Z_6, Z_7=Z_7, deriv_b_θ=deriv_b_θ, deriv_b_φ=deriv_b_φ,
+                deriv_b_r=deriv_b_r,
+            )
 
-        Z_1 = Z_1_func(
-            θ=θ, a_0=a_0, B_φ=B_φ, B_θ=B_θ, B_r=B_r, ρ=ρ, deriv_B_r=deriv_B_r,
-            deriv_B_φ=deriv_B_φ, deriv_B_θ=deriv_B_θ, v_φ=v_φ, deriv_ρ=deriv_ρ
-        )
-        Z_2 = Z_2_func(
-            θ=θ, a_0=a_0, X=X, v_r=v_r, B_φ=B_φ, B_θ=B_θ, ρ=ρ, η_A=η_A,
-            η_O=η_O, η_H=η_H, b_φ=b_φ, b_r=b_r, b_θ=b_θ, X_dash=X_dash,
-            deriv_B_φ=deriv_B_φ, deriv_B_θ=deriv_B_θ, deriv_b_θ=deriv_b_θ,
-            deriv_b_φ=deriv_b_φ, deriv_b_r=deriv_b_r, deriv_η_O=deriv_η_O,
-            deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H, deriv_ρ=deriv_ρ,
-            norm_kepler=norm_kepler,
-        )
-        Z_3 = Z_3_func(
-            v_r=v_r, B_θ=B_θ, norm_kepler=norm_kepler, η_O=η_O, η_A=η_A,
-            b_φ=b_φ,
-        )
-        Z_4 = Z_4_func(B_θ=B_θ, B_r=B_r, B_φ=B_φ, deriv_B_φ=deriv_B_φ, θ=θ)
-        Z_5 = Z_5_func(
-            η_O=η_O, η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ, C=C
-        )
-        Z_6 = Z_6_func(
-            a_0=a_0, X=X, v_r=v_r, B_θ=B_θ, ρ=ρ, Z_5=Z_5,
-            norm_kepler=norm_kepler, C=C, v_φ=v_φ, Z_4=Z_4, Z_3=Z_3,
-        )
-        Z_7 = Z_7_func(
-            a_0=a_0, X=X, v_r=v_r, B_θ=B_θ, ρ=ρ, Z_5=Z_5,
-            norm_kepler=norm_kepler, C=C, v_φ=v_φ, Z_4=Z_4,
-        )
+            deriv_v_r = deriv_v_r_func(
+                a_0=a_0, B_θ=B_θ, v_φ=v_φ, ρ=ρ, dderiv_B_φ=dderiv_B_φ, Z_1=Z_1,
+                Z_2=Z_2, Z_4=Z_4, norm_kepler=norm_kepler, X=X, v_r=v_r,
+            )
 
-        dderiv_B_φ = dderiv_B_φ_func(
-            B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r, v_φ=v_φ,
-            deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ, deriv_B_φ=deriv_B_φ,
-            deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H, A=A,
-            C=C, b_r=b_r, b_θ=b_θ, b_φ=b_φ, Z_6=Z_6, Z_7=Z_7,
-            deriv_b_θ=deriv_b_θ, deriv_b_φ=deriv_b_φ, deriv_b_r=deriv_b_r,
-        )
-
-        deriv_v_r = deriv_v_r_func(
-            a_0=a_0, B_θ=B_θ, v_φ=v_φ, ρ=ρ, dderiv_B_φ=dderiv_B_φ, Z_1=Z_1,
-            Z_2=Z_2, Z_4=Z_4, norm_kepler=norm_kepler, X=X, v_r=v_r,
-        )
-
-        deriv_v_φ = deriv_v_φ_func(
-            Z_2=Z_2, deriv_v_r=deriv_v_r, dderiv_B_φ=dderiv_B_φ,
-            norm_kepler=norm_kepler, v_r=v_r, X=X, B_θ=B_θ,
-        )
+            deriv_v_φ = deriv_v_φ_func(
+                Z_2=Z_2, deriv_v_r=deriv_v_r, dderiv_B_φ=dderiv_B_φ,
+                norm_kepler=norm_kepler, v_r=v_r, X=X, B_θ=B_θ,
+            )
 
         derivs[ODEIndex.B_r] = deriv_B_r
         derivs[ODEIndex.B_φ] = deriv_B_φ
         derivs[ODEIndex.B_θ] = deriv_B_θ
-        derivs[ODEIndex.v_r] = deriv_v_r
-        derivs[ODEIndex.v_φ] = deriv_v_φ
         derivs[ODEIndex.ρ] = deriv_ρ
-        derivs[ODEIndex.B_φ_prime] = dderiv_B_φ
         derivs[ODEIndex.η_O] = deriv_η_O
         derivs[ODEIndex.η_A] = deriv_η_A
         derivs[ODEIndex.η_H] = deriv_η_H
 
         derivs[ODEIndex.v_θ] = 0
+        if use_E_r:
+            derivs[ODEIndex.v_r] = 0
+            derivs[ODEIndex.v_φ] = 0
+            derivs[ODEIndex.E_r] = deriv_E_r
+        else:
+            derivs[ODEIndex.v_r] = deriv_v_r
+            derivs[ODEIndex.v_φ] = deriv_v_φ
+            derivs[ODEIndex.B_φ_prime] = dderiv_B_φ
 
         if __debug__:
             log.debug("θ: {}, {}", θ, degrees(θ))
@@ -500,7 +606,7 @@ def mod_hydro_solution(
     relative_tolerance=float_type(1e-6), absolute_tolerance=float_type(1e-10),
     max_steps=500, onroot_func=None, tstop=None, ontstop_func=None,
     η_derivs=True, store_internal=True, root_func=None, root_func_args=None,
-    θ_scale=float_type(1)
+    θ_scale=float_type(1), use_E_r=False
 ):
     """
     Find solution
@@ -516,7 +622,7 @@ def mod_hydro_solution(
     system, internal_data = ode_system(
         a_0=a_0, norm_kepler_sq=norm_kepler_sq,
         init_con=initial_conditions, η_derivs=η_derivs,
-        store_internal=store_internal, θ_scale=θ_scale,
+        store_internal=store_internal, θ_scale=θ_scale, use_E_r=use_E_r,
     )
 
     ode_solver = ode(
@@ -559,6 +665,11 @@ def mod_hydro_solution(
                 degrees(scaled_to_rad(tstop_scaled, θ_scale))
             ))
 
+    soln = fix_solution(
+        soln, a_0=a_0, norm_kepler_sq=norm_kepler_sq, θ_scale=θ_scale,
+        use_E_r=use_E_r, init_con=initial_conditions,
+    )
+
     return soln, internal_data
 
 
@@ -579,16 +690,13 @@ def solution(
     max_steps = soln_input.max_steps
     η_derivs = soln_input.η_derivs
 
-    if use_E_r:
-        raise SolverError("Using E_r not ready yet")
-
     soln, internal_data = mod_hydro_solution(
         angles=angles, initial_conditions=init_con, a_0=a_0,
         norm_kepler_sq=norm_kepler_sq, relative_tolerance=relative_tolerance,
         absolute_tolerance=absolute_tolerance, max_steps=max_steps,
         onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
         η_derivs=η_derivs, store_internal=store_internal, root_func=root_func,
-        root_func_args=root_func_args, θ_scale=θ_scale,
+        root_func_args=root_func_args, θ_scale=θ_scale, use_E_r=use_E_r,
     )
 
     return Solution(

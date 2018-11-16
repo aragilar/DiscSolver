@@ -124,12 +124,11 @@ class TestSolve:
         )
 
     def test_mod_hydro_use_E_r(self, tmpdir):
-        with pytest.raises(SolverError):
-            solve(
-                output_dir=Path(str(tmpdir)), sonic_method="mod_hydro",
-                config_file=None, output_file=None, store_internal=True,
-                use_E_r=True,
-            )
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="mod_hydro",
+            config_file=None, output_file=None, store_internal=True,
+            use_E_r=True,
+        )
 
 
 class TestReSolve:
@@ -273,6 +272,12 @@ class TestAnalysis:
     @pytest.mark.mpl_image_compare
     def test_plot_file(self, solution, plot_file):
         return plot(solution, plot_filename=plot_file, close=False)
+
+    def test_plot_show_use_E_r(self, solution_use_E_r, mpl_interactive):
+        plot(
+            solution_use_E_r, show=True, with_slow=True, with_alfven=True,
+            with_fast=True, with_sonic=True,
+        )
 
     @pytest.mark.mpl_image_compare
     def test_compare_plot_file(self, solution, plot_file):

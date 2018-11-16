@@ -38,6 +38,9 @@ DERIV_NO_INTERNAL_SOLUTIONS = [
     "single_solution_no_internal",
     "sonic_root_solution_no_internal",
 ]
+USE_E_R_SOLUTIONS = [
+    "mod_hydro_solution_use_E_r",
+]
 
 
 @pytest.fixture(scope="session")
@@ -150,6 +153,17 @@ def mod_hydro_solution_no_internal(tmpdir_factory):
     )
 
 
+@pytest.fixture(scope="session")
+def mod_hydro_solution_use_E_r(tmpdir_factory):
+    method = "mod_hydro"
+    tmpdir = tmpdir_factory.mktemp(method)
+    return solve(
+        sonic_method=method, output_dir=Path(str(tmpdir)),
+        output_file=None, config_file=None, store_internal=True,
+        use_E_r=True,
+    )
+
+
 @pytest.fixture(scope="session", params=ALL_SOLUTIONS)
 def solution(request):
     return request.getfixturevalue(request.param)
@@ -182,6 +196,11 @@ def solution_deriv(request):
 
 @pytest.fixture(scope="session", params=DERIV_NO_INTERNAL_SOLUTIONS)
 def solution_deriv_no_internal(request):
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture(scope="session", params=USE_E_R_SOLUTIONS)
+def solution_use_E_r(request):
     return request.getfixturevalue(request.param)
 
 
