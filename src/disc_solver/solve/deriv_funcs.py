@@ -103,10 +103,9 @@ def deriv_η_skw_func(
     """
     B_sq = B_r ** 2 + B_φ ** 2 + B_θ ** 2
     return (
-        deriv_ρ - 2 * ρ * (
-            B_r * deriv_B_r + B_φ * deriv_B_φ + B_θ * deriv_B_θ
-        ) / B_sq
-    ) / B_sq
+        2 * (B_r * deriv_B_r + B_φ * deriv_B_φ + B_θ * deriv_B_θ) -
+        B_sq * deriv_ρ / ρ
+    ) / ρ
 
 
 def B_unit_derivs(*, B_r, B_φ, B_θ, deriv_B_r, deriv_B_φ, deriv_B_θ):
@@ -387,7 +386,7 @@ def dderiv_η_skw_midplane(*, dderiv_ρ, deriv_B_r, deriv_B_φ, dderiv_B_θ):
     """
     Compute the derivative of η assuming the same form as in SKW
     """
-    return dderiv_ρ - 2 * (deriv_B_r ** 2 + deriv_B_φ ** 2 + dderiv_B_θ)
+    return 2 * (deriv_B_r ** 2 + deriv_B_φ ** 2 + dderiv_B_θ) - dderiv_ρ
 
 
 def deriv_B_r_midplane_func(*, γ, deriv_B_φ, η_H, η_P, v_r):
