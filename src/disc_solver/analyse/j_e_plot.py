@@ -44,7 +44,7 @@ def j_e_plot_main(soln, *, soln_range, common_plot_args):
 def j_e_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
     stop=90, figargs=None, title=None, close=True, filename,
-    mpl_style=DEFAULT_MPL_STYLE
+    mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
     """
     Plot solution to file
@@ -53,6 +53,7 @@ def j_e_plot(
     fig = generate_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
         title=title, filename=filename, mpl_style=mpl_style,
+        with_version=with_version,
     )
 
     return plot_output_wrapper(

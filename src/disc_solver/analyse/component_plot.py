@@ -51,7 +51,7 @@ def plot_main(soln, *, soln_range, common_plot_args, plot_args):
 def plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
     stop=90, figargs=None, title=None, close=True, only=None, filename,
-    mpl_style=DEFAULT_MPL_STYLE
+    mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
     """
     Plot solution to file
@@ -60,6 +60,7 @@ def plot(
     fig = generate_plot(
         soln, soln_range, linestyle=linestyle, figargs=figargs, title=title,
         stop=stop, only=only, filename=filename, mpl_style=mpl_style,
+        with_version=with_version,
     )
 
     return plot_output_wrapper(

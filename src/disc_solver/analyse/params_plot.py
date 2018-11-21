@@ -38,7 +38,7 @@ def params_main(soln, *, soln_range, common_plot_args):
 def params_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
     figargs=None, linestyle='.', title=None, close=True, filename,
-    mpl_style=DEFAULT_MPL_STYLE
+    mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
     """
     Show solution at every step the solver takes.
@@ -47,6 +47,7 @@ def params_plot(
     fig = generate_params_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
         title=title, filename=filename, mpl_style=mpl_style,
+        with_version=with_version,
     )
 
     return plot_output_wrapper(

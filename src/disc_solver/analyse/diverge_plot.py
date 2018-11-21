@@ -10,6 +10,7 @@ from matplotlib.style import context as use_style
 from .utils import (
     plot_output_wrapper, common_plotting_options, get_common_plot_args,
     distinct_color_map, analyse_multisolution_wrapper, DEFAULT_MPL_STYLE,
+    add_version_to_plot,
 )
 from ..utils import (
     mhd_wave_speeds, MHD_Wave_Index, ODEIndex, MAGNETIC_INDEXES
@@ -107,7 +108,7 @@ def generate_diverge_plot(
 def diverge_plot(
     *solutions, plot_filename=None, show=False, stop=90, figargs=None,
     title=None, linestyle='-', with_slow=False, close=True,
-    mpl_style=DEFAULT_MPL_STYLE
+    mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
     """
     Plot solution to file, with velocities, fields onto on one plot
@@ -121,6 +122,9 @@ def diverge_plot(
             fig.suptitle("Comparison of v_θ")
         else:
             fig.suptitle(title)
+
+    if with_version:
+        add_version_to_plot(fig)
 
     return plot_output_wrapper(
         fig, file=plot_filename, show=show, close=close

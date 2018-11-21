@@ -86,6 +86,14 @@ def constrain_text(fig, text):
                 )
 
 
+def add_version_to_plot(fig):
+    """
+    Add disc solver version to plot
+    """
+    version_text = fig.text(0, 0.01, ds_version)
+    constrain_text(fig, version_text)
+
+
 def get_common_arguments(
     params, *, v_θ_scale="linear", initial_conditions, no_v_φ_offest=False
 ):
@@ -111,7 +119,7 @@ def single_solution_plotter(func):
     @wraps(func)
     def plot_wrapper(
         h5file, solution, *args, title=None, filename=None, figargs=None,
-        mpl_style=DEFAULT_MPL_STYLE, **kwargs
+        mpl_style=DEFAULT_MPL_STYLE, with_version=True, **kwargs
     ):
         """
         Wraps plot functions
@@ -134,8 +142,10 @@ def single_solution_plotter(func):
                 fig.suptitle("{}:{}".format(filename, solution))
             else:
                 fig.suptitle(title)
-            version_text = fig.text(0, 0.01, ds_version)
-            constrain_text(fig, version_text)
+
+            if with_version:
+                add_version_to_plot(fig)
+
             return fig
     return plot_wrapper
 
@@ -147,7 +157,7 @@ def multiple_solution_plotter(func):
     @wraps(func)
     def plot_wrapper(
         solution_pairs, *args, title=None, figargs=None,
-        mpl_style=DEFAULT_MPL_STYLE, **kwargs
+        mpl_style=DEFAULT_MPL_STYLE, with_version=True, **kwargs
     ):
         """
         Wraps plot functions
@@ -175,6 +185,10 @@ def multiple_solution_plotter(func):
                 fig.suptitle('\n'.join(title_list))
             else:
                 fig.suptitle(title)
+
+            if with_version:
+                add_version_to_plot(fig)
+
             return fig
     return plot_wrapper
 
@@ -208,6 +222,9 @@ def common_plotting_options(parser):
     parser.add_argument("--linestyle")
     parser.add_argument("--title")
     parser.add_argument("--style")
+    parser.add_argument(
+        "--no-show-version", action="store_false", dest="with_version"
+    )
     return parser
 
 
@@ -230,6 +247,7 @@ def get_common_plot_args(args):
         "linestyle": args.get("linestyle", "-"),
         "title": args.get("title"),
         "mpl_style": args.get("style", DEFAULT_MPL_STYLE),
+        "with_version": args.get("with_version", True),
     }
 
 

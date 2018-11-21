@@ -46,7 +46,7 @@ def acc_main(soln, *, soln_range, common_plot_args):
 def acc_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
     figargs=None, linestyle='.', title=None, close=True, filename,
-    mpl_style=DEFAULT_MPL_STYLE
+    mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
     """
     Show derivatives
@@ -55,6 +55,7 @@ def acc_plot(
     fig = generate_acc_plot(
         soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
         title=title, filename=filename, mpl_style=mpl_style,
+        with_version=with_version,
     )
 
     return plot_output_wrapper(

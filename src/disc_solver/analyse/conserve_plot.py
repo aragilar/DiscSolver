@@ -9,6 +9,7 @@ from matplotlib.style import context as use_style
 from .utils import (
     plot_output_wrapper, common_plotting_options, get_common_plot_args,
     distinct_color_map, analyse_multisolution_wrapper, DEFAULT_MPL_STYLE,
+    add_version_to_plot,
 )
 from ..utils import ODEIndex
 
@@ -78,7 +79,7 @@ def generate_conserve_plot(
 def conserve_plot(
     *solutions, plot_filename=None, show=False, stop=90, figargs=None,
     title=None, linestyle='-', close=True, mpl_style=DEFAULT_MPL_STYLE,
-    use_E_r=False
+    use_E_r=False, with_version=True
 ):
     """
     Plot solution to file, with velocities, fields onto on one plot
@@ -92,6 +93,9 @@ def conserve_plot(
             fig.suptitle("Conservation of $ρ v_θ$")
         else:
             fig.suptitle(title)
+
+        if with_version:
+            add_version_to_plot(fig)
 
     return plot_output_wrapper(
         fig, file=plot_filename, show=show, close=close

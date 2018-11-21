@@ -49,7 +49,7 @@ def plot_main(solns, *, common_plot_args, plot_args):
 def compare_plot(
     solns, *, plot_filename=None, show=False, linestyle='-', stop=90,
     figargs=None, v_θ_scale="linear", title=None, close=True,
-    mpl_style=DEFAULT_MPL_STYLE
+    mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
     """
     Plot solutions to file
@@ -59,6 +59,7 @@ def compare_plot(
     fig = generate_plot(
         solns, linestyle=linestyle, stop=stop, figargs=figargs,
         v_θ_scale=v_θ_scale, title=title, mpl_style=mpl_style,
+        with_version=with_version,
     )
 
     return plot_output_wrapper(
