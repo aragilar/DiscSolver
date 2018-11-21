@@ -207,16 +207,16 @@ def step_input():
         Return new input
         """
         inp_dict = vars(soln.solution_input)
-        prev_v_rin_on_c_s = inp_dict["v_rin_on_c_s"]
+        prev_γ = inp_dict["γ"]
         if soln_type == "diverge":
-            inp_dict["v_rin_on_c_s"] -= step_size
+            inp_dict["γ"] -= step_size
         elif soln_type == "sign flip":
-            inp_dict["v_rin_on_c_s"] += step_size
+            inp_dict["γ"] += step_size
         elif soln_type == "STOP":
             raise StepperError("Stepper stopped")
         else:
             raise StepperError("Solution type not known")
-        if prev_v_rin_on_c_s == inp_dict["v_rin_on_c_s"]:
+        if prev_γ == inp_dict["γ"]:
             raise StepperError("Hit numerical limit")
         return SolutionInput(**inp_dict)
     return step_func
