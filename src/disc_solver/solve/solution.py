@@ -9,6 +9,7 @@ import logbook
 
 from numpy import (
     array, concatenate, copy, insert, errstate, sqrt, tan, degrees, radians,
+    zeros,
 )
 
 from scikits.odes import ode
@@ -273,6 +274,38 @@ def jacobian_viewer_generator(internal_data):
     return lambda _1, jac_flag, _2, _3, _4, _5, _6: jac_flag
 
 
+def jump_across_sonic(
+    *, base_solution, angles, system_initial_conditions, γ, a_0,
+    norm_kepler_sq, η_derivs=True, θ_scale=float_type(1), use_E_r=False,
+    jump_before_sonic
+):
+    """
+    Cross sonic point via a jump
+    """
+    initial_angle = base_solution.values.t[-1]
+    initial_values = base_solution.values.y[-1]
+
+    dθ = 2 * jump_before_sonic
+    final_angle = initial_angle + dθ
+
+    system, _ = ode_system(
+        γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,
+        init_con=system_initial_conditions, η_derivs=η_derivs,
+        store_internal=False, with_taylor=False, θ_scale=θ_scale,
+        use_E_r=use_E_r,
+    )
+    derivs = zeros(len(ODEIndex))
+    system(initial_angle, initial_values, derivs)
+
+    post_sonic_angles = concatenate(
+        (final_angle, angles[angles > rad_to_scaled(final_angle, θ_scale)])
+    )
+
+    post_sonic_initial_conditions = initial_values + derivs * dθ
+
+    return post_sonic_angles, post_sonic_initial_conditions
+
+
 def taylor_solution(
     *, angles, init_con, γ, a_0, norm_kepler_sq, taylor_stop_angle,
     relative_tolerance=float_type(1e-6), absolute_tolerance=float_type(1e-10),
@@ -370,7 +403,7 @@ def main_solution(
     *, angles, system_initial_conditions, ode_initial_conditions, γ, a_0,
     norm_kepler_sq, relative_tolerance=float_type(1e-6),
     absolute_tolerance=float_type(1e-10), max_steps=500, onroot_func=None,
-    find_sonic_point=False, tstop=None, ontstop_func=None, η_derivs=True,
+    jump_before_sonic=None, tstop=None, ontstop_func=None, η_derivs=True,
     store_internal=True, root_func=None, root_func_args=None,
     θ_scale=float_type(1), use_E_r=False
 ):
@@ -378,10 +411,12 @@ def main_solution(
     Find solution
     """
     extra_args = {}
-    if find_sonic_point and root_func is not None:
-        raise SolverError("Cannot use both sonic point finder and root_func")
-    elif find_sonic_point:
-        extra_args["rootfn"] = gen_sonic_point_rootfn(1)
+    if jump_before_sonic is not None and root_func is not None:
+        raise SolverError("Cannot use both sonic point jumper and root_func")
+    elif jump_before_sonic is not None and onroot_func is not None:
+        raise SolverError("Cannot use both sonic point jumper and onroot_func")
+    elif jump_before_sonic is not None:
+        extra_args["rootfn"] = gen_sonic_point_rootfn(jump_before_sonic)
         extra_args["nr_rootfns"] = 1
     elif root_func is not None:
         extra_args["rootfn"] = root_func
@@ -427,14 +462,9 @@ def main_solution(
             raise e
     except CVODESolveFoundRoot as e:
         soln = e.soln
-        if find_sonic_point:
-            log.notice("Found sonic point at {}".format(
-                degrees(scaled_to_rad(soln.roots.t, θ_scale))
-            ))
-        else:
-            log.notice("Found root at {}".format(
-                degrees(scaled_to_rad(soln.roots.t, θ_scale))
-            ))
+        log.notice("Found root at {}".format(
+            degrees(scaled_to_rad(soln.roots.t, θ_scale))
+        ))
     except CVODESolveReachedTSTOP as e:
         soln = e.soln
         for tstop_scaled in soln.tstop.t:
@@ -446,11 +476,10 @@ def main_solution(
 
 
 def solution(
-    soln_input, initial_conditions, *,
-    onroot_func=None, find_sonic_point=False, tstop=None,
-    ontstop_func=None, store_internal=True, root_func=None,
-    root_func_args=None, with_taylor=True, modified_initial_conditions=None,
-    θ_scale=float_type(1), use_E_r=False
+    soln_input, initial_conditions, *, root_func=None, root_func_args=None,
+    onroot_func=None, tstop=None, ontstop_func=None, store_internal=True,
+    with_taylor=True, modified_initial_conditions=None, θ_scale=float_type(1),
+    use_E_r=False
 ):
     """
     Find solution
@@ -465,6 +494,7 @@ def solution(
     max_steps = soln_input.max_steps
     η_derivs = soln_input.η_derivs
     use_taylor_jump = soln_input.use_taylor_jump
+    jump_before_sonic = soln_input.jump_before_sonic
 
     if with_taylor and use_E_r:
         raise SolverError(
@@ -509,9 +539,30 @@ def solution(
         absolute_tolerance=absolute_tolerance, max_steps=max_steps,
         onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
         η_derivs=η_derivs, store_internal=store_internal,
-        find_sonic_point=find_sonic_point, root_func=root_func,
+        jump_before_sonic=jump_before_sonic, root_func=root_func,
         root_func_args=root_func_args, θ_scale=θ_scale, use_E_r=use_E_r,
     )
+
+    if jump_before_sonic is not None:
+        post_jump_angles, post_jump_initial_conditions = jump_across_sonic(
+            base_solution=soln, angles=post_taylor_angles,
+            system_initial_conditions=init_con, γ=γ, a_0=a_0,
+            norm_kepler_sq=norm_kepler_sq, η_derivs=η_derivs,
+            jump_before_sonic=jump_before_sonic, θ_scale=θ_scale,
+            use_E_r=use_E_r,
+        )
+
+        post_jump_soln, post_jump_internal_data = main_solution(
+            angles=post_jump_angles, system_initial_conditions=init_con,
+            ode_initial_conditions=post_jump_initial_conditions, γ=γ, a_0=a_0,
+            norm_kepler_sq=norm_kepler_sq,
+            relative_tolerance=relative_tolerance,
+            absolute_tolerance=absolute_tolerance, max_steps=max_steps,
+            onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
+            η_derivs=η_derivs, store_internal=store_internal,
+            root_func=root_func, root_func_args=root_func_args,
+            θ_scale=θ_scale, use_E_r=use_E_r,
+        )
 
     if store_internal and taylor_stop_angle is not None:
         if taylor_internal is not None:
@@ -526,12 +577,19 @@ def solution(
         )
         joined_solution = concatenate((taylor_soln.params, soln.values.y))
 
-    if find_sonic_point and soln.roots.t is not None:
-        sonic_point = scaled_to_rad(soln.roots.t[0], θ_scale)
-        sonic_point_values = soln.roots.y[0]
-    else:
-        sonic_point = None
-        sonic_point_values = None
+    if jump_before_sonic is not None:
+        if store_internal and post_jump_internal_data is not None:
+            internal_data = internal_data + post_jump_internal_data
+
+        joined_angles = concatenate(
+            (joined_angles, scaled_to_rad(post_jump_soln.values.t, θ_scale))
+        )
+        joined_solution = concatenate(
+            (joined_solution, post_jump_soln.values.y)
+        )
+
+    sonic_point = None
+    sonic_point_values = None
 
     return Solution(
         solution_input=soln_input, initial_conditions=initial_conditions,

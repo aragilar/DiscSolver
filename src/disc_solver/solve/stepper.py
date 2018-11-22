@@ -10,7 +10,7 @@ from numpy import diff
 
 from .config import define_conditions
 from .solution import solution
-from .utils import validate_solution, onroot_continue, SolverError
+from .utils import validate_solution, SolverError
 
 from ..analyse.diverge_plot import diverge_plot
 
@@ -190,7 +190,6 @@ def solution_generator(*, store_internal=True, run):
         inp = SolutionInput(**vars(inp))
         soln = solution(
             inp, define_conditions(inp, use_E_r=run.use_E_r),
-            onroot_func=onroot_continue, find_sonic_point=True,
             store_internal=store_internal, use_E_r=run.use_E_r,
         )
         return validate_solution(soln)
