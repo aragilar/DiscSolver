@@ -8,11 +8,12 @@ from os import fspath
 import sys
 
 from logbook.compat import redirected_warnings, redirected_logging
-from matplotlib.colors import TABLEAU_COLORS, XKCD_COLORS
+from matplotlib.cm import get_cmap
+from matplotlib.colors import TABLEAU_COLORS
 import matplotlib.pyplot as plt
 from matplotlib.style import context as use_style
 import matplotlib._layoutbox as layoutbox
-from numpy import sqrt
+from numpy import sqrt, linspace
 from scipy.interpolate import interp1d
 
 from h5preserve import open as h5open
@@ -23,6 +24,8 @@ from ..logging import log_handler, logging_options
 from ..utils import ODEIndex, str_to_float, get_solutions, DiscSolverError
 
 DEFAULT_MPL_STYLE = "bmh"
+
+GREYS = get_cmap("Greys")
 
 B_φ_PRIME_ORDERING = [
     "B_r", "B_φ", "B_θ", "v_r", "v_φ", "v_θ", "ρ", "B_φ_prime"
@@ -440,7 +443,10 @@ def distinct_color_map(size):
     Generate a list of unique colours for matplotlib line/scatter plots
     """
     if size > len(TABLEAU_COLORS):
-        return XKCD_COLORS.keys()
+        grey_section = list(
+            GREYS(linspace(0.1, 0.9, num=size - len(TABLEAU_COLORS)))
+        )
+        return grey_section + list(TABLEAU_COLORS.keys())
     return TABLEAU_COLORS.keys()
 
 
