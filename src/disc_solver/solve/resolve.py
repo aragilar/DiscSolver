@@ -12,7 +12,8 @@ from logbook.compat import redirected_warnings, redirected_logging
 from h5preserve import open as h5open
 
 from . import SONIC_METHOD_MAP
-from .utils import add_solver_arguments, SolverError
+from .config import new_inputs_with_overrides
+from .utils import add_solver_arguments, SolverError, validate_overrides
 
 from .. import __version__ as ds_version
 from ..file_format import registries, Run
@@ -25,7 +26,7 @@ log = logbook.Logger(__name__)
 
 def resolve(
     *, output_file, sonic_method, soln_filename, soln_range, output_dir,
-    store_internal, use_E_r=False
+    store_internal, use_E_r=False, overrides=None
 ):
     """
     Main function to generate solution
@@ -34,8 +35,13 @@ def resolve(
         old_run = soln_file["run"]
         old_solution = get_solutions(old_run, soln_range)
 
+    new_config_input, new_soln_input = new_inputs_with_overrides(
+        config_input=old_run.config_input, overrides=overrides,
+        solution_input=old_solution.solution_input,
+    )
+
     run = Run(
-        config_input=old_run.config_input,
+        config_input=new_config_input,
         config_filename=old_run.config_filename,
         disc_solver_version=ds_version,
         float_type=str(float_type),
@@ -55,7 +61,7 @@ def resolve(
         if sonic_solver is None:
             raise SolverError("No method chosen to cross sonic point")
         sonic_solver(
-            old_solution.solution_input, run,
+            new_soln_input, run,
             store_internal=store_internal,
         )
 
@@ -79,6 +85,7 @@ def main():
     sonic_method = args["sonic_method"]
     output_file = args.get("output_file", None)
     store_internal = args.get("store_internal", True)
+    overrides = validate_overrides(args.get("override", []))
     use_E_r = args.get("use_E_r", False)
 
     with log_handler(args), redirected_warnings(), redirected_logging():
@@ -86,5 +93,5 @@ def main():
             soln_filename=soln_filename, soln_range=soln_range,
             sonic_method=sonic_method, output_dir=output_dir,
             store_internal=store_internal, output_file=output_file,
-            use_E_r=use_E_r,
+            use_E_r=use_E_r, overrides=overrides,
         ))

@@ -4,6 +4,7 @@ Utility function and classes for solver associated code
 """
 
 import attr
+import logbook
 
 from numpy import (
     any as np_any,
@@ -21,6 +22,8 @@ from ..utils import (
     ODEIndex, DiscSolverError, MHD_Wave_Index, mhd_wave_speeds,
     MAGNETIC_INDEXES,
 )
+
+log = logbook.Logger(__name__)
 
 
 def error_handler(error_code, module, func, msg, user_data):
@@ -214,6 +217,7 @@ def add_overrides(*, overrides, config_input):
     """
     if overrides is None:
         return config_input
+    log.info("overrides is {}".format(overrides))
     return attr.evolve(config_input, **overrides)
 
 

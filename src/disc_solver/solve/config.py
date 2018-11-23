@@ -3,6 +3,7 @@
 Define input and environment for ode system
 """
 
+import attr
 import logbook
 
 import numpy as np
@@ -189,3 +190,33 @@ def config_input_to_soln_input(inp):
         η_H=float_type(str_to_float(inp.η_H)),
         η_A=float_type(str_to_float(inp.η_A)),
     )
+
+
+def new_inputs_with_overrides(config_input, solution_input, overrides):
+    """
+    Merge possibly differing ConfigInput and SolutionInput with additional
+    changes within overrides
+    """
+    new_config_input = add_overrides(
+        config_input=config_input, overrides=overrides,
+    )
+    new_soln_input = config_input_to_soln_input(new_config_input)
+
+    initial_soln_input = config_input_to_soln_input(config_input)
+
+    if solution_input == initial_soln_input:
+        return new_config_input, new_soln_input
+
+    conf_dict = attr.asdict(initial_soln_input)
+    soln_dict = attr.asdict(solution_input)
+    use_soln_keys = []
+    for key, val in conf_dict.items():
+        if key in overrides:
+            continue
+        elif val != soln_dict[key]:
+            use_soln_keys.append(key)
+
+    for key in use_soln_keys:
+        setattr(new_soln_input, key, soln_dict[key])
+
+    return new_config_input, new_soln_input
