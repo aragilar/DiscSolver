@@ -285,9 +285,6 @@ def jump_across_sonic(
     initial_angle = base_solution.values.t[-1]
     initial_values = base_solution.values.y[-1]
 
-    dθ = 2 * jump_before_sonic
-    final_angle = initial_angle + dθ
-
     system, _ = ode_system(
         γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,
         init_con=system_initial_conditions, η_derivs=η_derivs,
@@ -296,6 +293,9 @@ def jump_across_sonic(
     )
     derivs = zeros(len(ODEIndex))
     system(initial_angle, initial_values, derivs)
+
+    dθ = 2 * jump_before_sonic / derivs[ODEIndex.v_θ]
+    final_angle = initial_angle + dθ
 
     post_sonic_angles = concatenate(
         (final_angle, angles[angles > rad_to_scaled(final_angle, θ_scale)])
