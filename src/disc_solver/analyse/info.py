@@ -40,13 +40,13 @@ def info_parser(parser):
         "group": lambda args: args["group"]
     }
 )
-def info_main(soln_file, *, group, soln_range, filename):
+def info_main(soln_file, *, group, soln_range):
     """
     Entry point for ds-info
     """
+    # pylint: disable=missing-kwoa
     return info(
         soln_file, group=group, soln_range=soln_range, output_file=stdout,
-        filename=filename,
     )
 
 
