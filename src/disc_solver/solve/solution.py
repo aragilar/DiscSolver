@@ -298,7 +298,7 @@ def jump_across_sonic(
     final_angle = initial_angle + dθ
 
     post_sonic_angles = concatenate(
-        (final_angle, angles[angles > rad_to_scaled(final_angle, θ_scale)])
+        ([final_angle], angles[angles > rad_to_scaled(final_angle, θ_scale)])
     )
 
     post_sonic_initial_conditions = initial_values + derivs * dθ
@@ -416,7 +416,7 @@ def main_solution(
     elif jump_before_sonic is not None and onroot_func is not None:
         raise SolverError("Cannot use both sonic point jumper and onroot_func")
     elif jump_before_sonic is not None:
-        extra_args["rootfn"] = gen_sonic_point_rootfn(jump_before_sonic)
+        extra_args["rootfn"] = gen_sonic_point_rootfn(1 - jump_before_sonic)
         extra_args["nr_rootfns"] = 1
     elif root_func is not None:
         extra_args["rootfn"] = root_func
@@ -544,6 +544,9 @@ def solution(
     )
 
     if jump_before_sonic is not None:
+        log.info("jumping over sonic point with jump size {}".format(
+            jump_before_sonic
+        ))
         post_jump_angles, post_jump_initial_conditions = jump_across_sonic(
             base_solution=soln, angles=post_taylor_angles,
             system_initial_conditions=init_con, γ=γ, a_0=a_0,
