@@ -97,6 +97,8 @@ def generate_plot(
     cons = soln.initial_conditions
     sonic_angle = soln.sonic_point
     sonic_values = soln.sonic_point_values
+    roots_angles = soln.t_roots
+    roots_values = soln.y_roots
 
     wave_speeds = sqrt(mhd_wave_speeds(
         solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1
@@ -159,6 +161,12 @@ def generate_plot(
                 degrees(sonic_angle),
                 sonic_values[i] - settings.get("offset", 0),
                 linestyle=None, marker='.', color='red',
+            )
+        if roots_angles is not None:
+            ax.plot(
+                degrees(roots_angles),
+                roots_values[:, i] - settings.get("offset", 0),
+                linestyle=None, marker='.', color='black',
             )
         ax.set_ylabel(settings["name"])
         ax.set_yscale(settings.get("scale", "linear"))
