@@ -3,7 +3,8 @@
 Logging configuration functions
 """
 
-from logbook import NullHandler, StderrHandler, FileHandler, NestedSetup
+from logbook import NullHandler, FileHandler, NestedSetup
+from logbook.more import ColorizedStderrHandler
 from logbook.queues import ThreadedWrapperHandler
 
 
@@ -31,17 +32,17 @@ def log_handler(args):
     Return log handler with given config
     """
     if args.get("quiet"):
-        stderr_handler = StderrHandler(level="ERROR")
+        stderr_handler = ColorizedStderrHandler(level="ERROR")
     elif args.get("verbose"):
-        stderr_handler = StderrHandler(level="DEBUG")
+        stderr_handler = ColorizedStderrHandler(level="DEBUG")
     else:
-        stderr_handler = StderrHandler(
-            level=args.get("stderr_level", "NOTICE").upper()
+        stderr_handler = ColorizedStderrHandler(
+            level=args.get("stderr_level", "NOTICE").upper(), bubble=True
         )
     if args.get("log_file"):
         file_handler = FileHandler(
             args.get("log_file"),
-            level=args.get("log_file_level", "DEBUG").upper()
+            level=args.get("log_file_level", "DEBUG").upper(), bubble=True
         )
     else:
         file_handler = NullHandler()
