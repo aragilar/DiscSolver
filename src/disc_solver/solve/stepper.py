@@ -2,11 +2,12 @@
 """
 Stepper related logic
 """
+from enum import Enum
 from warnings import warn
 
 import logbook
 
-from numpy import diff
+from numpy import diff, any as np_any, all as np_all, logical_and as np_and
 
 from .config import define_conditions
 from .solution import solution
@@ -20,6 +21,20 @@ from ..utils import ODEIndex
 
 log = logbook.Logger(__name__)
 
+DEFAULT_SPLITTER_CUTOFF = 0.9
+DEFAULT_NUM_ATTEMPTS = 100
+INITIAL_STEP_SIZE = float_type(1e-4)
+DEFAULT_MAX_SEARCH_STEPS = 20
+
+
+class SplitterStatus(Enum):
+    """
+    Status Enum for which way to the best solution
+    """
+    STOP = "STOP"
+    SIGN_FLIP = "sign flip"
+    DIVERGE = "diverge"
+
 
 class StepperError(SolverError):
     """
@@ -29,7 +44,8 @@ class StepperError(SolverError):
 
 
 def binary_searcher(
-    func, pass_func, fail_func, initial_input, num_attempts=100
+    func, pass_func, fail_func, initial_input, *,
+    num_attempts=DEFAULT_NUM_ATTEMPTS
 ):
     """
     Search for correct solution via a binary search
@@ -51,8 +67,8 @@ def binary_searcher(
 
 
 def stepper_creator(
-    soln_writer, step_func, get_soln_type, initial_step_size=float_type(1e-4),
-    max_search_steps=20,
+    soln_writer, step_func, get_soln_type, initial_step_size=INITIAL_STEP_SIZE,
+    max_search_steps=DEFAULT_NUM_ATTEMPTS,
 ):
     """
     Create stepper
@@ -138,42 +154,44 @@ def human_view_splitter_generator():
         while soln_type not in ("sign flip", "diverge", "STOP"):
             print("Solution type must be either 'sign flip' or 'diverge'")
             soln_type = input("What type: ").strip()
-        return soln_type
+        return SplitterStatus(soln_type)
     return human_view_splitter
+
+
+def v_θ_deriv_splitter(soln, cutoff=DEFAULT_SPLITTER_CUTOFF, **kwargs):
+    """
+    Use derivative of v_θ to determine type of solution
+    """
+    # pylint: disable=unused-argument
+    v_θ = soln.solution[:, ODEIndex.v_θ]
+    problems = soln.internal_data.problems
+    if any("negative velocity" in pl for pl in problems.values()):
+        return SplitterStatus.SIGN_FLIP
+
+    v_θ_near_sonic = np_and(v_θ > cutoff, v_θ < 1)
+    if not np_any(v_θ_near_sonic):
+        return SplitterStatus.SIGN_FLIP
+
+    v_θ_above_sonic = v_θ > 1
+    if np_any(v_θ_above_sonic):
+        return SplitterStatus.DIVERGE
+
+    d_v_θ = diff(v_θ[v_θ_near_sonic])
+    if np_all(d_v_θ > 0):
+        return SplitterStatus.DIVERGE
+    return SplitterStatus.SIGN_FLIP
 
 
 def create_soln_splitter(method):
     """
     Create func to see split in solution
     """
-    def v_θ_deriv(soln, num_check=10, start=-10):
-        """
-        Use derivative of v_θ to determine type of solution
-        """
-        v_θ = soln.solution[:, ODEIndex.v_θ]
-        problems = soln.internal_data.problems
-        if any("negative velocity" in pl for pl in problems.values()):
-            return "sign flip"
-        if start < 0 < num_check + start:
-            log.info("Using fewer samples than requested.")
-            d_v_θ = diff(v_θ[start:])
-        elif num_check + start == 0:
-            d_v_θ = diff(v_θ[start:])
-        else:
-            d_v_θ = diff(v_θ[start:start + num_check])
-
-        if all(d_v_θ > 0):
-            return "diverge"
-        elif all(d_v_θ < 0):
-            return "sign flip"
-        return "unknown"
-
     method_dict = {
-        "v_θ_deriv": v_θ_deriv,
+        "v_θ_deriv": v_θ_deriv_splitter,
         "human": human_view_splitter_generator(),
     }
 
-    return method_dict.get(method) or v_θ_deriv
+    return method_dict.get(method) or v_θ_deriv_splitter
 
 
 def solution_generator(*, store_internal=True, run):
@@ -207,11 +225,11 @@ def step_input():
         """
         inp_dict = vars(soln.solution_input)
         prev_γ = inp_dict["γ"]
-        if soln_type == "diverge":
+        if soln_type == SplitterStatus.DIVERGE:
             inp_dict["γ"] -= step_size
-        elif soln_type == "sign flip":
+        elif soln_type == SplitterStatus.SIGN_FLIP:
             inp_dict["γ"] += step_size
-        elif soln_type == "STOP":
+        elif soln_type == SplitterStatus.STOP:
             raise StepperError("Stepper stopped")
         else:
             raise StepperError("Solution type not known")
@@ -221,7 +239,10 @@ def step_input():
     return step_func
 
 
-def solver(soln_input, run, store_internal=True):
+def solver(
+    soln_input, run, store_internal=True, num_attempts=DEFAULT_NUM_ATTEMPTS,
+    max_search_steps=DEFAULT_MAX_SEARCH_STEPS,
+):
     """
     Stepping solver
     """
@@ -232,8 +253,9 @@ def solver(soln_input, run, store_internal=True):
         solution_generator(store_internal=store_internal, run=run), cleanup,
         stepper_creator(
             writer, step_func,
-            create_soln_splitter(soln_input.split_method)
-        ), soln_input,
+            create_soln_splitter(soln_input.split_method),
+            max_search_steps=max_search_steps,
+        ), soln_input, num_attempts=num_attempts,
     )
     if not isinstance(run.final_solution, Solution):
         run.final_solution = None

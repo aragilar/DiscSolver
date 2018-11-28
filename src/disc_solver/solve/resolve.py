@@ -26,7 +26,7 @@ log = logbook.Logger(__name__)
 
 def resolve(
     *, output_file, sonic_method, soln_filename, soln_range, output_dir,
-    store_internal, use_E_r=False, overrides=None
+    store_internal, use_E_r=False, overrides=None, **kwargs
 ):
     """
     Main function to generate solution
@@ -61,8 +61,7 @@ def resolve(
         if sonic_solver is None:
             raise SolverError("No method chosen to cross sonic point")
         sonic_solver(
-            new_soln_input, run,
-            store_internal=store_internal,
+            new_soln_input, run, store_internal=store_internal, **kwargs
         )
 
     return output_file

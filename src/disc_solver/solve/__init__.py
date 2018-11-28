@@ -42,7 +42,7 @@ SONIC_METHOD_MAP = {
 
 def solve(
     *, output_file, sonic_method, config_file, output_dir, store_internal,
-    overrides=None, use_E_r=False
+    overrides=None, use_E_r=False, **kwargs
 ):
     """
     Main function to generate solution
@@ -70,7 +70,7 @@ def solve(
             raise SolverError("No method chosen to cross sonic point")
         sonic_solver(
             config_input_to_soln_input(config_input), run,
-            store_internal=store_internal,
+            store_internal=store_internal, **kwargs
         )
 
     return output_file

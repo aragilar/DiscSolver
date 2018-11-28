@@ -70,6 +70,7 @@ def step_solution_default(tmpdir_factory):
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=True,
+        max_search_steps=3, num_attempts=5,
     )
 
 

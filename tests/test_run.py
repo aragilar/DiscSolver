@@ -65,6 +65,7 @@ class TestSolve:
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="step",
             config_file=None, output_file=None, store_internal=True,
+            max_search_steps=3, num_attempts=5,
         )
 
     def test_mcmc_default(self, tmpdir):
@@ -158,7 +159,7 @@ class TestReSolve:
         resolve(
             output_dir=Path(str(tmpdir)), sonic_method="step",
             soln_filename=solution, soln_range=None, output_file=None,
-            store_internal=True,
+            store_internal=True, max_search_steps=3, num_attempts=5,
         )
 
     def test_mcmc_default(self, tmpdir, solution):
