@@ -277,9 +277,8 @@ class TestAnalysis:
             with_fast=True, with_sonic=True,
         )
 
-    @pytest.mark.mpl_image_compare
     def test_plot_file(self, solution, plot_file):
-        return plot(solution, plot_filename=plot_file, close=False)
+        return plot(solution, plot_filename=plot_file)
 
     def test_plot_show_use_E_r(self, solution_use_E_r, mpl_interactive):
         plot(
@@ -287,10 +286,9 @@ class TestAnalysis:
             with_fast=True, with_sonic=True,
         )
 
-    @pytest.mark.mpl_image_compare
     def test_compare_plot_file(self, solution, plot_file):
         solutions = [[solution, None], [solution, None]]
-        return compare_plot(solutions, plot_filename=plot_file, close=False)
+        return compare_plot(solutions, plot_filename=plot_file)
 
     def test_compare_plot_show(self, solution, mpl_interactive):
         solutions = [[solution, None], [solution, None]]
@@ -299,10 +297,9 @@ class TestAnalysis:
     def test_derivs_show(self, solution_deriv, mpl_interactive):
         derivs_plot(solution_deriv, show=True)
 
-    @pytest.mark.mpl_image_compare
     def test_derivs_file(self, solution_deriv, plot_file):
         return derivs_plot(
-            solution_deriv, plot_filename=plot_file, close=False
+            solution_deriv, plot_filename=plot_file
         )
 
     def test_derivs_show_no_internal(
@@ -320,10 +317,9 @@ class TestAnalysis:
     def test_params_show(self, solution_default, mpl_interactive):
         params_plot(solution_default, show=True)
 
-    @pytest.mark.mpl_image_compare
     def test_params_file(self, solution_default, plot_file):
         return params_plot(
-            solution_default, plot_filename=plot_file, close=False
+            solution_default, plot_filename=plot_file
         )
 
     def test_params_show_no_internal(
@@ -339,19 +335,17 @@ class TestAnalysis:
     def test_taylor_show(self, solution_taylor, mpl_interactive):
         taylor_plot(solution_taylor, show=True)
 
-    @pytest.mark.mpl_image_compare
     def test_taylor_file(self, solution_taylor, plot_file):
         return taylor_plot(
-            solution_taylor, plot_filename=plot_file, close=False
+            solution_taylor, plot_filename=plot_file
         )
 
     def test_taylor_show_values(self, solution_taylor, mpl_interactive):
         taylor_plot(solution_taylor, show=True, show_values=True)
 
-    @pytest.mark.mpl_image_compare
     def test_taylor_file_values(self, solution_taylor, plot_file):
         return taylor_plot(
-            solution_taylor, plot_filename=plot_file, close=False,
+            solution_taylor, plot_filename=plot_file,
             show_values=True
         )
 
@@ -371,31 +365,27 @@ class TestAnalysis:
             with_fast=True, with_sonic=True,
         )
 
-    @pytest.mark.mpl_image_compare
     def test_combine_file(self, solution, plot_file):
-        return combine_plot(solution, plot_filename=plot_file, close=False)
+        return combine_plot(solution, plot_filename=plot_file)
 
     def test_component_show(self, solution, mpl_interactive):
         component_plot(solution, show=True)
 
-    @pytest.mark.mpl_image_compare
     def test_component_file(self, solution, plot_file):
-        return component_plot(solution, plot_filename=plot_file, close=False)
+        return component_plot(solution, plot_filename=plot_file)
 
     def test_acc_show(self, solution, mpl_interactive):
         acc_plot(solution, show=True)
 
-    @pytest.mark.mpl_image_compare
     def test_acc_file(self, solution, plot_file):
-        return acc_plot(solution, plot_filename=plot_file, close=False)
+        return acc_plot(solution, plot_filename=plot_file)
 
     def test_validate_show(self, solution_default, mpl_interactive):
         validate_plot(solution_default, show=True)
 
-    @pytest.mark.mpl_image_compare
     def test_validate_file(self, solution_default, plot_file):
         return validate_plot(
-            solution_default, plot_filename=plot_file, close=False
+            solution_default, plot_filename=plot_file
         )
 
     def test_validate_show_no_internal(
@@ -411,10 +401,9 @@ class TestAnalysis:
     def test_hydro_check_show(self, solution_default, mpl_interactive):
         hydro_check_plot(solution_default, show=True)
 
-    @pytest.mark.mpl_image_compare
     def test_hydro_check_file(self, solution_default, plot_file):
         return hydro_check_plot(
-            solution_default, plot_filename=plot_file, close=False
+            solution_default, plot_filename=plot_file
         )
 
     def test_hydro_check_show_no_internal(
@@ -432,9 +421,8 @@ class TestAnalysis:
     def test_jacobian_show(self, solution, mpl_interactive):
         plot(solution, show=True)
 
-    @pytest.mark.mpl_image_compare
     def test_jacobian_file(self, solution, plot_file):
-        return plot(solution, plot_filename=plot_file, close=False)
+        return plot(solution, plot_filename=plot_file)
 
     def test_diverge_show(self, solution, mpl_interactive):
         diverge_main([str(solution), '--show'])
@@ -451,9 +439,8 @@ class TestAnalysis:
     def test_j_e_plot_show(self, solution, mpl_interactive):
         j_e_plot(solution, show=True)
 
-    @pytest.mark.mpl_image_compare
     def test_j_e_plot_file(self, solution, plot_file):
-        return j_e_plot(solution, plot_filename=plot_file, close=False)
+        return j_e_plot(solution, plot_filename=plot_file)
 
 
 def test_taylor_space(mpl_interactive):
