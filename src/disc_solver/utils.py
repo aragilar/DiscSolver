@@ -179,6 +179,25 @@ class ODEIndex(IntEnum):
 
 MAGNETIC_INDEXES = [ODEIndex.B_r, ODEIndex.B_φ, ODEIndex.B_θ]
 VELOCITY_INDEXES = [ODEIndex.v_r, ODEIndex.v_φ, ODEIndex.v_θ]
+DIFFUSIVE_INDEXES = [ODEIndex.η_O, ODEIndex.η_A, ODEIndex.η_H]
+
+
+class CylindricalODEIndex(IntEnum):
+    """
+    Enum for array index for variables in the odes
+    """
+    B_R = 0
+    B_φ = 1
+    B_z = 2
+    v_R = 3
+    v_φ = 4
+    v_z = 5
+    ρ = 6
+    B_φ_prime = 7
+    E_R = 7
+    η_O = 8
+    η_A = 9
+    η_H = 10
 
 
 class DiscSolverError(Exception):
@@ -186,3 +205,129 @@ class DiscSolverError(Exception):
     Base error class for DiscSolver
     """
     pass
+
+
+def scale_solution_to_radii(soln, new_r, *, γ, use_E_r):
+    """
+    Scale spherical solution to given radii
+    """
+    v_scale = 1 / sqrt(new_r)
+    B_scale = new_r ** (γ - 5 / 4)
+    ρ_scale = new_r ** (2 * γ - 3 / 2)
+    η_scale = sqrt(new_r)
+
+    scaled_soln = np.full(soln.shape, np.nan, dtype=soln.dtype)
+
+    if scaled_soln.ndim == 1:
+        scaled_soln[VELOCITY_INDEXES] = v_scale * soln[VELOCITY_INDEXES]
+        scaled_soln[MAGNETIC_INDEXES] = B_scale * soln[MAGNETIC_INDEXES]
+        scaled_soln[ODEIndex.ρ] = ρ_scale * soln[ODEIndex.ρ]
+        scaled_soln[DIFFUSIVE_INDEXES] = η_scale * soln[DIFFUSIVE_INDEXES]
+        if use_E_r:
+            raise DiscSolverError("E_r scaling not added yet")
+        else:
+            scaled_soln[ODEIndex.B_φ_prime] = B_scale * soln[
+                ODEIndex.B_φ_prime
+            ]
+    else:
+        scaled_soln[:, VELOCITY_INDEXES] = v_scale * soln[:, VELOCITY_INDEXES]
+        scaled_soln[:, MAGNETIC_INDEXES] = B_scale * soln[:, MAGNETIC_INDEXES]
+        scaled_soln[:, ODEIndex.ρ] = ρ_scale * soln[ODEIndex.ρ]
+        scaled_soln[:, DIFFUSIVE_INDEXES] = η_scale * soln[
+            :, DIFFUSIVE_INDEXES
+        ]
+        if use_E_r:
+            raise DiscSolverError("E_r scaling not added yet")
+        else:
+            scaled_soln[:, ODEIndex.B_φ_prime] = B_scale * soln[
+                :, ODEIndex.B_φ_prime
+            ]
+
+    return scaled_soln
+
+
+def convert_solution_to_vertical(angles, soln, *, γ, c_s_on_v_k, use_E_r):
+    """
+    Shift solution values to vertical. Does not change to cylindrical
+    """
+    heights = sqrt((1 - cos(angles)) / cos(angles)) / c_s_on_v_k
+    scaling = 1 + (1 - cos(angles)) / (c_s_on_v_k ** 2 * cos(angles))
+
+    new_soln = scale_solution_to_radii(soln, scaling, γ=γ, use_E_r=use_E_r)
+
+    return heights, new_soln
+
+
+def spherical_r_θ_to_cylindrical_R_z(r_var, θ_var, angles):
+    """
+    Move r, θ in (modified) spherical coordinates to R, z in cylindrical
+    coordinates
+    """
+    R_var = r_var * cos(angles) - θ_var * sin(angles)
+    z_var = θ_var * cos(angles) + r_var * sin(angles)
+    return R_var, z_var
+
+
+def convert_spherical_vertical_to_cylindrical(angles, soln, *, use_E_r):
+    """
+    Move spherical variables at constant cylindrical radius to cylindrical
+    variables
+    """
+    if use_E_r:
+        raise DiscSolverError("E_r conversion not added yet")
+
+    new_soln = np.full(soln.shape, np.nan, dtype=soln.dtype)
+
+    if new_soln.ndim == 1:
+        new_soln[CylindricalODEIndex.v_φ] = soln[ODEIndex.v_φ]
+        new_soln[CylindricalODEIndex.B_φ] = soln[ODEIndex.B_φ]
+        new_soln[CylindricalODEIndex.ρ] = soln[ODEIndex.ρ]
+        new_soln[CylindricalODEIndex.η_O] = soln[ODEIndex.η_O]
+        new_soln[CylindricalODEIndex.η_A] = soln[ODEIndex.η_A]
+        new_soln[CylindricalODEIndex.η_H] = soln[ODEIndex.η_H]
+
+        v_R, v_z = spherical_r_θ_to_cylindrical_R_z(
+            soln[ODEIndex.v_r], soln[ODEIndex.v_θ], angles
+        )
+        new_soln[CylindricalODEIndex.v_R] = v_R
+        new_soln[CylindricalODEIndex.v_z] = v_z
+
+        B_R, B_z = spherical_r_θ_to_cylindrical_R_z(
+            soln[ODEIndex.B_r], soln[ODEIndex.B_θ], angles
+        )
+        new_soln[CylindricalODEIndex.B_R] = B_R
+        new_soln[CylindricalODEIndex.B_z] = B_z
+
+        if use_E_r:
+            raise DiscSolverError("E_r conversion not added yet")
+        else:
+            new_soln[CylindricalODEIndex.B_φ_prime] = soln[ODEIndex.B_φ_prime]
+
+    else:
+        new_soln[:, CylindricalODEIndex.v_φ] = soln[:, ODEIndex.v_φ]
+        new_soln[:, CylindricalODEIndex.B_φ] = soln[:, ODEIndex.B_φ]
+        new_soln[:, CylindricalODEIndex.ρ] = soln[:, ODEIndex.ρ]
+        new_soln[:, CylindricalODEIndex.η_O] = soln[:, ODEIndex.η_O]
+        new_soln[:, CylindricalODEIndex.η_A] = soln[:, ODEIndex.η_A]
+        new_soln[:, CylindricalODEIndex.η_H] = soln[:, ODEIndex.η_H]
+
+        v_R, v_z = spherical_r_θ_to_cylindrical_R_z(
+            soln[:, ODEIndex.v_r], soln[:, ODEIndex.v_θ], angles
+        )
+        new_soln[:, CylindricalODEIndex.v_R] = v_R
+        new_soln[:, CylindricalODEIndex.v_z] = v_z
+
+        B_R, B_z = spherical_r_θ_to_cylindrical_R_z(
+            soln[:, ODEIndex.B_r], soln[:, ODEIndex.B_θ], angles
+        )
+        new_soln[:, CylindricalODEIndex.B_R] = B_R
+        new_soln[:, CylindricalODEIndex.B_z] = B_z
+
+        if use_E_r:
+            raise DiscSolverError("E_r conversion not added yet")
+        else:
+            new_soln[:, CylindricalODEIndex.B_φ_prime] = soln[
+                :, ODEIndex.B_φ_prime
+            ]
+
+    return new_soln
