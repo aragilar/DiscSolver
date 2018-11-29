@@ -43,6 +43,26 @@ class StepperError(SolverError):
     pass
 
 
+def is_solution_best(soln):
+    """
+    Determine if solution is best possible solution
+    """
+    soln, valid = validate_solution(soln)
+    if not valid:
+        return soln, False
+
+    v_θ = soln.solution[:, ODEIndex.v_θ]
+
+    v_θ_near_sonic = np_and(v_θ > DEFAULT_SPLITTER_CUTOFF, v_θ < 1)
+    if not np_any(v_θ_near_sonic):
+        return soln, False
+
+    if np_any(diff(v_θ[v_θ_near_sonic], n=2)) > 0:
+        return soln, False
+
+    return soln, True
+
+
 def binary_searcher(
     func, pass_func, fail_func, initial_input, *,
     num_attempts=DEFAULT_NUM_ATTEMPTS
@@ -210,7 +230,7 @@ def solution_generator(*, store_internal=True, run):
             inp, define_conditions(inp, use_E_r=run.use_E_r),
             store_internal=store_internal, use_E_r=run.use_E_r,
         )
-        return validate_solution(soln)
+        return is_solution_best(soln)
 
     return solution_func
 
