@@ -230,12 +230,16 @@ def scale_solution_to_radii(soln, new_r, *, γ, use_E_r):
                 ODEIndex.B_φ_prime
             ]
     else:
-        scaled_soln[:, VELOCITY_INDEXES] = v_scale * soln[:, VELOCITY_INDEXES]
-        scaled_soln[:, MAGNETIC_INDEXES] = B_scale * soln[:, MAGNETIC_INDEXES]
-        scaled_soln[:, ODEIndex.ρ] = ρ_scale * soln[ODEIndex.ρ]
-        scaled_soln[:, DIFFUSIVE_INDEXES] = η_scale * soln[
+        scaled_soln[:, VELOCITY_INDEXES] = (v_scale * soln[
+            :, VELOCITY_INDEXES
+        ].T).T
+        scaled_soln[:, MAGNETIC_INDEXES] = (B_scale * soln[
+            :, MAGNETIC_INDEXES
+        ].T).T
+        scaled_soln[:, ODEIndex.ρ] = ρ_scale * soln[:, ODEIndex.ρ]
+        scaled_soln[:, DIFFUSIVE_INDEXES] = (η_scale * soln[
             :, DIFFUSIVE_INDEXES
-        ]
+        ].T).T
         if use_E_r:
             raise DiscSolverError("E_r scaling not added yet")
         else:
