@@ -26,6 +26,13 @@ str_to_int = str_to_int_converter()
 str_to_bool = str_to_bool_converter()
 
 
+class DiscSolverError(Exception):
+    """
+    Base error class for DiscSolver
+    """
+    pass
+
+
 class MHD_Wave_Index(IntEnum):
     """
     Enum for MHD wave speed indexes
@@ -33,6 +40,56 @@ class MHD_Wave_Index(IntEnum):
     slow = 0
     alfven = 1
     fast = 2
+
+
+class ODEIndex(IntEnum):
+    """
+    Enum for array index for variables in the odes
+    """
+    B_r = 0
+    B_φ = 1
+    B_θ = 2
+    v_r = 3
+    v_φ = 4
+    v_θ = 5
+    ρ = 6
+    B_φ_prime = 7
+    E_r = 7
+    η_O = 8
+    η_A = 9
+    η_H = 10
+
+
+class CylindricalODEIndex(IntEnum):
+    """
+    Enum for array index for variables in the odes
+    """
+    B_r = 0
+    B_φ = 1
+    B_z = 2
+    v_r = 3
+    v_φ = 4
+    v_z = 5
+    ρ = 6
+    B_φ_prime = 7
+    E_r = 7
+    η_O = 8
+    η_A = 9
+    η_H = 10
+
+
+MAGNETIC_INDEXES = [ODEIndex.B_r, ODEIndex.B_φ, ODEIndex.B_θ]
+VELOCITY_INDEXES = [ODEIndex.v_r, ODEIndex.v_φ, ODEIndex.v_θ]
+DIFFUSIVE_INDEXES = [ODEIndex.η_O, ODEIndex.η_A, ODEIndex.η_H]
+VERT_MAGNETIC_INDEXES = [
+    CylindricalODEIndex.B_r, CylindricalODEIndex.B_φ, CylindricalODEIndex.B_z
+]
+VERT_VELOCITY_INDEXES = [
+    CylindricalODEIndex.v_r, CylindricalODEIndex.v_φ, CylindricalODEIndex.v_z
+]
+VERT_DIFFUSIVE_INDEXES = [
+    CylindricalODEIndex.η_O, CylindricalODEIndex.η_A, CylindricalODEIndex.η_H
+]
 
 
 def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
@@ -48,7 +105,7 @@ def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
         return v_sq > speeds[MHD_Wave_Index[mhd_wave_type]]
 
 
-def mhd_wave_speeds(B, rho, sound_speed):
+def mhd_wave_speeds(B, rho, sound_speed, *, index=ODEIndex.B_θ):
     """
     Computes MHD wave speeds (slow, alfven, fast)
     """
@@ -57,9 +114,9 @@ def mhd_wave_speeds(B, rho, sound_speed):
     B_sq = np.sum(B**2, axis=B_axis)
 
     if B_axis:
-        cos_sq_psi = B[:, ODEIndex.B_θ]**2 / B_sq
+        cos_sq_psi = B[:, index]**2 / B_sq
     else:
-        cos_sq_psi = B[ODEIndex.B_θ]**2 / B_sq
+        cos_sq_psi = B[index]**2 / B_sq
 
     v_a_sq = B_sq / (4*pi*rho)
     slow = 1/2 * (
@@ -159,54 +216,6 @@ def get_solutions(run, soln_range):
     return run.solutions[soln_range]
 
 
-class ODEIndex(IntEnum):
-    """
-    Enum for array index for variables in the odes
-    """
-    B_r = 0
-    B_φ = 1
-    B_θ = 2
-    v_r = 3
-    v_φ = 4
-    v_θ = 5
-    ρ = 6
-    B_φ_prime = 7
-    E_r = 7
-    η_O = 8
-    η_A = 9
-    η_H = 10
-
-
-MAGNETIC_INDEXES = [ODEIndex.B_r, ODEIndex.B_φ, ODEIndex.B_θ]
-VELOCITY_INDEXES = [ODEIndex.v_r, ODEIndex.v_φ, ODEIndex.v_θ]
-DIFFUSIVE_INDEXES = [ODEIndex.η_O, ODEIndex.η_A, ODEIndex.η_H]
-
-
-class CylindricalODEIndex(IntEnum):
-    """
-    Enum for array index for variables in the odes
-    """
-    B_R = 0
-    B_φ = 1
-    B_z = 2
-    v_R = 3
-    v_φ = 4
-    v_z = 5
-    ρ = 6
-    B_φ_prime = 7
-    E_R = 7
-    η_O = 8
-    η_A = 9
-    η_H = 10
-
-
-class DiscSolverError(Exception):
-    """
-    Base error class for DiscSolver
-    """
-    pass
-
-
 def scale_solution_to_radii(soln, new_r, *, γ, use_E_r):
     """
     Scale spherical solution to given radii
@@ -279,13 +288,17 @@ def spherical_r_θ_to_cylindrical_R_z(r_var, θ_var, angles):
     return R_var, z_var
 
 
-def convert_spherical_vertical_to_cylindrical(angles, soln, *, use_E_r):
+def convert_spherical_to_cylindrical(angles, soln, *, use_E_r, γ, c_s_on_v_k):
     """
-    Move spherical variables at constant cylindrical radius to cylindrical
-    variables
+    Move spherical variables to cylindrical variables at constant cylindrical
+    radius
     """
     if use_E_r:
         raise DiscSolverError("E_r conversion not added yet")
+
+    heights, soln = convert_solution_to_vertical(
+        angles, soln, use_E_r=use_E_r, γ=γ, c_s_on_v_k=c_s_on_v_k,
+    )
 
     new_soln = np.full(soln.shape, np.nan, dtype=soln.dtype)
 
@@ -300,13 +313,13 @@ def convert_spherical_vertical_to_cylindrical(angles, soln, *, use_E_r):
         v_R, v_z = spherical_r_θ_to_cylindrical_R_z(
             soln[ODEIndex.v_r], soln[ODEIndex.v_θ], angles
         )
-        new_soln[CylindricalODEIndex.v_R] = v_R
+        new_soln[CylindricalODEIndex.v_r] = v_R
         new_soln[CylindricalODEIndex.v_z] = v_z
 
         B_R, B_z = spherical_r_θ_to_cylindrical_R_z(
             soln[ODEIndex.B_r], soln[ODEIndex.B_θ], angles
         )
-        new_soln[CylindricalODEIndex.B_R] = B_R
+        new_soln[CylindricalODEIndex.B_r] = B_R
         new_soln[CylindricalODEIndex.B_z] = B_z
 
         if use_E_r:
@@ -325,13 +338,13 @@ def convert_spherical_vertical_to_cylindrical(angles, soln, *, use_E_r):
         v_R, v_z = spherical_r_θ_to_cylindrical_R_z(
             soln[:, ODEIndex.v_r], soln[:, ODEIndex.v_θ], angles
         )
-        new_soln[:, CylindricalODEIndex.v_R] = v_R
+        new_soln[:, CylindricalODEIndex.v_r] = v_R
         new_soln[:, CylindricalODEIndex.v_z] = v_z
 
         B_R, B_z = spherical_r_θ_to_cylindrical_R_z(
             soln[:, ODEIndex.B_r], soln[:, ODEIndex.B_θ], angles
         )
-        new_soln[:, CylindricalODEIndex.B_R] = B_R
+        new_soln[:, CylindricalODEIndex.B_r] = B_R
         new_soln[:, CylindricalODEIndex.B_z] = B_z
 
         if use_E_r:
@@ -341,4 +354,4 @@ def convert_spherical_vertical_to_cylindrical(angles, soln, *, use_E_r):
                 :, ODEIndex.B_φ_prime
             ]
 
-    return new_soln
+    return heights, new_soln
