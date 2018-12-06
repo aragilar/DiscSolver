@@ -14,6 +14,7 @@ from disc_solver.analyse.component_plot import plot as component_plot
 from disc_solver.analyse.acc_plot import acc_plot
 from disc_solver.analyse.validate_plot import validate_plot
 from disc_solver.analyse.hydro_check_plot import hydro_check_plot
+from disc_solver.analyse.vert_plot import plot as vert_plot
 from disc_solver.analyse.diverge_plot import diverge_main
 from disc_solver.analyse.conserve_plot import conserve_main
 from disc_solver.analyse.utils import AnalysisError
@@ -442,6 +443,15 @@ class TestAnalysis:
 
     def test_j_e_plot_file(self, solution, plot_file):
         return j_e_plot(solution, plot_filename=plot_file)
+
+    def test_vert_plot_show(self, solution, mpl_interactive):
+        vert_plot(
+            solution, show=True, with_slow=True, with_alfven=True,
+            with_fast=True, with_sonic=True,
+        )
+
+    def test_vert_plot_file(self, solution, plot_file):
+        return vert_plot(solution, plot_filename=plot_file)
 
 
 def test_taylor_space(mpl_interactive):

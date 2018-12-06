@@ -60,6 +60,7 @@ setuptools.setup(
             "ds-j-e-plot = disc_solver.analyse.j_e_plot:j_e_plot_main",
             "ds-plot-taylor-space = disc_solver.solve.taylor_space:main",
             "ds-component-plot = disc_solver.analyse.component_plot:plot_main",
+            "ds-vert-plot = disc_solver.analyse.vert_plot:plot_main",
         ],
     },
     cmdclass=versioneer.get_cmdclass(),
