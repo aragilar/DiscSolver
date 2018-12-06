@@ -3,6 +3,7 @@
 Utils for analysis code
 """
 import argparse
+from enum import Enum
 from functools import wraps
 from os import fspath
 import sys
@@ -21,16 +22,14 @@ from h5preserve import open as h5open
 from .. import __version__ as ds_version
 from ..file_format import registries
 from ..logging import log_handler, logging_options
-from ..utils import ODEIndex, str_to_float, get_solutions, DiscSolverError
+from ..utils import (
+    ODEIndex, str_to_float, get_solutions, DiscSolverError,
+    CylindricalODEIndex,
+)
 
 DEFAULT_MPL_STYLE = "bmh"
 
 GREYS = get_cmap("Greys")
-
-B_φ_PRIME_ORDERING = [
-    "B_r", "B_φ", "B_θ", "v_r", "v_φ", "v_θ", "ρ", "B_φ_prime"
-]
-E_r_ORDERING = ["B_r", "B_φ", "B_θ", "v_r", "v_φ", "v_θ", "ρ", "E_r"]
 
 COMMON_ARGUMENTS = {
     "B_r": {
@@ -42,6 +41,9 @@ COMMON_ARGUMENTS = {
     "B_θ": {
         "name": "$B_θ/B_0$",
     },
+    "B_z": {
+        "name": "$B_z/B_0$",
+    },
     "v_r": {
         "name": "$v_r/c_s$",
     },
@@ -50,6 +52,10 @@ COMMON_ARGUMENTS = {
     },
     "v_θ": {
         "name": "$v_θ/c_s$",
+        "legend": True,
+    },
+    "v_z": {
+        "name": "$v_z/c_s$",
         "legend": True,
     },
     "ρ": {
@@ -62,6 +68,30 @@ COMMON_ARGUMENTS = {
     "E_r": {
         "name": "$E_r/E_0$",
     },
+}
+
+
+class PlotOrdering(Enum):
+    """
+    Enum for the different orderings that plots can use
+    """
+    E_r = "E_r"
+    B_φ_prime = "B_φ_prime"
+    E_r_vert = "E_r_vert"
+    B_φ_prime_vert = "B_φ_prime_vert"
+
+
+PLOT_ORDERINGS = {
+    PlotOrdering.B_φ_prime: [
+        "B_r", "B_φ", "B_θ", "v_r", "v_φ", "v_θ", "ρ", "B_φ_prime"
+    ],
+    PlotOrdering.E_r: ["B_r", "B_φ", "B_θ", "v_r", "v_φ", "v_θ", "ρ", "E_r"],
+    PlotOrdering.B_φ_prime_vert: [
+        "B_r", "B_φ", "B_z", "v_r", "v_φ", "v_z", "ρ", "B_φ_prime"
+    ],
+    PlotOrdering.E_r_vert: [
+        "B_r", "B_φ", "B_z", "v_r", "v_φ", "v_z", "ρ", "E_r"
+    ],
 }
 
 
@@ -98,18 +128,25 @@ def add_version_to_plot(fig):
 
 
 def get_common_arguments(
-    params, *, v_θ_scale="linear", initial_conditions, no_v_φ_offest=False
+    ordering, *, v_θ_scale="linear", initial_conditions, no_v_φ_offset=False,
+    v_φ_offset=None
 ):
     """
     Return a list containing what to plot based on a particular set of
     parameters
     """
+    params = PLOT_ORDERINGS[ordering]
     args = [COMMON_ARGUMENTS[param] for param in params]
 
     if "v_θ" in params:
         args[ODEIndex.v_θ]["scale"] = v_θ_scale
         args[ODEIndex.v_θ]["extras"] = []
-    if not no_v_φ_offest and "v_φ" in params:
+    if "v_z" in params:
+        args[CylindricalODEIndex.v_z]["extras"] = []
+
+    if v_φ_offset is not None and "v_φ" in params:
+        args[ODEIndex.v_φ]["offset"] = v_φ_offset
+    elif not no_v_φ_offset and "v_φ" in params:
         args[ODEIndex.v_φ]["offset"] = sqrt(initial_conditions.norm_kepler_sq)
 
     return args

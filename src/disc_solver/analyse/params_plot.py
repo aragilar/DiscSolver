@@ -8,7 +8,7 @@ from numpy import degrees
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
     get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
-    AnalysisError, DEFAULT_MPL_STYLE, get_common_arguments, B_φ_PRIME_ORDERING,
+    AnalysisError, DEFAULT_MPL_STYLE, get_common_arguments, PlotOrdering,
 )
 
 
@@ -67,10 +67,10 @@ def generate_params_plot(fig, soln, *, linestyle='.', stop=90, use_E_r=False):
     if internal_data is None:
         raise AnalysisError("Internal data required to generate plot")
 
+    ordering = PlotOrdering.E_r if use_E_r else PlotOrdering.B_φ_prime
+
     cons = soln.initial_conditions
-    param_names = get_common_arguments(
-        B_φ_PRIME_ORDERING, initial_conditions=cons
-    )
+    param_names = get_common_arguments(ordering, initial_conditions=cons)
 
     param_angles = internal_data.angles
     params = internal_data.params

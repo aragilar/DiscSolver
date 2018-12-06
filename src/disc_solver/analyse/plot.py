@@ -11,7 +11,7 @@ from ..utils import (
 from .utils import (
     single_solution_plotter, analyse_main_wrapper, analysis_func_wrapper,
     common_plotting_options, get_common_plot_args, plot_output_wrapper,
-    DEFAULT_MPL_STYLE, get_common_arguments, B_φ_PRIME_ORDERING, E_r_ORDERING,
+    DEFAULT_MPL_STYLE, get_common_arguments, PlotOrdering,
 )
 
 
@@ -106,7 +106,7 @@ def generate_plot(
 
     indexes = degrees(angles) <= stop
 
-    ordering = E_r_ORDERING if use_E_r else B_φ_PRIME_ORDERING
+    ordering = PlotOrdering.E_r if use_E_r else PlotOrdering.B_φ_prime
 
     param_names = get_common_arguments(
         ordering, v_θ_scale=v_θ_scale, initial_conditions=cons
