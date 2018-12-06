@@ -184,9 +184,12 @@ def v_θ_deriv_splitter(soln, cutoff=DEFAULT_SPLITTER_CUTOFF, **kwargs):
     """
     # pylint: disable=unused-argument
     v_θ = soln.solution[:, ODEIndex.v_θ]
-    problems = soln.internal_data.problems
-    if any("negative velocity" in pl for pl in problems.values()):
-        return SplitterStatus.SIGN_FLIP
+    if soln.internal_data is not None:
+        problems = soln.internal_data.problems
+        if any("negative velocity" in pl for pl in problems.values()):
+            return SplitterStatus.SIGN_FLIP
+    else:
+        log.notice("Skipping checking problems due to no internal data")
 
     v_θ_near_sonic = np_and(v_θ > cutoff, v_θ < 1)
     if not np_any(v_θ_near_sonic):
