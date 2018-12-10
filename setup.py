@@ -61,6 +61,7 @@ setuptools.setup(
             "ds-plot-taylor-space = disc_solver.solve.taylor_space:main",
             "ds-component-plot = disc_solver.analyse.component_plot:plot_main",
             "ds-vert-plot = disc_solver.analyse.vert_plot:plot_main",
+            "ds-sonic-ratio-plot = disc_solver.analyse.sonic_ratio_plot:plot_main",
         ],
     },
     cmdclass=versioneer.get_cmdclass(),
