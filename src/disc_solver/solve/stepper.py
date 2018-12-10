@@ -13,8 +13,6 @@ from .config import define_conditions
 from .solution import solution
 from .utils import validate_solution, SolverError
 
-from ..analyse.diverge_plot import diverge_plot
-
 from ..float_handling import float_type
 from ..file_format import SolutionInput, Solution
 from ..utils import ODEIndex
@@ -161,6 +159,8 @@ def human_view_splitter_generator():
     """
     Generate splitter func which uses human input
     """
+    from ..analyse.diverge_plot import diverge_plot
+
     solutions = []
 
     def human_view_splitter(soln, **kwargs):
