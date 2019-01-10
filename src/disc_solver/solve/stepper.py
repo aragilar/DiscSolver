@@ -41,6 +41,13 @@ class StepperError(SolverError):
     pass
 
 
+class StepperStop(SolverError):
+    """
+    Class to signal stepper has stopped
+    """
+    pass
+
+
 def is_solution_best(soln):
     """
     Determine if solution is best possible solution
@@ -62,7 +69,7 @@ def is_solution_best(soln):
 
 
 def binary_searcher(
-    func, pass_func, fail_func, initial_input, *,
+    func, pass_func, fail_func, final_fail_func, initial_input, *,
     num_attempts=DEFAULT_NUM_ATTEMPTS
 ):
     """
@@ -79,6 +86,9 @@ def binary_searcher(
                 inp = fail_func(out, attempt)
     except StepperError as e:
         log.critical(str(e))
+    except StepperStop as e:
+        log.info(str(e))
+        return final_fail_func(attempt)
     else:
         log.critical("Failed to find with {} attempts.".format(num_attempts))
     return None
@@ -150,6 +160,19 @@ def cleanup_generator(run, writer):
         cleanup
         """
         writer(soln, attempt)
+        run.final_solution = run.solutions[str(attempt)]
+
+    return cleanup
+
+
+def alternate_cleanup_generator(run):
+    """
+    creates symlink for final solution if no perfect solution
+    """
+    def cleanup(attempt):
+        """
+        alternate cleanup
+        """
         run.final_solution = run.solutions[str(attempt)]
 
     return cleanup
@@ -253,11 +276,11 @@ def step_input():
         elif soln_type == SplitterStatus.SIGN_FLIP:
             inp_dict["γ"] += step_size
         elif soln_type == SplitterStatus.STOP:
-            raise StepperError("Stepper stopped")
+            raise StepperStop("Stepper stopped")
         else:
             raise StepperError("Solution type not known")
         if prev_γ == inp_dict["γ"]:
-            raise StepperError("Hit numerical limit")
+            raise StepperStop("Hit numerical limit")
         return SolutionInput(**inp_dict)
     return step_func
 
@@ -278,7 +301,8 @@ def solver(
             writer, step_func,
             create_soln_splitter(soln_input.split_method),
             max_search_steps=max_search_steps,
-        ), soln_input, num_attempts=num_attempts,
+        ), alternate_cleanup_generator(run), soln_input,
+        num_attempts=num_attempts,
     )
     if not isinstance(run.final_solution, Solution):
         run.final_solution = None
