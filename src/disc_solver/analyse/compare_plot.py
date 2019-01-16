@@ -8,7 +8,7 @@ from .utils import (
     multiple_solution_plotter, analyse_main_wrapper_multisolution,
     analysis_func_wrapper_multisolution, common_plotting_options,
     get_common_plot_args, plot_output_wrapper, DEFAULT_MPL_STYLE,
-    get_common_arguments, PlotOrdering,
+    get_common_arguments, PlotOrdering, distinct_color_map,
 )
 
 
@@ -38,18 +38,18 @@ def get_plot_args(args):
         "plot_args": get_plot_args,
     }
 )
-def plot_main(solns, *, common_plot_args, plot_args):
+def plot_main(solutions, *, common_plot_args, plot_args):
     """
     Entry point for ds-plot
     """
-    return compare_plot(solns, **common_plot_args, **plot_args)
+    return compare_plot(solutions, **common_plot_args, **plot_args)
 
 
 @analysis_func_wrapper_multisolution
 def compare_plot(
-    solns, *, plot_filename=None, show=False, linestyle='-', stop=90,
+    solutions, *, plot_filename=None, show=False, linestyle='-', stop=90,
     figargs=None, v_θ_scale="linear", title=None, close=True,
-    mpl_style=DEFAULT_MPL_STYLE, with_version=True
+    mpl_style=DEFAULT_MPL_STYLE, with_version=True, num_solutions=None
 ):
     """
     Plot solutions to file
@@ -57,9 +57,9 @@ def compare_plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     # pylint: disable=no-value-for-parameter
     fig = generate_plot(
-        solns, linestyle=linestyle, stop=stop, figargs=figargs,
+        solutions, linestyle=linestyle, stop=stop, figargs=figargs,
         v_θ_scale=v_θ_scale, title=title, mpl_style=mpl_style,
-        with_version=with_version,
+        with_version=with_version, num_solutions=num_solutions,
     )
 
     return plot_output_wrapper(
@@ -69,7 +69,8 @@ def compare_plot(
 
 @multiple_solution_plotter
 def generate_plot(
-    fig, solns, *, linestyle='-', stop=90, v_θ_scale="linear", use_E_r=False
+    fig, solutions, *, linestyle='-', stop=90, v_θ_scale="linear",
+    use_E_r=False, num_solutions
 ):
     """
     Generate plot, with enough freedom to be able to format fig
@@ -83,7 +84,9 @@ def generate_plot(
         ax.set_xlabel("angle from plane (°)")
     axes = axes.flatten()
 
-    for id_num, soln in enumerate(solns):
+    colors = distinct_color_map(num_solutions)
+
+    for id_num, (soln, color) in enumerate(zip(solutions, colors)):
         solution = soln.solution
         angles = soln.angles
         cons = soln.initial_conditions
@@ -102,7 +105,7 @@ def generate_plot(
                 degrees(angles[indexes]),
                 (
                     solution[:, i] - settings.get("offset", 0)
-                )[indexes], linestyle, label=str(id_num)
+                )[indexes], linestyle, label=str(id_num), color=color,
             )
             ax.set_ylabel(settings["name"])
             ax.set_yscale(settings.get("scale", "linear"))

@@ -197,7 +197,8 @@ def multiple_solution_plotter(func):
     @wraps(func)
     def plot_wrapper(
         solution_pairs, *args, title=None, figargs=None,
-        mpl_style=DEFAULT_MPL_STYLE, with_version=True, **kwargs
+        mpl_style=DEFAULT_MPL_STYLE, with_version=True, num_solutions=None,
+        **kwargs
     ):
         """
         Wraps plot functions
@@ -206,6 +207,9 @@ def multiple_solution_plotter(func):
 
         if figargs is None:
             figargs = {}
+
+        if num_solutions is None:
+            num_solutions = len(solution_pairs)
 
         def solution_loader(solns):
             for run, name, filename in solns:
@@ -220,7 +224,10 @@ def multiple_solution_plotter(func):
 
         with use_style(mpl_style):
             fig = plt.figure(constrained_layout=True, **figargs)
-            func(fig, solution_loader(solution_pairs), *args, **kwargs)
+            func(
+                fig, solution_loader(solution_pairs), *args,
+                num_solutions=num_solutions, **kwargs
+            )
             if title is None:
                 fig.suptitle('\n'.join(title_list))
             else:
@@ -238,15 +245,21 @@ def analysis_func_wrapper_multisolution(func):
     Wrapper for main analysis functions which take multiple solutions
     """
     @wraps(func)
-    def wrapper(solutions_pairs, *args, **kwargs):
+    def wrapper(solutions_pairs, *args, num_solutions=None, **kwargs):
         """
         wrapper for analysis_func_wrapper_multisolution
         """
+        if num_solutions is None:
+            num_solutions = len(solutions_pairs)
+
         def file_loader(pairs):
             for filename, index_str in pairs:
                 with h5open(filename, registries) as soln_file:
                     yield soln_file["run"], index_str, filename
-        return func(file_loader(solutions_pairs), *args, **kwargs)
+        return func(
+            file_loader(solutions_pairs), *args, num_solutions=num_solutions,
+            **kwargs
+        )
 
     return wrapper
 

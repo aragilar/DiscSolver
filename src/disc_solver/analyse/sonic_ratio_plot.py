@@ -12,6 +12,7 @@ from .utils import (
     multiple_solution_plotter, analyse_main_wrapper_multisolution,
     analysis_func_wrapper_multisolution, common_plotting_options,
     get_common_plot_args, plot_output_wrapper, DEFAULT_MPL_STYLE,
+    distinct_color_map,
 )
 
 
@@ -30,18 +31,18 @@ def plot_parser(parser):
         "common_plot_args": get_common_plot_args,
     }
 )
-def plot_main(solns, *, common_plot_args):
+def plot_main(solutions, *, common_plot_args):
     """
     Entry point for ds-plot
     """
-    return plot(solns, **common_plot_args)
+    return plot(solutions, **common_plot_args)
 
 
 @analysis_func_wrapper_multisolution
 def plot(
-    solns, *, plot_filename=None, show=False, linestyle='-', stop=90,
+    solutions, *, plot_filename=None, show=False, linestyle='-', stop=90,
     figargs=None, title=None, close=True, mpl_style=DEFAULT_MPL_STYLE,
-    with_version=True
+    with_version=True, num_solutions=None
 ):
     """
     Plot solutions to file
@@ -49,8 +50,9 @@ def plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     # pylint: disable=no-value-for-parameter
     fig = generate_plot(
-        solns, linestyle=linestyle, stop=stop, figargs=figargs,
+        solutions, linestyle=linestyle, stop=stop, figargs=figargs,
         title=title, mpl_style=mpl_style, with_version=with_version,
+        num_solutions=num_solutions,
     )
 
     return plot_output_wrapper(
@@ -59,7 +61,7 @@ def plot(
 
 
 @multiple_solution_plotter
-def generate_plot(fig, solns, *, linestyle='-', stop=90):
+def generate_plot(fig, solutions, *, num_solutions, linestyle='-', stop=90):
     """
     Generate plot, with enough freedom to be able to format fig
     """
@@ -69,7 +71,9 @@ def generate_plot(fig, solns, *, linestyle='-', stop=90):
     axes[0].set_ylabel("$v_θ/v_a$")
     axes[1].set_ylabel("$v_θ/v_f$")
 
-    for id_num, soln in enumerate(solns):
+    colors = distinct_color_map(num_solutions)
+
+    for id_num, (soln, color) in enumerate(zip(solutions, colors)):
         solution = soln.solution
         angles = soln.angles
 
@@ -84,7 +88,7 @@ def generate_plot(fig, solns, *, linestyle='-', stop=90):
         axes[0].plot(
             degrees(angles[indexes]),
             solution[indexes, ODEIndex.v_θ] / alfven[indexes],
-            linestyle, label=str(id_num)
+            linestyle, color=color, label=str(id_num),
         )
         axes[1].plot(
             degrees(angles[indexes]),
