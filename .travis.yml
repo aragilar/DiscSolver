@@ -1,11 +1,10 @@
 language: python
+dist: xenial
 addons:
   apt:
     packages:
     - gfortran
     - liblapack-dev
-
-sudo: false
 
 cache:
   directories:
@@ -16,21 +15,21 @@ cache:
   #- TOXENV=docs
 matrix:
   include:
-    - python: 3.6
+    - python: 3.7
       env:
-      - TOXENV=py36
-    - python: 3.6
+      - TOXENV=py37 SUNDIALS_VERSION='3.1.1'
+    - python: 3.7
       env:
-      - TOXENV=flake8
-    - python: 3.6
+      - TOXENV=flake8 SUNDIALS_VERSION='3.1.1'
+    - python: 3.7
       env:
-      - TOXENV=pylint
-    - python: 3.6
+      - TOXENV=pylint SUNDIALS_VERSION='3.1.1'
+    - python: 3.7
       env:
-      - TOXENV=check-manifest
-    - python: 3.6
+      - TOXENV=check-manifest SUNDIALS_VERSION='3.1.1'
+    - python: 3.7
       env:
-      - TOXENV=checkreadme
+      - TOXENV=checkreadme SUNDIALS_VERSION='3.1.1'
 
 install:
   - source ./ci_support/ensure_sundials_installed.sh
