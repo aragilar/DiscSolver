@@ -254,7 +254,7 @@ def analysis_func_wrapper_multisolution(func):
 
         def file_loader(pairs):
             for filename, index_str in pairs:
-                with h5open(filename, registries) as soln_file:
+                with h5open(filename, registries, mode='r') as soln_file:
                     yield soln_file["run"], index_str, filename
         return func(
             file_loader(solutions_pairs), *args, num_solutions=num_solutions,
@@ -435,7 +435,9 @@ def analyse_multisolution_wrapper(
                 cmd_args[name] = func(args)
             with log_handler(args):
                 with redirected_warnings(), redirected_logging():
-                    with h5open(args["soln_file"], registries) as soln_file:
+                    with h5open(
+                        args["soln_file"], registries, mode='r'
+                    ) as soln_file:
                         solutions = soln_file["run"].solutions.values()
                         return cmd(
                             *solutions, **cmd_args
@@ -455,7 +457,7 @@ def analysis_func_wrapper(func):
         """
         wrapper for analysis_func_wrapper
         """
-        with h5open(filename, registries) as soln_file:
+        with h5open(filename, registries, mode='r') as soln_file:
             return func(soln_file["run"], *args, filename=filename, **kwargs)
     return wrapper
 

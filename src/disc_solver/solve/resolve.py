@@ -31,7 +31,7 @@ def resolve(
     """
     Main function to generate solution
     """
-    with h5open(soln_filename, registries) as soln_file:
+    with h5open(soln_filename, registries, mode='r') as soln_file:
         old_run = soln_file["run"]
         old_solution = get_solutions(old_run, soln_range)
 
@@ -55,7 +55,7 @@ def resolve(
         )
     output_file = expanded_path(output_dir / output_file)
 
-    with h5open(output_file, registries) as f:
+    with h5open(output_file, registries, mode='x') as f:
         f["run"] = run
         sonic_solver = SONIC_METHOD_MAP.get(sonic_method)
         if sonic_solver is None:
