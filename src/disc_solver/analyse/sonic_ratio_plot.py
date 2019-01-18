@@ -93,7 +93,7 @@ def generate_plot(fig, solutions, *, num_solutions, linestyle='-', stop=90):
         axes[1].plot(
             degrees(angles[indexes]),
             solution[indexes, ODEIndex.v_θ] / fast[indexes],
-            linestyle, label=str(id_num)
+            linestyle, color=color, label=str(id_num)
         )
 
     for ax in axes:
