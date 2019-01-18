@@ -8,6 +8,7 @@ from functools import wraps
 from os import fspath
 import sys
 
+import logbook
 from logbook.compat import redirected_warnings, redirected_logging
 from matplotlib.cm import get_cmap
 from matplotlib.colors import TABLEAU_COLORS
@@ -26,6 +27,8 @@ from ..utils import (
     ODEIndex, str_to_float, get_solutions, DiscSolverError,
     CylindricalODEIndex,
 )
+
+logger = logbook.Logger(__name__)
 
 DEFAULT_MPL_STYLE = "bmh"
 
@@ -217,10 +220,12 @@ def multiple_solution_plotter(func):
                     filename = "{}:{}".format(
                         run.config_filename, run.config_input.label
                     )
-
+                soln = get_solutions(run, name)
+                if soln is None:
+                    logger.warning("{} not in {}".format(name, filename))
+                    continue
                 title_list.append("{}:{}".format(filename, name))
-
-                yield get_solutions(run, name)
+                yield soln
 
         with use_style(mpl_style):
             fig = plt.figure(constrained_layout=True, **figargs)
