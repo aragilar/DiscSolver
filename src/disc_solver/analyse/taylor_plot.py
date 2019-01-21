@@ -52,7 +52,7 @@ def taylor_main(soln, *, soln_range, plot_args, common_plot_args):
 
 @analysis_func_wrapper
 def taylor_plot(
-    soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
+    soln, *, soln_range=None, plot_filename=None, show=False, start=0, stop=90,
     figargs=None, linestyle='.', title=None, show_values=False, close=True,
     filename, mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
@@ -61,9 +61,9 @@ def taylor_plot(
     """
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_taylor_plot(
-        soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title, show_values=show_values, filename=filename,
-        mpl_style=mpl_style, with_version=with_version,
+        soln, soln_range, linestyle=linestyle, start=start, stop=stop,
+        figargs=figargs, title=title, show_values=show_values,
+        filename=filename, mpl_style=mpl_style, with_version=with_version,
     )
 
     return plot_output_wrapper(
@@ -73,7 +73,8 @@ def taylor_plot(
 
 @single_solution_plotter
 def generate_taylor_plot(
-    fig, soln, *, show_values=False, stop=90, linestyle='.', use_E_r=False
+    fig, soln, *, show_values=False, start=0, stop=90, linestyle='.',
+    use_E_r=False
 ):
     # pylint: disable=unused-variable,unused-argument
     """

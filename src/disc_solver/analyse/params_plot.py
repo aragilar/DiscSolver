@@ -36,7 +36,7 @@ def params_main(soln, *, soln_range, common_plot_args):
 
 @analysis_func_wrapper
 def params_plot(
-    soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
+    soln, *, soln_range=None, plot_filename=None, show=False, start=0, stop=90,
     figargs=None, linestyle='.', title=None, close=True, filename,
     mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
@@ -45,8 +45,8 @@ def params_plot(
     """
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_params_plot(
-        soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title, filename=filename, mpl_style=mpl_style,
+        soln, soln_range, linestyle=linestyle, start=start, stop=stop,
+        figargs=figargs, title=title, filename=filename, mpl_style=mpl_style,
         with_version=with_version,
     )
 
@@ -56,7 +56,9 @@ def params_plot(
 
 
 @single_solution_plotter
-def generate_params_plot(fig, soln, *, linestyle='.', stop=90, use_E_r=False):
+def generate_params_plot(
+    fig, soln, *, linestyle='.', start=0, stop=90, use_E_r=False
+):
     """
     Generate plot of all values, including intermediate values
     """
@@ -76,7 +78,9 @@ def generate_params_plot(fig, soln, *, linestyle='.', stop=90, use_E_r=False):
     params = internal_data.params
     npnot = np.logical_not
     npand = np.logical_and
-    indexes = degrees(param_angles) <= stop
+    indexes = (
+        (start <= degrees(param_angles)) & (degrees(param_angles) <= stop)
+    )
 
     axes = fig.subplots(nrows=2, ncols=4, sharex=True)
     axes.shape = len(param_names)

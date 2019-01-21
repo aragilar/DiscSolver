@@ -43,7 +43,7 @@ def j_e_plot_main(soln, *, soln_range, common_plot_args):
 @analysis_func_wrapper
 def j_e_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
-    stop=90, figargs=None, title=None, close=True, filename,
+    start=0, stop=90, figargs=None, title=None, close=True, filename,
     mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
     """
@@ -51,8 +51,8 @@ def j_e_plot(
     """
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_plot(
-        soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title, filename=filename, mpl_style=mpl_style,
+        soln, soln_range, linestyle=linestyle, start=start, stop=stop,
+        figargs=figargs, title=title, filename=filename, mpl_style=mpl_style,
         with_version=with_version,
     )
 
@@ -62,7 +62,9 @@ def j_e_plot(
 
 
 @single_solution_plotter
-def generate_plot(fig, soln, *, linestyle='-', stop=90, use_E_r=False):
+def generate_plot(
+    fig, soln, *, linestyle='-', start=0, stop=90, use_E_r=False
+):
     """
     Generate plot, with enough freedom to be able to format fig
     """
@@ -72,7 +74,7 @@ def generate_plot(fig, soln, *, linestyle='-', stop=90, use_E_r=False):
     angles = soln.angles
     cons = soln.initial_conditions
 
-    indexes = degrees(angles) <= stop
+    indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
 
     J_r, J_θ, J_φ = J_func(
         γ=cons.γ, θ=angles, B_θ=solution[:, ODEIndex.B_θ],

@@ -49,7 +49,7 @@ def conserve_main(*solutions, common_plot_args, plot_args):
 
 
 def generate_conserve_plot(
-    *solutions, figargs=None, stop=90, linestyle='-'
+    *solutions, figargs=None, start=0, stop=90, linestyle='-'
 ):
     """
     Generate plot to compare how different runs change in v_θ
@@ -63,7 +63,7 @@ def generate_conserve_plot(
     for i, (soln, color) in enumerate(zip(solutions, colors)):
         solution = soln.solution
         angles = soln.angles
-        indexes = degrees(angles) <= stop
+        indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
         ax.plot(
             degrees(angles[indexes]),
             solution[indexes, ODEIndex.ρ] * solution[indexes, ODEIndex.v_θ],
@@ -77,7 +77,7 @@ def generate_conserve_plot(
 
 
 def conserve_plot(
-    *solutions, plot_filename=None, show=False, stop=90, figargs=None,
+    *solutions, plot_filename=None, show=False, start=0, stop=90, figargs=None,
     title=None, linestyle='-', close=True, mpl_style=DEFAULT_MPL_STYLE,
     use_E_r=False, with_version=True
 ):
@@ -87,7 +87,8 @@ def conserve_plot(
     # pylint: disable=unused-argument
     with use_style(mpl_style):
         fig = generate_conserve_plot(
-            *solutions, stop=stop, figargs=figargs, linestyle=linestyle,
+            *solutions, start=start, stop=stop, figargs=figargs,
+            linestyle=linestyle,
         )
         if title is None:
             fig.suptitle("Conservation of $ρ v_θ$")

@@ -61,7 +61,7 @@ def diverge_main(*solutions, common_plot_args, plot_args):
 
 
 def generate_diverge_plot(
-    *solutions, figargs=None, stop=90, linestyle='-', with_slow=False
+    *solutions, figargs=None, start=0, stop=90, linestyle='-', with_slow=False
 ):
     """
     Generate plot to compare how different runs change in v_θ
@@ -78,7 +78,7 @@ def generate_diverge_plot(
     for i, (soln, color) in enumerate(zip(solutions, colors)):
         solution = soln.solution
         angles = soln.angles
-        indexes = degrees(angles) <= stop
+        indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
         num_lines += 1
         ax.plot(
             degrees(angles[indexes]), solution[indexes, ODEIndex.v_θ],
@@ -106,7 +106,7 @@ def generate_diverge_plot(
 
 
 def diverge_plot(
-    *solutions, plot_filename=None, show=False, stop=90, figargs=None,
+    *solutions, plot_filename=None, show=False, start=0, stop=90, figargs=None,
     title=None, linestyle='-', with_slow=False, close=True,
     mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
@@ -115,8 +115,8 @@ def diverge_plot(
     """
     with use_style(mpl_style):
         fig = generate_diverge_plot(
-            *solutions, stop=stop, figargs=figargs, linestyle=linestyle,
-            with_slow=with_slow,
+            *solutions, start=start, stop=stop, figargs=figargs,
+            linestyle=linestyle, with_slow=with_slow,
         )
         if title is None:
             fig.suptitle("Comparison of v_θ")

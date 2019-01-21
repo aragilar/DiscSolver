@@ -40,8 +40,8 @@ def plot_main(solutions, *, common_plot_args):
 
 @analysis_func_wrapper_multisolution
 def plot(
-    solutions, *, plot_filename=None, show=False, linestyle='-', stop=90,
-    figargs=None, title=None, close=True, mpl_style=DEFAULT_MPL_STYLE,
+    solutions, *, plot_filename=None, show=False, linestyle='-', start=0,
+    stop=90, figargs=None, title=None, close=True, mpl_style=DEFAULT_MPL_STYLE,
     with_version=True, num_solutions=None
 ):
     """
@@ -50,9 +50,9 @@ def plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     # pylint: disable=no-value-for-parameter
     fig = generate_plot(
-        solutions, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title, mpl_style=mpl_style, with_version=with_version,
-        num_solutions=num_solutions,
+        solutions, linestyle=linestyle, start=start, stop=stop,
+        figargs=figargs, title=title, mpl_style=mpl_style,
+        with_version=with_version, num_solutions=num_solutions,
     )
 
     return plot_output_wrapper(
@@ -61,7 +61,9 @@ def plot(
 
 
 @multiple_solution_plotter
-def generate_plot(fig, solutions, *, num_solutions, linestyle='-', stop=90):
+def generate_plot(
+    fig, solutions, *, num_solutions, linestyle='-', start=0, stop=90
+):
     """
     Generate plot, with enough freedom to be able to format fig
     """
@@ -83,7 +85,7 @@ def generate_plot(fig, solutions, *, num_solutions, linestyle='-', stop=90):
         alfven = wave_speeds[MHD_Wave_Index.alfven]
         fast = wave_speeds[MHD_Wave_Index.fast]
 
-        indexes = degrees(angles) <= stop
+        indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
 
         axes[0].plot(
             degrees(angles[indexes]),

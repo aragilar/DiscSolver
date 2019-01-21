@@ -64,7 +64,7 @@ def plot_main(soln, *, soln_range, common_plot_args, plot_args):
 def plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
     with_slow=False, with_alfven=False, with_fast=False, with_sonic=False,
-    stop=90, figargs=None, v_θ_scale="linear", title=None, close=True,
+    start=0, stop=90, figargs=None, v_θ_scale="linear", title=None, close=True,
     filename, mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
     """
@@ -74,8 +74,9 @@ def plot(
     fig = generate_plot(
         soln, soln_range, linestyle=linestyle, with_slow=with_slow,
         with_alfven=with_alfven, with_fast=with_fast, with_sonic=with_sonic,
-        stop=stop, figargs=figargs, v_θ_scale=v_θ_scale, title=title,
-        filename=filename, mpl_style=mpl_style, with_version=with_version,
+        start=start, stop=stop, figargs=figargs, v_θ_scale=v_θ_scale,
+        title=title, filename=filename, mpl_style=mpl_style,
+        with_version=with_version,
     )
 
     return plot_output_wrapper(
@@ -86,7 +87,7 @@ def plot(
 @single_solution_plotter
 def generate_plot(
     fig, soln, *, linestyle='-', with_slow=False, with_alfven=False,
-    with_fast=False, with_sonic=False, stop=90, v_θ_scale="linear",
+    with_fast=False, with_sonic=False, start=0, stop=90, v_θ_scale="linear",
     use_E_r=False
 ):
     """
@@ -104,7 +105,7 @@ def generate_plot(
         solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1
     ))
 
-    indexes = degrees(angles) <= stop
+    indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
 
     ordering = PlotOrdering.E_r if use_E_r else PlotOrdering.B_φ_prime
 

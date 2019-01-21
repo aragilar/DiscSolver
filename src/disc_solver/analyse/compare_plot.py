@@ -47,8 +47,8 @@ def plot_main(solutions, *, common_plot_args, plot_args):
 
 @analysis_func_wrapper_multisolution
 def compare_plot(
-    solutions, *, plot_filename=None, show=False, linestyle='-', stop=90,
-    figargs=None, v_θ_scale="linear", title=None, close=True,
+    solutions, *, plot_filename=None, show=False, linestyle='-', start=0,
+    stop=90, figargs=None, v_θ_scale="linear", title=None, close=True,
     mpl_style=DEFAULT_MPL_STYLE, with_version=True, num_solutions=None
 ):
     """
@@ -57,8 +57,8 @@ def compare_plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     # pylint: disable=no-value-for-parameter
     fig = generate_plot(
-        solutions, linestyle=linestyle, stop=stop, figargs=figargs,
-        v_θ_scale=v_θ_scale, title=title, mpl_style=mpl_style,
+        solutions, linestyle=linestyle, start=start, stop=stop,
+        figargs=figargs, v_θ_scale=v_θ_scale, title=title, mpl_style=mpl_style,
         with_version=with_version, num_solutions=num_solutions,
     )
 
@@ -69,7 +69,7 @@ def compare_plot(
 
 @multiple_solution_plotter
 def generate_plot(
-    fig, solutions, *, linestyle='-', stop=90, v_θ_scale="linear",
+    fig, solutions, *, linestyle='-', start=0, stop=90, v_θ_scale="linear",
     use_E_r=False, num_solutions
 ):
     """
@@ -91,7 +91,7 @@ def generate_plot(
         angles = soln.angles
         cons = soln.initial_conditions
 
-        indexes = degrees(angles) <= stop
+        indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
 
         ordering = PlotOrdering.E_r if use_E_r else PlotOrdering.B_φ_prime
 

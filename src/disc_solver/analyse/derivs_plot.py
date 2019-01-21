@@ -49,7 +49,7 @@ def derivs_main(soln, *, soln_range, common_plot_args, plot_args):
 
 @analysis_func_wrapper
 def derivs_plot(
-    soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
+    soln, *, soln_range=None, plot_filename=None, show=False, start=0, stop=90,
     figargs=None, linestyle='.', title=None, nolog=False, close=True, filename,
     mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
@@ -58,9 +58,9 @@ def derivs_plot(
     """
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_derivs_plot(
-        soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title, nolog=nolog, filename=filename, mpl_style=mpl_style,
-        with_version=with_version,
+        soln, soln_range, linestyle=linestyle, start=start, stop=stop,
+        figargs=figargs, title=title, nolog=nolog, filename=filename,
+        mpl_style=mpl_style, with_version=with_version,
     )
 
     return plot_output_wrapper(
@@ -70,7 +70,7 @@ def derivs_plot(
 
 @single_solution_plotter
 def generate_derivs_plot(
-    fig, soln, *, linestyle='.', stop=90, nolog=False, use_E_r=False
+    fig, soln, *, linestyle='.', start=0, stop=90, nolog=False, use_E_r=False
 ):
     """
     Generate plot of derivatives
@@ -93,7 +93,9 @@ def generate_derivs_plot(
     derivs = internal_data.derivs
     npnot = np.logical_not
     npand = np.logical_and
-    indexes = degrees(deriv_angles) <= stop
+    indexes = (
+        (start <= degrees(deriv_angles)) & (degrees(deriv_angles) <= stop)
+    )
 
     axes = fig.subplots(nrows=2, ncols=4, sharex=True)
     axes.shape = len(param_names)

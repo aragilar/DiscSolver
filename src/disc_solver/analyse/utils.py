@@ -276,6 +276,7 @@ def common_plotting_options(parser):
     parser.add_argument("--show", action="store_true", default=False)
     parser.add_argument("--filename")
     parser.add_argument("--figsize", nargs=2)
+    parser.add_argument("--start")
     parser.add_argument("--stop")
     parser.add_argument("--linestyle")
     parser.add_argument("--title")
@@ -301,6 +302,7 @@ def get_common_plot_args(args):
         "show": args.get("show", False),
         "plot_filename": args.get("filename"),
         "figargs": figargs,
+        "start": str_to_float(args.get("start", "0")),
         "stop": str_to_float(args.get("stop", "90")),
         "linestyle": args.get("linestyle", "-"),
         "title": args.get("title"),

@@ -50,8 +50,8 @@ def plot_main(soln, *, soln_range, common_plot_args, plot_args):
 @analysis_func_wrapper
 def plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
-    stop=90, figargs=None, title=None, close=True, only=None, filename,
-    mpl_style=DEFAULT_MPL_STYLE, with_version=True
+    start=0, stop=90, figargs=None, title=None, close=True, only=None,
+    filename, mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
     """
     Plot solution to file
@@ -59,8 +59,8 @@ def plot(
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_plot(
         soln, soln_range, linestyle=linestyle, figargs=figargs, title=title,
-        stop=stop, only=only, filename=filename, mpl_style=mpl_style,
-        with_version=with_version,
+        start=start, stop=stop, only=only, filename=filename,
+        mpl_style=mpl_style, with_version=with_version,
     )
 
     return plot_output_wrapper(
@@ -70,7 +70,7 @@ def plot(
 
 @single_solution_plotter
 def generate_plot(
-    fig, soln, *, linestyle='-', stop=90, only=None, use_E_r=False
+    fig, soln, *, linestyle='-', start=0, stop=90, only=None, use_E_r=False
 ):
     """
     Generate plot, with enough freedom to be able to format fig
@@ -78,7 +78,8 @@ def generate_plot(
     if use_E_r:
         raise AnalysisError("Function needs modification to work with use_E_r")
     angles = soln.angles
-    indexes = degrees(angles) <= stop
+    indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
+
     plot_angles = degrees(angles[indexes])
 
     components = compute_components(soln, indexes, angles[indexes])

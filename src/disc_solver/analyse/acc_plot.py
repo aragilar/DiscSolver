@@ -44,7 +44,7 @@ def acc_main(soln, *, soln_range, common_plot_args):
 
 @analysis_func_wrapper
 def acc_plot(
-    soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
+    soln, *, soln_range=None, plot_filename=None, show=False, start=0, stop=90,
     figargs=None, linestyle='.', title=None, close=True, filename,
     mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
@@ -53,8 +53,8 @@ def acc_plot(
     """
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_acc_plot(
-        soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title, filename=filename, mpl_style=mpl_style,
+        soln, soln_range, linestyle=linestyle, start=start, stop=stop,
+        figargs=figargs, title=title, filename=filename, mpl_style=mpl_style,
         with_version=with_version,
     )
 
@@ -65,7 +65,7 @@ def acc_plot(
 
 @single_solution_plotter
 def generate_acc_plot(
-    fig, soln, *, linestyle='.', stop=90, use_E_r=False
+    fig, soln, *, linestyle='.', start=0, stop=90, use_E_r=False
 ):
     """
     Friendlier plot for talks

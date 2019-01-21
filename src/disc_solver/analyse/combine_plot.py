@@ -69,7 +69,7 @@ def combine_main(soln, *, soln_range, common_plot_args, plot_args):
 def combine_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
     with_slow=False, with_alfven=False, with_fast=False, with_sonic=False,
-    stop=90, figargs=None, title=None, close=True, filename,
+    start=0, stop=90, figargs=None, title=None, close=True, filename,
     mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
     """
@@ -79,8 +79,8 @@ def combine_plot(
     fig = generate_plot_combine(
         soln, soln_range, linestyle=linestyle, with_slow=with_slow,
         with_alfven=with_alfven, with_fast=with_fast, with_sonic=with_sonic,
-        stop=stop, figargs=figargs, title=title, filename=filename,
-        mpl_style=mpl_style, with_version=with_version,
+        start=start, stop=stop, figargs=figargs, title=title,
+        filename=filename, mpl_style=mpl_style, with_version=with_version,
     )
 
     return plot_output_wrapper(
@@ -91,7 +91,7 @@ def combine_plot(
 @single_solution_plotter
 def generate_plot_combine(
     fig, soln, *, linestyle='-', with_slow=False, with_alfven=False,
-    with_fast=False, with_sonic=False, stop=90, use_E_r=False
+    with_fast=False, with_sonic=False, start=0, stop=90, use_E_r=False
 ):
     """
     Generate plot, with enough freedom to be able to format fig.
@@ -181,7 +181,7 @@ def generate_plot_combine(
             "data": np.ones(len(solution)),
         })
 
-    indexes = degrees(angles) <= stop
+    indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
 
     axes = fig.subplots(
         nrows=3, ncols=1, sharex=True, gridspec_kw=dict(hspace=0),

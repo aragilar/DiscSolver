@@ -41,7 +41,7 @@ def validate_plot_main(soln, *, soln_range, common_plot_args):
 
 @analysis_func_wrapper
 def validate_plot(
-    soln, *, soln_range=None, plot_filename=None, show=False, stop=90,
+    soln, *, soln_range=None, plot_filename=None, show=False, start=0, stop=90,
     figargs=None, linestyle='.', title=None, close=True, filename,
     mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
@@ -50,8 +50,8 @@ def validate_plot(
     """
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_validate_plot(
-        soln, soln_range, linestyle=linestyle, stop=stop, figargs=figargs,
-        title=title, filename=filename, mpl_style=mpl_style,
+        soln, soln_range, linestyle=linestyle, start=start, stop=stop,
+        figargs=figargs, title=title, filename=filename, mpl_style=mpl_style,
         with_version=with_version,
     )
 
@@ -62,7 +62,7 @@ def validate_plot(
 
 @single_solution_plotter
 def generate_validate_plot(
-    fig, soln, *, linestyle='.', stop=90, use_E_r=False
+    fig, soln, *, linestyle='.', start=0, stop=90, use_E_r=False
 ):
     """
     Generate plot of difference between original equations and ode solution
@@ -104,7 +104,9 @@ def generate_validate_plot(
     if soln.internal_data is None:
         raise AnalysisError("Internal data required to generate plot")
     values = get_values(soln)
-    indexes = degrees(values.angles) <= stop
+    indexes = (
+        (start <= degrees(values.angles)) & (degrees(values.angles) <= stop)
+    )
 
     axes = fig.subplots(
         nrows=2, ncols=2, sharex=True, gridspec_kw=dict(hspace=0),
