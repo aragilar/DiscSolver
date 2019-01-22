@@ -6,8 +6,8 @@ from numpy import asarray
 from h5preserve import GroupContainer, OnDemandGroupContainer
 
 from ._containers import (
-    Solution, SolutionInput, ConfigInput, Problems, InternalData,
-    Run, InitialConditions, JacobianData, Solutions,
+    Solution, SolutionInput, ConfigInput, Problems, InternalData, Run,
+    InitialConditions, JacobianData, Solutions, MCMCVars,
 )
 from ._utils import ds_registry
 
@@ -69,7 +69,7 @@ def _solution_dumper(solution):
     )
 
 
-@ds_registry.dumper(ConfigInput, "ConfigInput", version=8)
+@ds_registry.dumper(ConfigInput, "ConfigInput", version=9)
 def _config_dumper(config_input):
     return GroupContainer(
         attrs={
@@ -95,11 +95,13 @@ def _config_dumper(config_input):
             "η_A": config_input.η_A,
             "η_derivs": config_input.η_derivs,
             "use_taylor_jump": config_input.use_taylor_jump,
-        }, jump_before_sonic=config_input.jump_before_sonic
+        },
+        jump_before_sonic=config_input.jump_before_sonic,
+        mcmc_vars=config_input.mcmc_vars,
     )
 
 
-@ds_registry.dumper(SolutionInput, "SolutionInput", version=8)
+@ds_registry.dumper(SolutionInput, "SolutionInput", version=9)
 def _input_dumper(solution_input):
     return GroupContainer(
         attrs={
@@ -124,7 +126,9 @@ def _input_dumper(solution_input):
             "η_A": solution_input.η_A,
             "η_derivs": solution_input.η_derivs,
             "use_taylor_jump": solution_input.use_taylor_jump,
-        }, jump_before_sonic=solution_input.jump_before_sonic
+        },
+        jump_before_sonic=solution_input.jump_before_sonic,
+        mcmc_vars=solution_input.mcmc_vars,
     )
 
 
@@ -169,5 +173,14 @@ def _jacobian_data_dumper(jacobian_data):
 @ds_registry.dumper(Solutions, "Solutions", version=1)
 def _solutions_dumper(solutions):
     return OnDemandGroupContainer(**solutions)
+
+
+@ds_registry.dumper(MCMCVars, "MCMCVars", version=1)
+def _mcmc_vars_dumper(mcmc_vars):
+    return GroupContainer(
+        with_v_r=mcmc_vars.with_v_r,
+        with_v_a=mcmc_vars.with_v_a,
+        with_v_k=mcmc_vars.with_v_k,
+    )
 
 # pylint: enable=missing-docstring

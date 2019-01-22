@@ -62,6 +62,7 @@ class ConfigInput:
     η_derivs = attr.ib(default="True")
     jump_before_sonic = attr.ib(default=None)
     use_taylor_jump = attr.ib(default="True")
+    mcmc_vars = attr.ib(default=None)
 
 
 @attr.s
@@ -91,6 +92,7 @@ class SolutionInput:
     η_derivs = attr.ib(default=True)
     jump_before_sonic = attr.ib(default=None)
     use_taylor_jump = attr.ib(default=True)
+    mcmc_vars = attr.ib(default=None)
 
 
 class Problems(MutableMapping):
@@ -391,5 +393,15 @@ class InitialConditions:
         self.η_O = η_O
         self.η_A = η_A
         self.η_H = η_H
+
+
+@attr.s(cmp=False, hash=False)
+class MCMCVars:
+    """
+    Container holding which variables to use inside mcmc
+    """
+    with_v_r = attr.ib()
+    with_v_a = attr.ib()
+    with_v_k = attr.ib()
 
 # pylint: enable=too-few-public-methods

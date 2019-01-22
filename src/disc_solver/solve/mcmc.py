@@ -34,6 +34,10 @@ def generate_sysvars_enum(soln_input):
         with_v_r = True
         with_v_a = True
         with_v_k = True
+    else:
+        with_v_r = soln_input.mcmc_vars.with_v_r
+        with_v_a = soln_input.mcmc_vars.with_v_a
+        with_v_k = soln_input.mcmc_vars.with_v_k
 
     @unique
     class SysVars(IntEnum):

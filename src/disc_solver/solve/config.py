@@ -10,7 +10,9 @@ import numpy as np
 from numpy import sqrt
 
 from ..float_handling import float_type, FLOAT_TYPE
-from ..file_format import ConfigInput, InitialConditions, SolutionInput
+from ..file_format import (
+    ConfigInput, InitialConditions, SolutionInput, MCMCVars,
+)
 from ..utils import (
     str_to_float, str_to_int, str_to_bool, CaseDependentConfigParser,
     ODEIndex,
@@ -49,6 +51,18 @@ def E_r_boundary_func(*, v_r, v_φ, η_P, η_H, η_perp_sq, a_0):
     Compute E_r at the midplane
     """
     return - v_φ - v_r / η_P * (η_H + η_perp_sq * v_φ / (2 * a_0))
+
+
+def mcmc_vars_str_to_obj(mcmc_str):
+    """
+    Convert mcmc_vars string to MCMCVars
+    """
+    split_str = mcmc_str.strip().split(',')
+    return MCMCVars(
+        with_v_r="v_r" in split_str,
+        with_v_a="v_a" in split_str,
+        with_v_k="v_k" in split_str,
+    )
 
 
 def define_conditions(inp, *, use_E_r=False):
@@ -140,6 +154,7 @@ def get_input_from_conffile(*, config_file, overrides=None):
         nwalkers=config.get("config", "nwalkers", fallback="8"),
         iterations=config.get("config", "iterations", fallback="3"),
         threads=config.get("config", "threads", fallback="1"),
+        mcmc_vars=config.get("config", "mcmc_vars", fallback="v_r,v_a,v_k"),
         target_velocity=config.get(
             "config", "target_velocity", fallback="0.9"
         ),
@@ -182,6 +197,7 @@ def config_input_to_soln_input(inp):
         target_velocity=float_type(str_to_float(inp.target_velocity)),
         split_method=inp.split_method,
         use_taylor_jump=str_to_bool(inp.use_taylor_jump),
+        mcmc_vars=mcmc_vars_str_to_obj(inp.mcmc_vars),
         γ=float_type(str_to_float(inp.γ)),
         v_rin_on_c_s=float_type(str_to_float(inp.v_rin_on_c_s)),
         v_a_on_c_s=float_type(str_to_float(inp.v_a_on_c_s)),
@@ -197,6 +213,8 @@ def new_inputs_with_overrides(config_input, solution_input, overrides):
     Merge possibly differing ConfigInput and SolutionInput with additional
     changes within overrides
     """
+    if overrides is None:
+        overrides = {}
     new_config_input = add_overrides(
         config_input=config_input, overrides=overrides,
     )
