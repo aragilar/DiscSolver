@@ -14,7 +14,7 @@ from numpy.random import randn
 
 from .config import define_conditions
 from .solution import solution
-from .utils import onroot_stop, velocity_stop_generator, SolverError
+from .utils import SolverError
 
 from ..file_format import SolutionInput
 from ..utils import ODEIndex
@@ -106,9 +106,6 @@ class LogProbGenerator:
         self._store_internal = store_internal
         self._best_logprob = - float("inf")
         self._best_logprob_index = None
-        self._root_func, self._root_func_args = velocity_stop_generator(
-            self._soln_input
-        )
         self._sys_vars_enum = sys_vars_enum
 
     def __call__(self, sys_vars):
@@ -127,9 +124,7 @@ class LogProbGenerator:
             return - float("inf")
         try:
             soln = solution(
-                new_soln_input, cons, onroot_func=onroot_stop,
-                store_internal=self._store_internal, root_func=self._root_func,
-                root_func_args=self._root_func_args,
+                new_soln_input, cons, store_internal=self._store_internal,
             )
         except SolverError as e:
             log.exception(e)
@@ -163,7 +158,9 @@ def get_logprob_of_soln(soln):
     if np_any(diff(soln.solution[:, ODEIndex.v_θ]) < 0):
         return - float("inf")
     targeted_prob = - (
-        soln.solution_input.target_velocity - soln.solution[-1, ODEIndex.v_θ]
+        soln.solution_input.target_velocity - max(
+            soln.solution[:, ODEIndex.v_θ]
+        )
     ) ** 2
     return (
         targeted_prob * TARGETED_PROB_WEIGHTING +
