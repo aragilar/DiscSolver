@@ -9,7 +9,7 @@ import logbook
 
 import emcee
 
-from numpy import any as np_any, diff, errstate, isfinite
+from numpy import diff, errstate, isfinite
 from numpy.random import randn
 
 from .config import define_conditions
@@ -132,8 +132,7 @@ class LogProbGenerator:
             return - float("inf")
         logprob = get_logprob_of_soln(soln)
         if not isfinite(logprob):
-            log.warning("Invalid solution found")
-            return - float("inf")
+            return logprob
         soln_index = self._run.solutions.add_solution(soln)
         if logprob > self._best_logprob:
             self._best_logprob = logprob
@@ -154,8 +153,6 @@ def get_logprob_of_soln(soln):
     """
     Return log probability of solution
     """
-    if np_any(diff(soln.solution[:, ODEIndex.v_θ]) < 0):
-        return - float("inf")
     targeted_prob = - (
         soln.solution_input.target_velocity - max(
             soln.solution[:, ODEIndex.v_θ]
