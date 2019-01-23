@@ -168,8 +168,8 @@ def get_outflow_rate_probability(soln):
     """
     Get likelihood for outflow structure
     """
-    Δ_v_θ = diff(soln.solution[:, ODEIndex.v_θ])
-    return - sum(diff(Δ_v_θ))
+    Δ_v_θ = diff(soln.solution[:, ODEIndex.v_θ]) ** 2
+    return - sum(diff(Δ_v_θ) ** 2)
 
 
 def generate_initial_positions(soln_input, sys_vars_enum):
