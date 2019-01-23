@@ -25,6 +25,7 @@ setuptools.setup(
         "emcee",
         "spaceplot",
         "root-solver",
+        "tqdm",
     ],
     author = "James Tocknell",
     author_email = "aragilar@gmail.com",

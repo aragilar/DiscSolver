@@ -91,7 +91,7 @@ def solver(soln_input, run, store_internal=True):
     with errstate(invalid="ignore"):
         sampler.run_mcmc(
             generate_initial_positions(soln_input, sys_vars_enum),
-            soln_input.iterations
+            soln_input.iterations, progress=True,
         )
     run.final_solution = logprobfunc.best_solution
 
