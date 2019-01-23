@@ -154,8 +154,6 @@ def get_logprob_of_soln(soln):
     """
     Return log probability of solution
     """
-    if soln.flag < 0:
-        return - float("inf")
     if np_any(diff(soln.solution[:, ODEIndex.v_θ]) < 0):
         return - float("inf")
     targeted_prob = - (
