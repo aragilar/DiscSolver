@@ -79,6 +79,7 @@ def solver(soln_input, run, store_internal=True):
     MCMC solver
     """
     sys_vars_enum = generate_sysvars_enum(soln_input)
+    log.notice("SysVars is {}".format(list(sys_vars_enum)))
     logprobfunc = LogProbGenerator(
         soln_input, run, store_internal=store_internal,
         sys_vars_enum=sys_vars_enum,
@@ -113,12 +114,12 @@ class LogProbGenerator:
             sys_vars, self._soln_input, self._sys_vars_enum
         )
         if not solution_input_valid(new_soln_input):
-            log.info("MCMC input invalid")
+            log.warning("MCMC input invalid")
             return - float("inf")
         try:
             cons = define_conditions(new_soln_input, use_E_r=self._run.use_E_r)
         except SolverError:
-            log.info(
+            log.warning(
                 "MCMC input could not be converted to initial conditions."
             )
             return - float("inf")
@@ -131,7 +132,7 @@ class LogProbGenerator:
             return - float("inf")
         logprob = get_logprob_of_soln(soln)
         if not isfinite(logprob):
-            log.info("Solution invalid")
+            log.warning("Invalid solution found")
             return - float("inf")
         soln_index = self._run.solutions.add_solution(soln)
         if logprob > self._best_logprob:
