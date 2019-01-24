@@ -10,13 +10,16 @@ import sys
 
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
+
+from numpy import sqrt, linspace
+from scipy.interpolate import interp1d
+
 from matplotlib.cm import get_cmap
 from matplotlib.colors import TABLEAU_COLORS
 import matplotlib.pyplot as plt
 from matplotlib.style import context as use_style
 import matplotlib._layoutbox as layoutbox
-from numpy import sqrt, linspace
-from scipy.interpolate import interp1d
+import mplcursors
 
 from h5preserve import open as h5open
 
@@ -524,3 +527,13 @@ def plot_output_wrapper(
         plt.close(fig)
         return None
     return fig
+
+
+def add_label_display_on_select(axis):
+    """
+    When clicking on lines, show the associated label of the line
+    """
+    label_cursor = mplcursors.cursor(axis)
+    label_cursor.connect(
+        "add", lambda sel: sel.annotation.set_text(sel.artist.get_label())
+    )

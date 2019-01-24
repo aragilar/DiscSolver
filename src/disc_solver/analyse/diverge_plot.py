@@ -10,7 +10,7 @@ from matplotlib.style import context as use_style
 from .utils import (
     plot_output_wrapper, common_plotting_options, get_common_plot_args,
     distinct_color_map, analyse_multisolution_wrapper, DEFAULT_MPL_STYLE,
-    add_version_to_plot,
+    add_version_to_plot, add_label_display_on_select,
 )
 from ..utils import (
     mhd_wave_speeds, MHD_Wave_Index, ODEIndex, MAGNETIC_INDEXES
@@ -102,6 +102,7 @@ def generate_diverge_plot(
     ax.set_xlabel("θ — angle from plane (°)")
     ax.set_ylabel("$v_θ / c_s$")
     ax.legend(ncol=max(1, num_lines//NUM_ITEMS_PER_LEGEND_COLUMN))
+    add_label_display_on_select(ax)
     return fig
 
 
