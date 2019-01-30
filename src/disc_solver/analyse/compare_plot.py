@@ -86,7 +86,7 @@ def generate_plot(
 
     colors = distinct_color_map(num_solutions)
 
-    for id_num, (soln, color) in enumerate(zip(solutions, colors)):
+    for (soln_name, soln), color in zip(solutions, colors):
         solution = soln.solution
         angles = soln.angles
         cons = soln.initial_conditions
@@ -105,7 +105,7 @@ def generate_plot(
                 degrees(angles[indexes]),
                 (
                     solution[:, i] - settings.get("offset", 0)
-                )[indexes], linestyle, label=str(id_num), color=color,
+                )[indexes], linestyle, label=soln_name, color=color,
             )
             ax.set_ylabel(settings["name"])
             ax.set_yscale(settings.get("scale", "linear"))

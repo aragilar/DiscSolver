@@ -53,15 +53,16 @@ def get_plot_args(args):
         "plot_args": get_plot_args,
     }
 )
-def diverge_main(*solutions, common_plot_args, plot_args):
+def diverge_main(solutions, common_plot_args, plot_args):
     """
     Entry point for ds-diverge-plot
     """
-    return diverge_plot(*solutions, **plot_args, **common_plot_args)
+    return diverge_plot(solutions, **plot_args, **common_plot_args)
 
 
 def generate_diverge_plot(
-    *solutions, figargs=None, start=0, stop=90, linestyle='-', with_slow=False
+    solutions, *, figargs=None, start=0, stop=90, linestyle='-',
+    with_slow=False
 ):
     """
     Generate plot to compare how different runs change in v_θ
@@ -75,14 +76,14 @@ def generate_diverge_plot(
     num_lines = 0
     initial_plot = True
 
-    for i, (soln, color) in enumerate(zip(solutions, colors)):
+    for (soln_name, soln), color in zip(solutions, colors):
         solution = soln.solution
         angles = soln.angles
         indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
         num_lines += 1
         ax.plot(
             degrees(angles[indexes]), solution[indexes, ODEIndex.v_θ],
-            label=str(i), color=color, linestyle=linestyle,
+            label=soln_name, color=color, linestyle=linestyle,
         )
 
         wave_speeds = np.sqrt(mhd_wave_speeds(
@@ -107,8 +108,8 @@ def generate_diverge_plot(
 
 
 def diverge_plot(
-    *solutions, plot_filename=None, show=False, start=0, stop=90, figargs=None,
-    title=None, linestyle='-', with_slow=False, close=True,
+    solutions, *, plot_filename=None, show=False, start=0, stop=90,
+    figargs=None, title=None, linestyle='-', with_slow=False, close=True,
     mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
     """
@@ -116,7 +117,7 @@ def diverge_plot(
     """
     with use_style(mpl_style):
         fig = generate_diverge_plot(
-            *solutions, start=start, stop=stop, figargs=figargs,
+            solutions, start=start, stop=stop, figargs=figargs,
             linestyle=linestyle, with_slow=with_slow,
         )
         if title is None:

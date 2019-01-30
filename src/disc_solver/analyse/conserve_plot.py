@@ -41,15 +41,15 @@ def get_plot_args(args):
         "plot_args": get_plot_args,
     }
 )
-def conserve_main(*solutions, common_plot_args, plot_args):
+def conserve_main(solutions, common_plot_args, plot_args):
     """
     Entry point for ds-diverge-plot
     """
-    return conserve_plot(*solutions, **plot_args, **common_plot_args)
+    return conserve_plot(solutions, **plot_args, **common_plot_args)
 
 
 def generate_conserve_plot(
-    *solutions, figargs=None, start=0, stop=90, linestyle='-'
+    solutions, *, figargs=None, start=0, stop=90, linestyle='-'
 ):
     """
     Generate plot to compare how different runs change in v_θ
@@ -60,14 +60,14 @@ def generate_conserve_plot(
 
     colors = distinct_color_map(len(solutions))
 
-    for i, (soln, color) in enumerate(zip(solutions, colors)):
+    for (soln_name, soln), color in zip(solutions, colors):
         solution = soln.solution
         angles = soln.angles
         indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
         ax.plot(
             degrees(angles[indexes]),
             solution[indexes, ODEIndex.ρ] * solution[indexes, ODEIndex.v_θ],
-            label=str(i), color=color, linestyle=linestyle,
+            label=soln_name, color=color, linestyle=linestyle,
         )
 
     ax.set_xlabel("θ — angle from plane (°)")
@@ -77,9 +77,9 @@ def generate_conserve_plot(
 
 
 def conserve_plot(
-    *solutions, plot_filename=None, show=False, start=0, stop=90, figargs=None,
-    title=None, linestyle='-', close=True, mpl_style=DEFAULT_MPL_STYLE,
-    use_E_r=False, with_version=True
+    solutions, *, plot_filename=None, show=False, start=0, stop=90,
+    figargs=None, title=None, linestyle='-', close=True,
+    mpl_style=DEFAULT_MPL_STYLE, use_E_r=False, with_version=True
 ):
     """
     Plot solution to file, with velocities, fields onto on one plot
@@ -87,7 +87,7 @@ def conserve_plot(
     # pylint: disable=unused-argument
     with use_style(mpl_style):
         fig = generate_conserve_plot(
-            *solutions, start=start, stop=stop, figargs=figargs,
+            solutions, start=start, stop=stop, figargs=figargs,
             linestyle=linestyle,
         )
         if title is None:

@@ -209,8 +209,6 @@ def multiple_solution_plotter(func):
         """
         Wraps plot functions
         """
-        title_list = []
-
         if figargs is None:
             figargs = {}
 
@@ -227,8 +225,8 @@ def multiple_solution_plotter(func):
                 if soln is None:
                     logger.warning("{} not in {}".format(name, filename))
                     continue
-                title_list.append("{}:{}".format(filename, name))
-                yield soln
+                soln_name = "{}:{}".format(filename, name)
+                yield soln_name, soln
 
         with use_style(mpl_style):
             fig = plt.figure(constrained_layout=True, **figargs)
@@ -236,9 +234,7 @@ def multiple_solution_plotter(func):
                 fig, solution_loader(solution_pairs), *args,
                 num_solutions=num_solutions, **kwargs
             )
-            if title is None:
-                fig.suptitle('\n'.join(title_list))
-            else:
+            if title is not None:
                 fig.suptitle(title)
 
             if with_version:
@@ -448,9 +444,9 @@ def analyse_multisolution_wrapper(
                     with h5open(
                         args["soln_file"], registries, mode='r'
                     ) as soln_file:
-                        solutions = soln_file["run"].solutions.values()
+                        solutions = soln_file["run"].solutions.items()
                         return cmd(
-                            *solutions, **cmd_args
+                            solutions, **cmd_args
                         )
 
         return wrap_analysis_main

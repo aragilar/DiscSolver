@@ -75,7 +75,7 @@ def generate_plot(
 
     colors = distinct_color_map(num_solutions)
 
-    for id_num, (soln, color) in enumerate(zip(solutions, colors)):
+    for (soln_name, soln), color in zip(solutions, colors):
         solution = soln.solution
         angles = soln.angles
 
@@ -90,12 +90,12 @@ def generate_plot(
         axes[0].plot(
             degrees(angles[indexes]),
             solution[indexes, ODEIndex.v_θ] / alfven[indexes],
-            linestyle, color=color, label=str(id_num),
+            linestyle, color=color, label=soln_name,
         )
         axes[1].plot(
             degrees(angles[indexes]),
             solution[indexes, ODEIndex.v_θ] / fast[indexes],
-            linestyle, color=color, label=str(id_num)
+            linestyle, color=color, label=soln_name,
         )
 
     for ax in axes:
