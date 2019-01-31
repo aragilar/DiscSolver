@@ -73,7 +73,7 @@ def generate_surface_density_plot(
 
     cum_σ = cumsum(solution[:, ODEIndex.ρ])
     axes = fig.subplots()
-    axes.plot(angles[indexes], cum_σ[indexes])
+    axes.plot(degrees(angles[indexes]), cum_σ[indexes])
     axes.set_xlabel("angle from plane (°)")
     axes.set_ylabel("σ")
     return fig
