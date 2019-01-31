@@ -18,6 +18,7 @@ from disc_solver.analyse.vert_plot import plot as vert_plot
 from disc_solver.analyse.sonic_ratio_plot import plot as sonic_ratio_plot
 from disc_solver.analyse.diverge_plot import diverge_main
 from disc_solver.analyse.conserve_plot import conserve_main
+from disc_solver.analyse.surface_density_plot import surface_density_plot
 from disc_solver.analyse.utils import AnalysisError
 from disc_solver.solve import solve
 from disc_solver.solve.resolve import resolve
@@ -390,6 +391,12 @@ class TestAnalysis:
 
     def test_acc_file(self, solution, plot_file):
         return acc_plot(solution, plot_filename=plot_file)
+
+    def test_surface_density_show(self, solution, mpl_interactive):
+        surface_density_plot(solution, show=True)
+
+    def test_surface_density_file(self, solution, plot_file):
+        return surface_density_plot(solution, plot_filename=plot_file)
 
     def test_validate_show(self, solution_default, mpl_interactive):
         validate_plot(solution_default, show=True)
