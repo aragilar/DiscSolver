@@ -16,6 +16,7 @@ from disc_solver.analyse.validate_plot import validate_plot
 from disc_solver.analyse.hydro_check_plot import hydro_check_plot
 from disc_solver.analyse.vert_plot import plot as vert_plot
 from disc_solver.analyse.sonic_ratio_plot import plot as sonic_ratio_plot
+from disc_solver.analyse.phys_ratio_plot import plot as phys_ratio_plot
 from disc_solver.analyse.diverge_plot import diverge_main
 from disc_solver.analyse.conserve_plot import conserve_main
 from disc_solver.analyse.surface_density_plot import surface_density_plot
@@ -305,6 +306,14 @@ class TestAnalysis:
     def test_sonic_ratio_plot_show(self, solution, mpl_interactive):
         solutions = [[solution, None], [solution, None]]
         sonic_ratio_plot(solutions, show=True)
+
+    def test_phys_ratio_plot_file(self, solution, plot_file):
+        solutions = [[solution, None], [solution, None]]
+        return phys_ratio_plot(solutions, plot_filename=plot_file)
+
+    def test_phys_ratio_plot_show(self, solution, mpl_interactive):
+        solutions = [[solution, None], [solution, None]]
+        phys_ratio_plot(solutions, show=True)
 
     def test_derivs_show(self, solution_deriv, mpl_interactive):
         derivs_plot(solution_deriv, show=True)

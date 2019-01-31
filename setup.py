@@ -66,6 +66,7 @@ setuptools.setup(
             "ds-vert-plot = disc_solver.analyse.vert_plot:plot_main",
             "ds-sonic-ratio-plot = disc_solver.analyse.sonic_ratio_plot:plot_main",
             "ds-surface-density-plot = disc_solver.analyse.surface_density_plot:surface_density_main",
+            "ds-phys-ratio-plot = disc_solver.analyse.phys_ratio_plot:plot_main",
         ],
     },
     cmdclass=versioneer.get_cmdclass(),
