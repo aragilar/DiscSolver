@@ -73,10 +73,11 @@ def generate_plot(
         solution = soln.solution
         angles = soln.angles
         η_A = soln.initial_conditions.η_A
+        a_0 = soln.initial_conditions.a_0
 
         indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
         σ = np_sum(solution[indexes, ODEIndex.ρ])
 
-        axes.plot(η_A, 1/σ, marker='.', color='C0', label=soln_name)
+        axes.plot(η_A, a_0/σ, marker='.', color='C0', label=soln_name)
 
     return fig
