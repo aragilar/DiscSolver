@@ -66,7 +66,7 @@ def generate_plot(
     """
     # pylint: disable=unused-argument
     axes = fig.subplots()
-    axes.set_xlabel("η_A")
+    axes.set_xlabel("$η_A$")
     axes.set_ylabel("$B_z^2/σ$")  # B_z at midplane is 1
 
     for soln_name, soln in solutions:
