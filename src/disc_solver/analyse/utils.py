@@ -444,7 +444,10 @@ def analyse_multisolution_wrapper(
                     with h5open(
                         args["soln_file"], registries, mode='r'
                     ) as soln_file:
-                        solutions = soln_file["run"].solutions.items()
+                        solutions = sorted(
+                            soln_file["run"].solutions.items(),
+                            key=lambda x: int(x[0])
+                        )
                         return cmd(
                             solutions, **cmd_args
                         )
