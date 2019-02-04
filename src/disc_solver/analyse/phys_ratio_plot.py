@@ -98,7 +98,10 @@ def compute_M_dot_out_on_M_dot_in(soln, indexes):
     angles = soln.angles[indexes]
     ρ = solution[:, ODEIndex.ρ]
     v_r = solution[:, ODEIndex.v_r]
-    M_in = simps(y=ρ*v_r, x=angles)
+
+    # need minus sign as by default in is negative
+    M_in = - simps(y=ρ*v_r, x=angles)
+
     return (
         solution[-1, ODEIndex.ρ] * solution[-1, ODEIndex.v_θ]
     ) / M_in
