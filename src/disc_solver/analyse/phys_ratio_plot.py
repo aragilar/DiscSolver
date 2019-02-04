@@ -69,7 +69,7 @@ def generate_plot(
     axes = fig.subplots(ncols=2)
     for ax in axes:
         ax.set_xlabel("$η_A$")
-    axes[0].set_ylabel("$B_z^2/σ$")  # B_z at midplane is 1
+    axes[0].set_ylabel("$B_z^2/Σ$")  # B_z at midplane is 1
     axes[1].set_ylabel("$\\dot{M}_{out}/\\dot{M}_{in}$")
 
     for soln_name, soln in solutions:
@@ -79,9 +79,9 @@ def generate_plot(
         a_0 = soln.initial_conditions.a_0
 
         indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
-        σ = np_sum(solution[indexes, ODEIndex.ρ])
+        Σ = np_sum(solution[indexes, ODEIndex.ρ])
 
-        axes[0].plot(η_A, a_0/σ, marker='.', color='C0', label=soln_name)
+        axes[0].plot(η_A, a_0/Σ, marker='.', color='C0', label=soln_name)
         axes[1].plot(
             η_A, compute_M_dot_out_on_M_dot_in(soln, indexes), marker='.',
             color='C0', label=soln_name,
