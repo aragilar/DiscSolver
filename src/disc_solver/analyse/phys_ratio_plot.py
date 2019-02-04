@@ -3,6 +3,7 @@
 Plot command for DiscSolver
 """
 from numpy import degrees, sum as np_sum
+from scipy.integrate import simps
 
 from ..utils import ODEIndex
 
@@ -65,9 +66,11 @@ def generate_plot(
     Generate plot, with enough freedom to be able to format fig
     """
     # pylint: disable=unused-argument
-    axes = fig.subplots()
-    axes.set_xlabel("$η_A$")
-    axes.set_ylabel("$B_z^2/σ$")  # B_z at midplane is 1
+    axes = fig.subplots(ncols=2)
+    for ax in axes:
+        ax.set_xlabel("$η_A$")
+    axes[0].set_ylabel("$B_z^2/σ$")  # B_z at midplane is 1
+    axes[1].set_ylabel("$\\dot{M}_{out}/\\dot{M}_{in}$")
 
     for soln_name, soln in solutions:
         solution = soln.solution
@@ -78,6 +81,24 @@ def generate_plot(
         indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
         σ = np_sum(solution[indexes, ODEIndex.ρ])
 
-        axes.plot(η_A, a_0/σ, marker='.', color='C0', label=soln_name)
+        axes[0].plot(η_A, a_0/σ, marker='.', color='C0', label=soln_name)
+        axes[1].plot(
+            η_A, compute_M_dot_out_on_M_dot_in(soln, indexes), marker='.',
+            color='C0', label=soln_name,
+        )
 
     return fig
+
+
+def compute_M_dot_out_on_M_dot_in(soln, indexes):
+    """
+    Find M_dot_out / M_dot_in
+    """
+    solution = soln.solution[indexes]
+    angles = soln.angles[indexes]
+    ρ = solution[:, ODEIndex.ρ]
+    v_r = solution[:, ODEIndex.v_r]
+    M_in = simps(y=ρ*v_r, x=angles)
+    return (
+        solution[-1, ODEIndex.ρ] * solution[-1, ODEIndex.v_θ]
+    ) / M_in
