@@ -5,6 +5,7 @@ Plot command for DiscSolver
 from numpy import degrees, sum as np_sum
 from scipy.integrate import simps
 
+from ..float_handling import float_type
 from ..utils import ODEIndex
 
 from .utils import (
@@ -68,7 +69,7 @@ def generate_plot(
     # pylint: disable=unused-argument
     axes = fig.subplots(ncols=2)
     for ax in axes:
-        ax.set_xlabel("$η_A$")
+        ax.set_xlabel("$η_A/(c_{s} AU)$")
     axes[0].set_ylabel("$B_z^2/Σ$")  # B_z at midplane is 1
     axes[1].set_ylabel("$\\dot{M}_{out}/\\dot{M}_{in}$")
 
@@ -90,18 +91,26 @@ def generate_plot(
     return fig
 
 
-def compute_M_dot_out_on_M_dot_in(soln, indexes):
+def compute_M_dot_out_on_M_dot_in(soln, indexes, r_in=0.1, r_out=100):
     """
     Find M_dot_out / M_dot_in
     """
+    # Integers don't work with negative powers
+    r_in, r_out = float_type(r_in), float_type(r_out)
+
     solution = soln.solution[indexes]
     angles = soln.angles[indexes]
+    γ = soln.initial_conditions.γ
     ρ = solution[:, ODEIndex.ρ]
     v_r = solution[:, ODEIndex.v_r]
 
     # need minus sign as by default in is negative
     M_in = - simps(y=ρ*v_r, x=angles)
 
-    return (
+    scaling = (r_out ** (2 * γ) - r_in ** (2 * γ)) / (2 * γ) / (
+        r_in ** (2 * γ - 1) - r_out ** (2 * γ - 1)
+    )
+
+    return scaling * (
         solution[-1, ODEIndex.ρ] * solution[-1, ODEIndex.v_θ]
     ) / M_in
