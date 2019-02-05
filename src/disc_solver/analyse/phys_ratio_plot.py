@@ -72,6 +72,7 @@ def generate_plot(
         ax.set_xlabel("$η_A/(c_{s} AU)$")
     axes[0].set_ylabel("$B_z^2/Σ$")  # B_z at midplane is 1
     axes[1].set_ylabel("$\\dot{M}_{out}/\\dot{M}_{in}$")
+    axes[1].set_yscale("log")
 
     v_r_count = 0
     v_r_mappping = {}
