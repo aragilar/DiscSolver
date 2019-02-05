@@ -73,19 +73,28 @@ def generate_plot(
     axes[0].set_ylabel("$B_z^2/Σ$")  # B_z at midplane is 1
     axes[1].set_ylabel("$\\dot{M}_{out}/\\dot{M}_{in}$")
 
+    v_r_count = 0
+    v_r_mappping = {}
+
     for soln_name, soln in solutions:
         solution = soln.solution
         angles = soln.angles
         η_A = soln.initial_conditions.η_A
         a_0 = soln.initial_conditions.a_0
+        v_r = soln.initial_conditions.init_con[ODEIndex.v_r]
+        if v_r not in v_r_mappping:
+            v_r_mappping[v_r] = 'C' + str(v_r_count)
+            v_r_count = (v_r_count + 1) % 10
+
+        m_color = v_r_mappping[v_r]
 
         indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
         Σ = np_sum(solution[indexes, ODEIndex.ρ])
 
-        axes[0].plot(η_A, a_0/Σ, marker='.', color='C0', label=soln_name)
+        axes[0].plot(η_A, a_0/Σ, marker='.', color=m_color, label=soln_name)
         axes[1].plot(
             η_A, compute_M_dot_out_on_M_dot_in(soln, indexes), marker='.',
-            color='C0', label=soln_name,
+            color=m_color, label=soln_name,
         )
 
     return fig
