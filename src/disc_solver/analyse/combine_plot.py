@@ -10,7 +10,7 @@ from numpy import degrees, sqrt
 from ..constants import KM
 from ..utils import (
     mhd_wave_speeds, MHD_Wave_Index, get_normalisation, ODEIndex,
-    MAGNETIC_INDEXES
+    MAGNETIC_INDEXES,
 )
 
 from .utils import (
@@ -119,7 +119,7 @@ def generate_plot_combine(
                     "index": ODEIndex.v_r,
                 },
                 {
-                    "label": "$v_φ$",
+                    "label": "$v_φ - v_k$",
                     "index": ODEIndex.v_φ,
                     "offset": sqrt(cons.norm_kepler_sq) * v_norm / KM
                 },
@@ -184,7 +184,7 @@ def generate_plot_combine(
     indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
 
     axes = fig.subplots(
-        nrows=3, ncols=1, sharex=True, gridspec_kw=dict(hspace=0),
+        nrows=3, ncols=1, sharex=True,
     )
     axes.shape = len(plot_props)
     for i, plot_name in enumerate(plot_props):
@@ -207,5 +207,4 @@ def generate_plot_combine(
         ax.set_ylabel(settings["y_label"])
         ax.set_yscale(settings.get("scale", "linear"))
         ax.legend(loc=0)
-    fig.subplots_adjust(hspace=0)
     return fig
