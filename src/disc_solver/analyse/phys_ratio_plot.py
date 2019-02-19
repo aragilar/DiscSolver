@@ -19,6 +19,19 @@ MARKER_LIST = [
     'H', '+', 'x', 'D', 'd', 'P', 'X',
 ]
 
+TAB_COLOR_MAP = {
+    'C0': 'blue',
+    'C1': 'orange',
+    'C2': 'green',
+    'C3': 'red',
+    'C4': 'purple',
+    'C5': 'brown',
+    'C6': 'pink',
+    'C7': 'gray',
+    'C8': 'olive',
+    'C9': 'cyan',
+}
+
 
 def plot_parser(parser):
     """
@@ -112,7 +125,7 @@ def generate_plot(
         )
 
     for v_r, color in v_r_mapping.items():
-        print("v_r = {} -> {}".format(v_r, color))
+        print("v_r = {} -> {} -> {}".format(v_r, color, TAB_COLOR_MAP[color]))
 
     for a_0, marker in a_0_mapping.items():
         print("a_0 = {} -> {}".format(a_0, marker))
