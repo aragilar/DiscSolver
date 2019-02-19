@@ -13,7 +13,6 @@ from .config import define_conditions
 from .solution import solution
 from .utils import validate_solution, SolverError
 
-from ..float_handling import float_type
 from ..file_format import SolutionInput, Solution
 from ..utils import ODEIndex
 
@@ -21,7 +20,6 @@ log = logbook.Logger(__name__)
 
 DEFAULT_SPLITTER_CUTOFF = 0.9
 DEFAULT_NUM_ATTEMPTS = 100
-INITIAL_STEP_SIZE = float_type(1e-4)
 DEFAULT_MAX_SEARCH_STEPS = 20
 
 
@@ -95,7 +93,7 @@ def binary_searcher(
 
 
 def stepper_creator(
-    soln_writer, step_func, get_soln_type, initial_step_size=INITIAL_STEP_SIZE,
+    soln_writer, step_func, get_soln_type, *, initial_step_size,
     max_search_steps=DEFAULT_NUM_ATTEMPTS,
 ):
     """
@@ -301,6 +299,7 @@ def solver(
             writer, step_func,
             create_soln_splitter(soln_input.split_method),
             max_search_steps=max_search_steps,
+            initial_step_size=0.1 * soln_input.γ
         ), alternate_cleanup_generator(run), soln_input,
         num_attempts=num_attempts,
     )
