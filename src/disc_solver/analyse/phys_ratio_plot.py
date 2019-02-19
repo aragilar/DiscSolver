@@ -14,6 +14,11 @@ from .utils import (
     get_common_plot_args, plot_output_wrapper, DEFAULT_MPL_STYLE,
 )
 
+MARKER_LIST = [
+    '.', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', '8', 's', 'p', '*', 'h',
+    'H', '+', 'x', 'D', 'd', 'P', 'X',
+]
+
 
 def plot_parser(parser):
     """
@@ -76,6 +81,8 @@ def generate_plot(
 
     v_r_count = 0
     v_r_mapping = {}
+    a_0_count = 0
+    a_0_mapping = {}
 
     for soln_name, soln in solutions:
         solution = soln.solution
@@ -86,20 +93,29 @@ def generate_plot(
         if v_r not in v_r_mapping:
             v_r_mapping[v_r] = 'C' + str(v_r_count)
             v_r_count = (v_r_count + 1) % 10
+        if a_0 not in a_0_mapping:
+            a_0_mapping[a_0] = MARKER_LIST[a_0_count]
+            a_0_count = (a_0_count + 1) % len(MARKER_LIST)
 
         m_color = v_r_mapping[v_r]
+        m_marker = a_0_mapping[a_0]
 
         indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
         Σ = np_sum(solution[indexes, ODEIndex.ρ])
 
-        axes[0].plot(η_A, a_0/Σ, marker='.', color=m_color, label=soln_name)
+        axes[0].plot(
+            η_A, a_0/Σ, marker=m_marker, color=m_color, label=soln_name
+        )
         axes[1].plot(
-            η_A, compute_M_dot_out_on_M_dot_in(soln, indexes), marker='.',
+            η_A, compute_M_dot_out_on_M_dot_in(soln, indexes), marker=m_marker,
             color=m_color, label=soln_name,
         )
 
     for v_r, color in v_r_mapping.items():
         print("v_r = {} -> {}".format(v_r, color))
+
+    for a_0, marker in a_0_mapping.items():
+        print("a_0 = {} -> {}".format(a_0, marker))
 
     return fig
 
