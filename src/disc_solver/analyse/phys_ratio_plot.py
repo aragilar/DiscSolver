@@ -75,7 +75,7 @@ def generate_plot(
     axes[1].set_yscale("log")
 
     v_r_count = 0
-    v_r_mappping = {}
+    v_r_mapping = {}
 
     for soln_name, soln in solutions:
         solution = soln.solution
@@ -83,11 +83,11 @@ def generate_plot(
         η_A = soln.initial_conditions.η_A
         a_0 = soln.initial_conditions.a_0
         v_r = soln.initial_conditions.init_con[ODEIndex.v_r]
-        if v_r not in v_r_mappping:
-            v_r_mappping[v_r] = 'C' + str(v_r_count)
+        if v_r not in v_r_mapping:
+            v_r_mapping[v_r] = 'C' + str(v_r_count)
             v_r_count = (v_r_count + 1) % 10
 
-        m_color = v_r_mappping[v_r]
+        m_color = v_r_mapping[v_r]
 
         indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
         Σ = np_sum(solution[indexes, ODEIndex.ρ])
@@ -97,6 +97,9 @@ def generate_plot(
             η_A, compute_M_dot_out_on_M_dot_in(soln, indexes), marker='.',
             color=m_color, label=soln_name,
         )
+
+    for v_r, color in v_r_mapping.items():
+        print("v_r = {} -> {}".format(v_r, color))
 
     return fig
 
