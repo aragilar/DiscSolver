@@ -87,10 +87,13 @@ def generate_plot(
     # pylint: disable=unused-argument
     axes = fig.subplots(ncols=2)
     for ax in axes:
-        ax.set_xlabel("$η_A/(c_{s} AU)$")
+        ax.set_xlabel("$η_A/(c_{s}^2 Ω)$")
     axes[0].set_ylabel("$B_z^2/Σ$")  # B_z at midplane is 1
     axes[1].set_ylabel("$\\dot{M}_{out}/\\dot{M}_{in}$")
     axes[1].set_yscale("log")
+
+    axes[0].set_facecolor('none')
+    axes[1].set_facecolor('none')
 
     v_r_count = 0
     v_r_mapping = {}
@@ -116,12 +119,15 @@ def generate_plot(
         indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
         Σ = np_sum(solution[indexes, ODEIndex.ρ])
 
+        c_s_on_v_k = soln.solution_input.c_s_on_v_k
+
         axes[0].plot(
-            η_A, a_0/Σ, marker=m_marker, color=m_color, label=soln_name
+            η_A / c_s_on_v_k, a_0/Σ, marker=m_marker, color=m_color,
+            label=soln_name
         )
         axes[1].plot(
-            η_A, compute_M_dot_out_on_M_dot_in(soln, indexes), marker=m_marker,
-            color=m_color, label=soln_name,
+            η_A / c_s_on_v_k, compute_M_dot_out_on_M_dot_in(soln, indexes),
+            marker=m_marker, color=m_color, label=soln_name,
         )
 
     for v_r, color in v_r_mapping.items():
