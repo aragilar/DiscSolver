@@ -1,2 +1,3 @@
 coverage!=5.0a3
-pylint!=2.2.0
+pylint!=2.2.0,!=2.3.0.dev0,!=2.3.0.dev1,!=2.3.0.dev2
+astroid!=2.2.0.dev0,!=2.2.0.dev1
