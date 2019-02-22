@@ -24,7 +24,7 @@ from .deriv_funcs import (
     deriv_η_skw_func, deriv_B_φ_func, deriv_E_r_func
 )
 from .utils import (
-    gen_sonic_point_rootfn, error_handler, rad_to_scaled, scaled_to_rad,
+    velocity_stop_generator, error_handler, rad_to_scaled, scaled_to_rad,
     SolverError,
 )
 
@@ -416,7 +416,7 @@ def main_solution(
     elif jump_before_sonic is not None and onroot_func is not None:
         raise SolverError("Cannot use both sonic point jumper and onroot_func")
     elif jump_before_sonic is not None:
-        extra_args["rootfn"] = gen_sonic_point_rootfn(1 - jump_before_sonic)
+        extra_args["rootfn"] = velocity_stop_generator(1 - jump_before_sonic)
         extra_args["nr_rootfns"] = 1
     elif root_func is not None:
         extra_args["rootfn"] = root_func

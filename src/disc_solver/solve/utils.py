@@ -32,20 +32,6 @@ def error_handler(error_code, module, func, msg, user_data):
     pass
 
 
-def gen_sonic_point_rootfn(c_s):
-    """
-    Finds acoustic sonic point
-    """
-    def rootfn(θ, params, out):
-        """
-        root function to find acoustic sonic point
-        """
-        # pylint: disable=unused-argument
-        out[0] = c_s - params[ODEIndex.v_θ]
-        return 0
-    return rootfn
-
-
 def gen_mhd_sonic_point_rootfn(mhd_wave_type):
     """
     Finds specified mhd sonic point
@@ -172,7 +158,7 @@ def add_solver_arguments(parser):
     logging_options(parser)
 
 
-def velocity_stop_generator(soln_input):
+def velocity_stop_generator(target_velocity):
     """
     return function to stop at target velocity
     """
@@ -181,9 +167,9 @@ def velocity_stop_generator(soln_input):
         root function to stop at required velocity
         """
         # pylint: disable=unused-argument
-        out[0] = soln_input.target_velocity - params[ODEIndex.v_θ]
+        out[0] = target_velocity - params[ODEIndex.v_θ]
         return 0
-    return rootfn, 1
+    return rootfn
 
 
 def rad_to_scaled(obj, θ_scale):
