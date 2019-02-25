@@ -10,7 +10,6 @@ from numpy import (
     concatenate, diff, errstate, full, isnan, linspace, zeros, array, sqrt,
     tan, log, exp,
 )
-from numpy.random import randn
 
 from scipy.optimize import root
 
@@ -151,15 +150,6 @@ def guess_root_vals(inp, initial_solution):
                 initial_solution, var.name
             )
     return initial_guess
-
-
-def generate_initial_positions(initial_guess, nwalkers):
-    """
-    Generate initial positions of walkers
-    """
-    return initial_guess * (
-        INITIAL_SPREAD * randn(nwalkers, len(initial_guess)) + 1
-    )
 
 
 def get_sonic_point_value(soln, name):
