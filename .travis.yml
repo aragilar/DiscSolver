@@ -6,6 +6,11 @@ addons:
     - gfortran
     - liblapack-dev
 
+branches:
+  except:
+    - staging.tmp
+    - trying.tmp
+
 cache:
   directories:
     - $HOME/.cache/pip
