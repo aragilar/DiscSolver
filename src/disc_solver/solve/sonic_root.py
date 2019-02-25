@@ -7,8 +7,7 @@ from enum import IntEnum
 import logbook
 
 from numpy import (
-    concatenate, diff, errstate, full, isnan, linspace, zeros, array, sqrt,
-    tan, log, exp,
+    concatenate, diff, full, isnan, linspace, zeros, array, sqrt, log, exp,
 )
 
 from scipy.optimize import root
@@ -45,11 +44,12 @@ class TotalVars(IntEnum):
     """
     θ_sonic = 0
     v_φ = 1
-    B_θ = 2
-    B_r = 3
-    B_φ = 4
-    log_ρ = 5
-    B_φ_prime = 6
+    v_r = 2
+    B_θ = 3
+    B_r = 4
+    B_φ = 5
+    log_ρ = 6
+    B_φ_prime = 7
 
 
 def solver(inp, run, *, store_internal=True):
@@ -113,18 +113,22 @@ def generate_root_func(
 
         write_solution(run, initial_soln, sonic_soln)
         return get_root_results(
-            sonic_values=sonic_soln.solution,
-            midplane_values=initial_soln.solution
+            sonic_soln=sonic_soln,
+            midplane_soln=initial_soln
         )
     return root_func
 
 
-def get_root_results(*, sonic_values, midplane_values):
+def get_root_results(*, sonic_soln, midplane_soln):
     """
     Get value of solution for root solver
     """
+    sonic_values = sonic_soln.solution
+    midplane_values = midplane_soln.solution
+
     if sonic_values.size == 0:
         raise SolverError("Sonic solution failed")
+
     root_results = list(
         sonic_values[-1, COMPARING_INDICES] -
         midplane_values[-1, COMPARING_INDICES]
@@ -134,6 +138,7 @@ def get_root_results(*, sonic_values, midplane_values):
     root_results.append(log(
         sonic_values[-1, ODEIndex.ρ] / midplane_values[-1, ODEIndex.ρ]
     ))
+    root_results.append(sonic_soln.angles[-1] - midplane_soln.angles[-1])
     return array(root_results)
 
 
@@ -190,53 +195,6 @@ def total_vars_to_mod_cons(*, initial_conditions, guess, sonic_stop):
             mod_cons.init_con[ODEIndex[var.name]] = guess[var]
         elif var.name == "log_ρ":
             mod_cons.init_con[ODEIndex.ρ] = exp(guess[var])
-
-    θ = θ_sonic
-    a_0 = mod_cons.a_0
-    γ = mod_cons.γ
-    B_r = mod_cons.init_con[ODEIndex.B_r]
-    B_φ = mod_cons.init_con[ODEIndex.B_φ]
-    B_θ = mod_cons.init_con[ODEIndex.B_θ]
-    v_φ = mod_cons.init_con[ODEIndex.v_φ]
-    ρ = mod_cons.init_con[ODEIndex.ρ]
-    B_φ_prime = mod_cons.init_con[ODEIndex.B_φ_prime]
-    η_O = mod_cons.init_con[ODEIndex.η_O]
-    η_A = mod_cons.init_con[ODEIndex.η_A]
-    η_H = mod_cons.init_con[ODEIndex.η_H]
-
-    B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
-    with errstate(invalid="ignore"):
-        norm_B_r, norm_B_φ, norm_B_θ = (
-            B_r/B_mag, B_φ/B_mag, B_θ/B_mag
-        )
-
-    with errstate(invalid="ignore", divide="ignore"):
-        mod_cons.init_con[ODEIndex.v_r] = ρ * (
-            η_O + η_A * (1 - norm_B_φ**2)
-        ) / (
-            B_r * B_θ * a_0 - (1 / 2 - 2 * γ) * ρ * (
-                η_O + η_A * (1 - norm_B_φ**2)
-            )
-        ) * (
-            tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
-                B_r * (
-                    B_r + B_φ_prime * (
-                        η_H * norm_B_θ -
-                        η_A * norm_B_r * norm_B_φ
-                    ) + B_φ * (
-                        η_A * norm_B_φ * (
-                            norm_B_θ * (1/4 - γ) +
-                            norm_B_r * tan(θ)
-                        ) - η_H * (
-                            norm_B_r * (1/4 - γ) +
-                            norm_B_θ * tan(θ)
-                        )
-                    )
-                ) / (
-                    η_O + η_A * (1 - norm_B_φ**2)
-                ) + B_φ * B_φ_prime - B_φ ** 2 * tan(θ)
-            )
-        )
 
     if any(isnan(mod_cons.init_con)):
         raise SolverError("Initial conditions contains NaN: {}".format(
