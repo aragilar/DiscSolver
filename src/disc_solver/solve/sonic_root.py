@@ -139,6 +139,7 @@ def get_root_results(*, sonic_soln, midplane_soln):
         sonic_values[-1, ODEIndex.ρ] / midplane_values[-1, ODEIndex.ρ]
     ))
     root_results.append(sonic_soln.angles[-1] - midplane_soln.angles[-1])
+    logger.info("Root diff is {}".format(root_results))
     return array(root_results)
 
 
