@@ -8,9 +8,12 @@ Computing derivatives
 from numpy import errstate, zeros, sqrt, tan
 import logbook
 
+from root_solver import solve_quadratic
+
 from ..utils import sec, ODEIndex
 
 from .j_e_funcs import E_θ_func, J_func
+from .utils import SolverError
 
 log = logbook.Logger(__name__)
 
@@ -495,13 +498,12 @@ def taylor_series(*, γ, a_0, init_con, η_derivs):
 
 def deriv_v_θ_sonic(
     *, a_0, ρ, B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r, v_θ, v_φ, deriv_v_r,
-    deriv_v_φ, deriv_B_r, deriv_B_θ, B_φ_prime, γ, deriv_η_O, deriv_η_A,
-    deriv_η_H
+    deriv_v_φ, deriv_B_r, deriv_B_θ, B_φ_prime, γ, η_O_0, η_A_0, η_H_0,
+    η_derivs
 ):
     """
     Compute v_θ' at the sonic point
     """
-    # THIS IS CURRENTLY INCORRECT!!!
     deriv_B_φ = B_φ_prime
 
     B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
@@ -516,131 +518,151 @@ def deriv_v_θ_sonic(
 
     C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
 
-    A = A_func(
-        η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ,
-        deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H,
-        deriv_b_θ=deriv_b_θ, deriv_b_r=deriv_b_r, deriv_b_φ=deriv_b_φ
+    deriv_ρ_v = - ρ / v_θ
+    deriv_ρ_no_v = - ρ * (
+        (
+            2 * γ * v_r
+        ) / v_θ - tan(θ)
     )
 
-    dderiv_B_φ_mod = (
-        η_O + η_A * (1 - b_r ** 2) + C * (η_H * b_θ - η_A * b_r * b_φ)
-    ) ** -1 * (
-        v_φ * B_r - 4 / (3 - 4 * γ) * (
-            deriv_v_φ * B_θ + v_φ * deriv_B_θ
-        ) + (B_θ * (1/4 - γ) + deriv_B_r) * (
-            η_H * b_r - η_A * b_θ * b_φ
-        ) - A * v_θ * B_r - C * v_θ * deriv_B_r + A * v_r * B_θ +
-        C * deriv_v_r * B_θ + C * v_r * deriv_B_θ + deriv_B_φ * (
-            v_θ * 4 / (3 - 4 * γ) + η_O * tan(θ) - deriv_η_O -
-            deriv_η_H * C * b_θ - deriv_η_A * (
-                1 - b_r ** 2 - C * b_r * b_φ
-            ) + η_H * (
-                b_φ * (γ + 3/4) + C * (
-                    b_r * (1/4 - γ) + b_θ * tan(θ) + deriv_b_θ
-                ) - A * b_θ
-            ) + η_A * (
-                tan(θ) * (1 - b_r ** 2) + (1/4 - γ) * b_r * b_φ - C * b_φ * (
-                    b_θ * (1/4 - γ) + b_r * tan(θ)
-                ) + 2 * b_r * deriv_b_r - A * b_r * b_φ -
-                C * deriv_b_r * b_φ - C * b_r * deriv_b_φ + b_r * b_θ
-            )
-        ) + B_φ * (
-            deriv_η_O * tan(θ) + η_O * (
-                sec(θ) ** 2 + γ - 1/4
-            ) - v_r + η_H * (
-                A * (
-                    b_r * (1/4 - γ) + b_θ * tan(θ)
-                ) + C * b_φ * (
-                    deriv_b_r * (1/4 - γ) + deriv_b_θ * tan(θ) +
-                    b_θ * sec(θ) ** 2
-                ) - b_φ * tan(θ) - deriv_b_φ * (1/4 - γ)
-            ) + deriv_η_H * (
-                C * (b_r * (1/4 - γ) + b_θ * tan(θ)) - b_φ * (1/4 - γ)
-            ) + η_A * (
-                sec(θ) ** 2 * (1 - b_r ** 2) + 2 * tan(θ) * b_r * deriv_b_r +
-                (1/4 - γ) * deriv_b_r * b_θ + (1/4 - γ) * b_r * deriv_b_θ - (
-                    A * b_φ + C * deriv_b_φ
-                ) * (
-                    b_θ * (1/4 - γ) + b_r * tan(θ)
-                ) - C * b_φ * (
-                    deriv_b_θ * (1/4 - γ) + deriv_b_r * tan(θ) +
-                    b_r * sec(θ) ** 2
-                ) - (1/4 - γ) * (1 - b_θ ** 2) - tan(θ) * b_r * b_θ
-            ) + deriv_η_A * (
-                tan(θ) * (1 - b_r ** 2) + (1/4 - γ) * b_r * b_θ - C * b_φ * (
-                    b_θ * (1/4 - γ) + b_r * tan(θ)
+    if η_derivs:
+        deriv_η_scale_no_v = deriv_η_skw_func(
+            deriv_ρ=deriv_ρ_no_v, deriv_B_θ=deriv_B_θ, ρ=ρ, B_r=B_r, B_φ=B_φ,
+            B_θ=B_θ, deriv_B_r=deriv_B_r, deriv_B_φ=deriv_B_φ,
+        )
+        deriv_η_O_no_v = deriv_η_scale_no_v * η_O_0
+        deriv_η_A_no_v = deriv_η_scale_no_v * η_A_0
+        deriv_η_H_no_v = deriv_η_scale_no_v * η_H_0
+
+        deriv_η_scale_v = deriv_η_skw_func(
+            deriv_ρ=deriv_ρ_v, ρ=ρ, B_r=B_r, B_φ=B_φ, B_θ=B_θ,
+            deriv_B_r=0, deriv_B_φ=0, deriv_B_θ=0,
+        )
+        deriv_η_O_v = deriv_η_scale_v * η_O_0
+        deriv_η_A_v = deriv_η_scale_v * η_A_0
+        deriv_η_H_v = deriv_η_scale_v * η_H_0
+
+    else:
+        deriv_η_O_no_v = 0
+        deriv_η_A_no_v = 0
+        deriv_η_H_no_v = 0
+        deriv_η_O_v = 0
+        deriv_η_A_v = 0
+        deriv_η_H_v = 0
+
+    dderiv_B_φ_no_v = dderiv_B_φ_soln(
+        B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r,
+        v_θ=v_θ, v_φ=v_φ, deriv_v_r=deriv_v_r, deriv_v_θ=0,
+        deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
+        deriv_B_φ=deriv_B_φ, γ=γ, deriv_η_O=deriv_η_O_no_v,
+        deriv_η_A=deriv_η_A_no_v, deriv_η_H=deriv_η_H_no_v
+    )
+
+    A_v = (
+        deriv_η_H_v * b_θ + - deriv_η_A_v * b_r * b_φ
+    ) / (
+        η_O + η_A * (1 - b_φ ** 2)
+    ) - (
+        (
+            deriv_η_O_v + deriv_η_A_v * (1 - b_φ ** 2)
+        ) * (η_H * b_θ - η_A * b_r * b_φ)
+    ) / (
+        (η_O + η_A * (1 - b_φ ** 2)) ** 2
+    )
+
+    a = 2 * v_θ
+
+    b_1 = B_φ * (
+        1 - deriv_η_O_v + C * (
+            deriv_η_A_v * b_φ * (b_r * tan(θ) - b_θ * (1 / 4 - γ)) +
+            deriv_η_H_v * (b_r * (1 / 4 - γ) + b_θ * tan(θ))
+        ) - deriv_η_A_v * (1 - b_r ** 2 + b_r * b_θ * (1 / 4 - γ)) -
+        (1 / 4 - γ) * deriv_η_H_v * b_φ
+    ) + C * B_r + A_v * (
+        v_θ * B_r - v_r * B_θ + B_φ * (
+            η_A * b_φ * (b_r * tan(θ) - b_θ * (1 / 4 - γ)) +
+            η_H * (b_r * (1 / 4 - γ) + b_θ * tan(θ))
+        )
+    ) - deriv_B_φ * (
+        deriv_η_O_v + deriv_η_A_v * (1 - b_r ** 2) -
+        2 * η_A * b_r * deriv_b_r + A_v * (
+            η_H * b_θ + η_A * b_r * b_φ
+        )
+    )
+
+    b = v_r * v_θ + tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
+        (
+            (1 / 4 - γ) * B_θ * B_r + B_r * deriv_B_r + B_φ * deriv_B_φ -
+            B_φ ** 2 * tan(θ)
+        ) * (1 - 1 / v_θ) + v_θ * (
+            B_r ** 2 / (η_O + η_A * (1 - b_φ ** 2)) +
+            b_1 / (
+                η_O + η_A * (1 - b_r ** 2) + C * (η_H * b_θ + η_A * b_r * b_φ)
+            ) * (
+                B_φ - (η_H * b_θ + η_A * b_r * b_φ) / (
+                    η_O + η_A * (1 - b_φ ** 2)
                 )
             )
         )
     )
 
-    dderiv_B_r_mod = (
-        deriv_η_O + deriv_η_A * (1 - b_φ ** 2) - 2 * η_A * b_φ * deriv_b_φ
-    ) / (
-        (η_O + η_A * (1 - b_φ ** 2)) ** 2
-    ) * (
-        v_θ * B_r - v_r * B_θ + B_φ_prime * (
-            η_H * b_θ - η_A * b_r * b_φ
-        ) + B_φ * (
-            η_A * b_φ * (b_θ * (1 / 4 - γ) + b_r * tan(θ)) -
-            η_H * (b_r * (1 / 4 - γ) + b_θ * tan(θ))
-        )
-    ) + 1 / (η_O + η_A * (1 - b_φ ** 2)) * (
-        v_θ * deriv_B_r - deriv_v_r * B_θ - v_r * deriv_B_θ +
-        dderiv_B_φ_mod * (
-            η_H * b_θ - η_A * b_r * b_φ
-        ) + B_φ_prime * (
-            η_A * b_φ * (
-                b_θ * (1 / 4 - γ) - b_r * (1 - tan(θ))
-            ) + η_H * (
-                b_θ * (1 - tan(θ)) - b_r * (1 / 4 - γ)
-            )
-        ) + B_φ * (
-            (deriv_η_A * b_φ + η_A * deriv_b_φ) * (
-                b_θ * (1 / 4 - γ) + b_r * tan(θ)
-            ) + η_A * b_φ * (
-                deriv_b_θ * (1 / 4 - γ) + deriv_b_r * tan(θ) +
-                b_r * sec(θ) ** 2
-            ) - deriv_η_H * (
-                b_r * (1 / 4 - γ) + b_θ * tan(θ)
-            ) - η_H * (
-                deriv_b_r * (1 / 4 - γ) + deriv_b_θ * tan(θ) +
-                b_θ * sec(θ) ** 2
-            )
-        )
-    ) - deriv_B_θ * (1 / 4 - γ)
-
-    a = - 2 * v_θ
-    b = v_r * v_θ + tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
-        (1 / 4 - γ) * B_θ * B_r + B_r * deriv_B_r + B_φ * B_φ_prime -
-        B_φ ** 2 * tan(θ)
-    ) * (v_θ + 1) / v_θ + (
-        v_θ * a_0 * B_φ * (4 / (3 - 4 * γ) - C * B_r) * (
-            1 + (η_H * b_θ - η_A * b_r * b_φ) / (η_O + η_A * (1 - b_φ ** 2))
-        )
-    ) / (
-        ρ * (
-            η_O + η_A * (1 - b_r ** 2) + C * (η_H * b_θ - η_A * b_r * b_φ)
-        )
-    ) + (
-        B_r ** 2 * v_θ * a_0
-    ) / (
-        ρ * (η_O + η_A * (1 - b_φ ** 2))
-    )
-
-    c = deriv_v_r * (v_θ ** 2 - 4 * γ) / 2 + v_θ * (
-        sec(θ) ** 2 * (v_φ ** 2 + 1) + tan(θ) * v_φ * deriv_v_φ + a_0 / ρ * (
-            (1 / 4 - γ) * (B_θ * deriv_B_r + deriv_B_θ * B_r) +
-            deriv_B_r ** 2 + B_r * dderiv_B_r_mod + B_φ_prime ** 2 +
-            B_φ * dderiv_B_φ_mod - B_φ ** 2 * sec(θ) ** 2 -
-            2 * B_φ * B_φ_prime * tan(θ) + (2 * γ * v_r / v_θ - tan(θ)) * (
-                (1 / 4 - γ) * B_θ * B_r + B_r * deriv_B_r +
-                B_φ * B_φ_prime * - B_φ ** 2 * tan(θ)
+    c = deriv_v_r / 2 * (v_θ ** 2 - 4 * γ) + v_θ * (
+        sec(θ) ** 2 * (v_φ ** 2 + 1) + 2 * tan(θ) * deriv_v_φ * v_φ - (
+            2 * γ * v_r / v_θ - tan(θ)
+        ) * a_0 / ρ * (
+            (1 / 4 - γ) * B_θ * B_r + B_r * deriv_B_r + B_φ * deriv_B_φ -
+            B_φ ** 2 * tan(θ)
+        ) + a_0 / ρ * (
+            (1 / 4 - γ) * B_θ * deriv_B_r + deriv_B_r ** 2 + deriv_B_φ ** 2 -
+            2 * deriv_B_φ * B_φ * tan(θ) - B_φ ** 2 * sec(θ) ** 2 + B_r * (
+                (
+                    v_θ * deriv_B_r - deriv_v_r * B_θ - v_r * deriv_B_θ +
+                    deriv_B_φ * (
+                        η_A * b_φ * (b_r * tan(θ) - b_θ * (1 / 4 - γ)) +
+                        η_H * (b_r * (1 / 4 - γ) + b_θ * tan(θ))
+                    ) + B_φ * (
+                        (deriv_η_A_no_v * b_φ + η_A * deriv_b_φ) * (
+                            b_r * tan(θ) - b_θ * (1 / 4 - γ)
+                        ) + η_A * b_φ * (
+                            deriv_b_r * tan(θ) + b_r * sec(θ) ** 2 -
+                            deriv_b_θ * (1 / 4 - γ)
+                        ) + deriv_η_H_no_v * (
+                            b_r * (1 / 4 - γ) + b_θ * tan(θ)
+                        ) + η_H * (
+                            deriv_b_r * (1 / 4 - γ) + deriv_b_θ * tan(θ) +
+                            b_θ * sec(θ) ** 2
+                        )
+                    )
+                ) / (η_O + η_A * (1 - b_φ ** 2)) + (
+                    deriv_η_O_no_v + deriv_η_A_no_v * (1 - b_φ ** 2) -
+                    2 * η_A * deriv_b_φ * b_φ
+                ) / (
+                    (η_O + η_A * (1 - b_φ ** 2)) ** 2
+                ) * (
+                    v_θ * B_r - v_r * B_θ -
+                    deriv_B_φ * (η_H * b_θ + η_A * b_r * b_φ) + B_φ * (
+                        η_A * b_φ * (b_r * tan(θ) - b_θ * (1 / 4 - γ)) +
+                        η_H * (b_r * (1 / 4 - γ) + b_θ * tan(θ))
+                    )
+                )
+            ) + dderiv_B_φ_no_v * (
+                B_φ - (
+                    η_H * b_θ + η_A * b_r * b_φ
+                ) / (
+                    η_O + η_A * (1 - b_φ ** 2)
+                )
             )
         )
     )
 
-    return (-b - sqrt(b**2 - 4 * a * c)) / (2 * a)
+    x1, x2 = solve_quadratic(a, b, c)
+    if (x1 > 0) and (x2 > 0):
+        raise SolverError("Two positive roots")
+    elif x1 > 0:
+        return x1
+    elif x2 > 0:
+        return x2
+    raise SolverError("Two negative roots")
 
 
 def get_taylor_first_order(*, init_con, γ):
