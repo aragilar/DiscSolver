@@ -33,7 +33,6 @@ def initial_conditions():
     values.angle = float_type(0.1)
 
     values.params[ODEIndex.v_θ] = float_type(1)
-    values.params[ODEIndex.B_φ] = float_type(-7)
 
     θ = values.angle
     a_0 = values.a_0

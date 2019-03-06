@@ -5,7 +5,7 @@ Computing derivatives
 
 # DO NOT IMPORT MATH, BREAKS FLOAT SUPPORT
 
-from numpy import errstate, zeros, sqrt, tan
+from numpy import errstate, zeros, sqrt, tan, degrees
 import logbook
 
 from root_solver import solve_quadratic
@@ -657,12 +657,18 @@ def deriv_v_θ_sonic(
 
     x1, x2 = solve_quadratic(a, b, c)
     if (x1 > 0) and (x2 > 0):
-        raise SolverError("Two positive roots")
+        log.warning(f"{a}, {b}, {c}")
+        raise SolverError(
+            "Two positive roots at {}: {} {}".format(degrees(θ), x1, x2)
+        )
     elif x1 > 0:
         return x1
     elif x2 > 0:
         return x2
-    raise SolverError("Two negative roots")
+    log.warning(f"{a}, {b}, {c}")
+    raise SolverError(
+        "Two negative roots at {}: {} {}".format(degrees(θ), x1, x2)
+    )
 
 
 def get_taylor_first_order(*, init_con, γ):

@@ -9,7 +9,7 @@ import logbook
 
 from numpy import (
     array, concatenate, copy, insert, errstate, sqrt, tan, degrees, radians,
-    zeros,
+    zeros, abs as np_abs
 )
 
 from scikits.odes import ode
@@ -21,7 +21,7 @@ from scikits.odes.sundials.cvode import StatusEnum
 from .deriv_funcs import (
     dderiv_B_φ_soln, taylor_series, get_taylor_first_order,
     get_taylor_second_order, get_taylor_third_order, deriv_B_r_func,
-    deriv_η_skw_func, deriv_B_φ_func, deriv_E_r_func
+    deriv_η_skw_func, deriv_B_φ_func, deriv_E_r_func, deriv_v_θ_sonic,
 )
 from .utils import (
     velocity_stop_generator, error_handler, rad_to_scaled, scaled_to_rad,
@@ -35,6 +35,7 @@ from ..utils import ODEIndex
 INTEGRATOR = "cvode"
 LINSOLVER = "dense"
 COORDS = "spherical midplane 0"
+V_θ_SONIC_CRIT = 0.05
 
 log = logbook.Logger(__name__)
 
@@ -154,14 +155,23 @@ def ode_system(
             deriv_v_φ_taylor if with_taylor else deriv_v_φ_normal
         )
 
-        deriv_v_θ = (
-            v_r / 2 * (v_θ ** 2 - 4 * γ) + v_θ * (
-                tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
-                    (1/4 - γ) * B_θ * B_r + B_r * deriv_B_r +
-                    B_φ * deriv_B_φ - B_φ ** 2 * tan(θ)
-                )
+        if np_abs(1 - v_θ) < V_θ_SONIC_CRIT:
+            deriv_v_θ = deriv_v_θ_sonic(
+                a_0=a_0, ρ=ρ, B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H,
+                η_A=η_A, θ=θ, v_r=v_r, v_θ=v_θ, v_φ=v_φ, deriv_v_r=deriv_v_r,
+                deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
+                B_φ_prime=B_φ_prime, γ=γ, η_O_0=η_O_0, η_A_0=η_A_0,
+                η_H_0=η_H_0, η_derivs=η_derivs,
             )
-        ) / ((1 - v_θ) * (1 + v_θ))
+        else:
+            deriv_v_θ = (
+                v_r / 2 * (v_θ ** 2 - 4 * γ) + v_θ * (
+                    tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
+                        (1/4 - γ) * B_θ * B_r + B_r * deriv_B_r +
+                        B_φ * deriv_B_φ - B_φ ** 2 * tan(θ)
+                    )
+                )
+            ) / ((1 - v_θ) * (1 + v_θ))
 
         deriv_ρ_taylor = θ * dderiv_ρ_M
         with errstate(invalid="ignore", divide="ignore"):
