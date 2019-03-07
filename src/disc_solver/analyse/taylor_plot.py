@@ -96,62 +96,62 @@ def generate_taylor_plot(
         axes[0].plot(
             deriv_angles[v_r_normal >= 0],
             v_r_normal[v_r_normal >= 0],
-            'b.'
+            '.', color='C0',
         )
         axes[0].plot(
             deriv_angles[v_r_normal < 0],
             - v_r_normal[v_r_normal < 0],
-            'r.'
+            '.', color='C1',
         )
         axes[0].plot(
             deriv_angles[v_r_taylor >= 0],
             v_r_taylor[v_r_taylor >= 0],
-            'bx'
+            'x', color='C0',
         )
         axes[0].plot(
             deriv_angles[v_r_taylor < 0],
             - v_r_taylor[v_r_taylor < 0],
-            'rx'
+            'x', color='C1',
         )
         axes[1].plot(
             deriv_angles[v_φ_normal >= 0],
             v_φ_normal[v_φ_normal >= 0],
-            'b.'
+            '.', color='C0',
         )
         axes[1].plot(
             deriv_angles[v_φ_normal < 0],
             - v_φ_normal[v_φ_normal < 0],
-            'r.'
+            '.', color='C1',
         )
         axes[1].plot(
             deriv_angles[v_φ_taylor >= 0],
             v_φ_taylor[v_φ_taylor >= 0],
-            'bx'
+            'x', color='C0',
         )
         axes[1].plot(
             deriv_angles[v_φ_taylor < 0],
             - v_φ_taylor[v_φ_taylor < 0],
-            'rx'
+            'x', color='C1',
         )
         axes[2].plot(
             deriv_angles[ρ_normal >= 0],
             ρ_normal[ρ_normal >= 0],
-            'b.'
+            '.', color='C0',
         )
         axes[2].plot(
             deriv_angles[ρ_normal < 0],
             - ρ_normal[ρ_normal < 0],
-            'r.'
+            '.', color='C1',
         )
         axes[2].plot(
             deriv_angles[ρ_taylor >= 0],
             ρ_taylor[ρ_taylor >= 0],
-            'bx'
+            'x', color='C0',
         )
         axes[2].plot(
             deriv_angles[ρ_taylor < 0],
             - ρ_taylor[ρ_taylor < 0],
-            'rx'
+            'x', color='C1',
         )
     else:
         axes[0].plot(

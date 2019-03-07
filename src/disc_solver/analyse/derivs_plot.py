@@ -111,11 +111,11 @@ def generate_derivs_plot(
             pos_deriv = derivs[:, i] >= 0
             ax.plot(
                 degrees(deriv_angles[npand(pos_deriv, indexes)]),
-                derivs[npand(pos_deriv, indexes), i], linestyle + "b",
+                derivs[npand(pos_deriv, indexes), i], linestyle,
             )
             ax.plot(
                 degrees(deriv_angles[npand(npnot(pos_deriv), indexes)]),
-                - derivs[npand(npnot(pos_deriv), indexes), i], linestyle + "g",
+                - derivs[npand(npnot(pos_deriv), indexes), i], linestyle,
             )
             ax.set_yscale("log")
 
