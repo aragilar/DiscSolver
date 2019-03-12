@@ -158,7 +158,7 @@ def ode_system(
         if np_abs(1 - v_θ) < V_θ_SONIC_CRIT:
             deriv_v_θ = deriv_v_θ_sonic(
                 a_0=a_0, ρ=ρ, B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H,
-                η_A=η_A, θ=θ, v_r=v_r, v_θ=v_θ, v_φ=v_φ, deriv_v_r=deriv_v_r,
+                η_A=η_A, θ=θ, v_r=v_r, v_φ=v_φ, deriv_v_r=deriv_v_r,
                 deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
                 B_φ_prime=B_φ_prime, γ=γ, η_O_0=η_O_0, η_A_0=η_A_0,
                 η_H_0=η_H_0, η_derivs=η_derivs,

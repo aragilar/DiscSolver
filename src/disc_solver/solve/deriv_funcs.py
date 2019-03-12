@@ -497,7 +497,7 @@ def taylor_series(*, γ, a_0, init_con, η_derivs):
 
 
 def deriv_v_θ_sonic(
-    *, a_0, ρ, B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r, v_θ, v_φ, deriv_v_r,
+    *, a_0, ρ, B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r, v_φ, deriv_v_r,
     deriv_v_φ, deriv_B_r, deriv_B_θ, B_φ_prime, γ, η_O_0, η_A_0, η_H_0,
     η_derivs
 ):
@@ -518,12 +518,8 @@ def deriv_v_θ_sonic(
 
     C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
 
-    deriv_ρ_v = - ρ / v_θ
-    deriv_ρ_no_v = - ρ * (
-        (
-            2 * γ * v_r
-        ) / v_θ - tan(θ)
-    )
+    deriv_ρ_v = - ρ
+    deriv_ρ_no_v = - ρ * (2 * γ * v_r - tan(θ))
 
     if η_derivs:
         deriv_η_scale_no_v = deriv_η_skw_func(
@@ -552,7 +548,7 @@ def deriv_v_θ_sonic(
 
     dderiv_B_φ_no_v = dderiv_B_φ_soln(
         B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r,
-        v_θ=v_θ, v_φ=v_φ, deriv_v_r=deriv_v_r, deriv_v_θ=0,
+        v_θ=1, v_φ=v_φ, deriv_v_r=deriv_v_r, deriv_v_θ=0,
         deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
         deriv_B_φ=deriv_B_φ, γ=γ, deriv_η_O=deriv_η_O_no_v,
         deriv_η_A=deriv_η_A_no_v, deriv_η_H=deriv_η_H_no_v
@@ -570,7 +566,7 @@ def deriv_v_θ_sonic(
         (η_O + η_A * (1 - b_φ ** 2)) ** 2
     )
 
-    a = 2 * v_θ
+    a = 2
 
     b_1 = B_φ * (
         1 - deriv_η_O_v + C * (
@@ -579,7 +575,7 @@ def deriv_v_θ_sonic(
         ) - deriv_η_A_v * (1 - b_r ** 2 + b_r * b_θ * (1 / 4 - γ)) -
         (1 / 4 - γ) * deriv_η_H_v * b_φ
     ) + C * B_r + A_v * (
-        v_θ * B_r - v_r * B_θ + B_φ * (
+        B_r - v_r * B_θ + B_φ * (
             η_A * b_φ * (b_r * tan(θ) - b_θ * (1 / 4 - γ)) +
             η_H * (b_r * (1 / 4 - γ) + b_θ * tan(θ))
         )
@@ -590,33 +586,27 @@ def deriv_v_θ_sonic(
         )
     )
 
-    b = v_r * v_θ + tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
-        (
-            (1 / 4 - γ) * B_θ * B_r + B_r * deriv_B_r + B_φ * deriv_B_φ -
-            B_φ ** 2 * tan(θ)
-        ) * (1 - 1 / v_θ) + v_θ * (
-            B_r ** 2 / (η_O + η_A * (1 - b_φ ** 2)) +
-            b_1 / (
-                η_O + η_A * (1 - b_r ** 2) + C * (η_H * b_θ + η_A * b_r * b_φ)
-            ) * (
-                B_φ - (η_H * b_θ + η_A * b_r * b_φ) / (
-                    η_O + η_A * (1 - b_φ ** 2)
-                )
+    b = v_r + tan(θ) * (v_φ ** 2 + 1) + a_0 / ρ * (
+        B_r ** 2 / (η_O + η_A * (1 - b_φ ** 2)) + b_1 / (
+            η_O + η_A * (1 - b_r ** 2) + C * (η_H * b_θ + η_A * b_r * b_φ)
+        ) * (
+            B_φ - (η_H * b_θ + η_A * b_r * b_φ) / (
+                η_O + η_A * (1 - b_φ ** 2)
             )
         )
     )
 
-    c = deriv_v_r / 2 * (v_θ ** 2 - 4 * γ) + v_θ * (
-        sec(θ) ** 2 * (v_φ ** 2 + 1) + 2 * tan(θ) * deriv_v_φ * v_φ - (
-            2 * γ * v_r / v_θ - tan(θ)
-        ) * a_0 / ρ * (
-            (1 / 4 - γ) * B_θ * B_r + B_r * deriv_B_r + B_φ * deriv_B_φ -
-            B_φ ** 2 * tan(θ)
+    c = (
+        deriv_v_r / 2 * (1 - 4 * γ) + sec(θ) ** 2 * (v_φ ** 2 + 1) +
+        2 * tan(θ) * deriv_v_φ * v_φ + (
+            2 * γ * v_r - tan(θ)
+        ) * (
+            v_r / 2 * (1 - 4 * γ) + tan(θ) * (v_φ ** 2 + 1)
         ) + a_0 / ρ * (
             (1 / 4 - γ) * B_θ * deriv_B_r + deriv_B_r ** 2 + deriv_B_φ ** 2 -
             2 * deriv_B_φ * B_φ * tan(θ) - B_φ ** 2 * sec(θ) ** 2 + B_r * (
                 (
-                    v_θ * deriv_B_r - deriv_v_r * B_θ - v_r * deriv_B_θ +
+                    deriv_B_r - deriv_v_r * B_θ - v_r * deriv_B_θ +
                     deriv_B_φ * (
                         η_A * b_φ * (b_r * tan(θ) - b_θ * (1 / 4 - γ)) +
                         η_H * (b_r * (1 / 4 - γ) + b_θ * tan(θ))
@@ -639,8 +629,9 @@ def deriv_v_θ_sonic(
                 ) / (
                     (η_O + η_A * (1 - b_φ ** 2)) ** 2
                 ) * (
-                    v_θ * B_r - v_r * B_θ -
-                    deriv_B_φ * (η_H * b_θ + η_A * b_r * b_φ) + B_φ * (
+                    B_r - v_r * B_θ - deriv_B_φ * (
+                        η_H * b_θ + η_A * b_r * b_φ
+                    ) + B_φ * (
                         η_A * b_φ * (b_r * tan(θ) - b_θ * (1 / 4 - γ)) +
                         η_H * (b_r * (1 / 4 - γ) + b_θ * tan(θ))
                     )
@@ -656,6 +647,7 @@ def deriv_v_θ_sonic(
     )
 
     x1, x2 = solve_quadratic(a, b, c)
+    log.info(f"{a}, {b}, {c}")
     if (x1 > 0) and (x2 > 0):
         log.warning(f"{a}, {b}, {c}")
         raise SolverError(
