@@ -1,0 +1,97 @@
+version: 2.1
+
+orbs:
+  tox_orb:
+    jobs:
+      tox_job:
+        parameters:
+          tox_name:
+            type: string
+            default: py37
+          sundials_version:
+            type: string
+            default: 3.1.1
+          tox_args:
+            type: string
+            default: --
+        environment:
+          SUNDIALS_VERSION: <<parameters.sundials_version>>
+        executor: tox_exec
+        steps:
+          - tox_pre
+          - tox_install
+          - tox_run:
+              tox_name: <<parameters.tox_name>>
+              tox_args: <<parameters.tox_args>>
+          - tox_post
+    commands:
+      tox_pre:
+        steps:
+          - checkout
+          - restore_cache:
+              keys:
+              - sundials
+              - pip
+          - run: pwd
+          - run: env
+      tox_install:
+        steps:
+          - run: sudo apt-get update
+          - run: sudo apt-get install cmake gfortran liblapack-dev
+          - run: sudo pip install -U pip setuptools wheel
+          - run: sudo pip install -c known_broken_constraints.txt --pre -U coverage # coverage major versions need to match
+          - run: sudo pip install -U tox codecov
+      tox_run:
+        parameters:
+          tox_name:
+            type: string
+            default: py37
+          tox_args:
+            type: string
+            default: --
+        steps:
+          - run:
+              environment:
+                BASH_ENV: ./ci_support/ensure_sundials_installed.sh
+              command: tox -e <<parameters.tox_name>> <<parameters.tox_args>>
+
+      tox_post:
+        steps:
+          - run: codecov
+          - save_cache:
+              key: sundials
+              paths:
+                - $HOME/sundials
+          - save_cache:
+              key: pip
+              paths:
+                - $HOME/.cache/pip
+
+    executors:
+      tox_exec:
+        parameters:
+          version:
+            type: string
+            default: "3.7"
+        docker:
+          - image: circleci/python:<<parameters.version>>
+
+workflows:
+  build-test-deploy:
+    jobs:
+      - tox_orb/tox_job:
+          name: py37
+          tox_name: py37
+          tox_args: -- -n 2
+      - tox_orb/tox_job:
+          name: flake8
+          tox_name: flake8
+      - tox_orb/tox_job:
+          name: pylint
+          tox_name: pylint
+      - tox_orb/tox_job:
+          name: check-manifest
+          tox_name: check-manifest
+      - tox_orb/tox_job:
+          name: checkreadme
+          tox_name: checkreadme

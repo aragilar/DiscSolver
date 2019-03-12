@@ -16,3 +16,5 @@ recursive-include tests *.py
 exclude dev-requirements.txt
 exclude doc-requirements.txt
 exclude bors.toml
+exclude .circleci
+recursive-exclude .circleci *
