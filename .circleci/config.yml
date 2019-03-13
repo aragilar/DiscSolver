@@ -30,8 +30,10 @@ orbs:
           - checkout
           - restore_cache:
               keys:
-              - sundials
-              - pip
+              - sundials-
+          - restore_cache:
+              keys:
+              - pip-
           - run: pwd
           - run: env
       tox_install:
@@ -59,13 +61,13 @@ orbs:
         steps:
           - run: codecov
           - save_cache:
-              key: sundials
+              key: sundials-{{ epoch}}
               paths:
-                - $HOME/sundials
+                - /home/circleci/sundials
           - save_cache:
-              key: pip
+              key: pip-{{ epoch}}
               paths:
-                - $HOME/.cache/pip
+                - /home/circleci/.cache/pip
 
     executors:
       tox_exec:
