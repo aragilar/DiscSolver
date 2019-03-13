@@ -63,6 +63,7 @@ class ConfigInput:
     jump_before_sonic = attr.ib(default=None)
     use_taylor_jump = attr.ib(default="True")
     mcmc_vars = attr.ib(default=None)
+    v_θ_sonic_crit = attr.ib(default=None)
 
 
 @attr.s
@@ -93,6 +94,7 @@ class SolutionInput:
     jump_before_sonic = attr.ib(default=None)
     use_taylor_jump = attr.ib(default=True)
     mcmc_vars = attr.ib(default=None)
+    v_θ_sonic_crit = attr.ib(default=None)
 
 
 class Problems(MutableMapping):

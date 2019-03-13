@@ -35,7 +35,6 @@ from ..utils import ODEIndex
 INTEGRATOR = "cvode"
 LINSOLVER = "dense"
 COORDS = "spherical midplane 0"
-V_θ_SONIC_CRIT = 0.05
 
 log = logbook.Logger(__name__)
 
@@ -49,7 +48,8 @@ TaylorSolution = namedtuple(
 
 def ode_system(
     *, γ, a_0, norm_kepler_sq, init_con, θ_scale=float_type(1),
-    with_taylor=False, η_derivs=True, store_internal=True, use_E_r=False
+    with_taylor=False, η_derivs=True, store_internal=True, use_E_r=False,
+    v_θ_sonic_crit=None
 ):
     """
     Set up the system we are solving for.
@@ -155,7 +155,7 @@ def ode_system(
             deriv_v_φ_taylor if with_taylor else deriv_v_φ_normal
         )
 
-        if np_abs(1 - v_θ) < V_θ_SONIC_CRIT:
+        if v_θ_sonic_crit is not None and np_abs(1 - v_θ) < v_θ_sonic_crit:
             deriv_v_θ = deriv_v_θ_sonic(
                 a_0=a_0, ρ=ρ, B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H,
                 η_A=η_A, θ=θ, v_r=v_r, v_φ=v_φ, deriv_v_r=deriv_v_r,
@@ -415,7 +415,7 @@ def main_solution(
     absolute_tolerance=float_type(1e-10), max_steps=500, onroot_func=None,
     jump_before_sonic=None, tstop=None, ontstop_func=None, η_derivs=True,
     store_internal=True, root_func=None, root_func_args=None,
-    θ_scale=float_type(1), use_E_r=False
+    θ_scale=float_type(1), use_E_r=False, v_θ_sonic_crit=None
 ):
     """
     Find solution
@@ -439,7 +439,7 @@ def main_solution(
         γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,
         init_con=system_initial_conditions, η_derivs=η_derivs,
         store_internal=store_internal, with_taylor=False, θ_scale=θ_scale,
-        use_E_r=use_E_r,
+        use_E_r=use_E_r, v_θ_sonic_crit=v_θ_sonic_crit,
     )
 
     solver = ode(
@@ -505,6 +505,7 @@ def solution(
     η_derivs = soln_input.η_derivs
     use_taylor_jump = soln_input.use_taylor_jump
     jump_before_sonic = soln_input.jump_before_sonic
+    v_θ_sonic_crit = soln_input.v_θ_sonic_crit
 
     if with_taylor and use_E_r:
         raise SolverError(
@@ -551,6 +552,7 @@ def solution(
         η_derivs=η_derivs, store_internal=store_internal,
         jump_before_sonic=jump_before_sonic, root_func=root_func,
         root_func_args=root_func_args, θ_scale=θ_scale, use_E_r=use_E_r,
+        v_θ_sonic_crit=v_θ_sonic_crit,
     )
 
     if jump_before_sonic is not None:
@@ -574,7 +576,7 @@ def solution(
             onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
             η_derivs=η_derivs, store_internal=store_internal,
             root_func=root_func, root_func_args=root_func_args,
-            θ_scale=θ_scale, use_E_r=use_E_r,
+            θ_scale=θ_scale, use_E_r=use_E_r, v_θ_sonic_crit=v_θ_sonic_crit,
         )
 
     if store_internal and taylor_stop_angle is not None:

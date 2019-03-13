@@ -69,7 +69,7 @@ def _solution_dumper(solution):
     )
 
 
-@ds_registry.dumper(ConfigInput, "ConfigInput", version=9)
+@ds_registry.dumper(ConfigInput, "ConfigInput", version=10)
 def _config_dumper(config_input):
     return GroupContainer(
         attrs={
@@ -98,10 +98,11 @@ def _config_dumper(config_input):
         },
         jump_before_sonic=config_input.jump_before_sonic,
         mcmc_vars=config_input.mcmc_vars,
+        v_θ_sonic_crit=config_input.v_θ_sonic_crit,
     )
 
 
-@ds_registry.dumper(SolutionInput, "SolutionInput", version=9)
+@ds_registry.dumper(SolutionInput, "SolutionInput", version=10)
 def _input_dumper(solution_input):
     return GroupContainer(
         attrs={
@@ -129,6 +130,7 @@ def _input_dumper(solution_input):
         },
         jump_before_sonic=solution_input.jump_before_sonic,
         mcmc_vars=solution_input.mcmc_vars,
+        v_θ_sonic_crit=solution_input.v_θ_sonic_crit,
     )
 
 
