@@ -71,6 +71,10 @@ def info(soln_file, *, group, soln_range, output_file, filename):
             file=output_file,
         )
         print(
+            "DiscSolver version: {}".format(soln_file.disc_solver_version),
+            file=output_file,
+        )
+        print(
             "using E_r: {}".format(soln_file.use_E_r), file=output_file,
         )
         print(
