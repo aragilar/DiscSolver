@@ -150,6 +150,9 @@ def get_input_from_conffile(*, config_file, overrides=None):
         jump_before_sonic=config.get(
             "config", "jump_before_sonic", fallback="None"
         ),
+        v_θ_sonic_crit=config.get(
+            "config", "v_θ_sonic_crit", fallback="None"
+        ),
         η_derivs=config.get("config", "η_derivs", fallback="True"),
         nwalkers=config.get("config", "nwalkers", fallback="8"),
         iterations=config.get("config", "iterations", fallback="3"),
@@ -189,6 +192,10 @@ def config_input_to_soln_input(inp):
         jump_before_sonic=(
             None if inp.jump_before_sonic == "None"
             else float_type(str_to_float(inp.jump_before_sonic))
+        ),
+        v_θ_sonic_crit=(
+            None if inp.v_θ_sonic_crit == "None" or inp.v_θ_sonic_crit is None
+            else float_type(str_to_float(inp.v_θ_sonic_crit))
         ),
         η_derivs=str_to_bool(inp.η_derivs),
         nwalkers=str_to_int(inp.nwalkers),
