@@ -489,7 +489,7 @@ def _input_loader2(group):
     if group["jump_before_sonic"] is None:
         jump_before_sonic = None
     else:
-        jump_before_sonic = group["jump_before_sonic"]
+        jump_before_sonic = group["jump_before_sonic"]["data"]
     return SolutionInput(
         start=group.attrs["start"],
         stop=group.attrs["stop"],
@@ -515,7 +515,7 @@ def _input_loader3(group):
     if group["jump_before_sonic"] is None:
         jump_before_sonic = None
     else:
-        jump_before_sonic = group["jump_before_sonic"]
+        jump_before_sonic = group["jump_before_sonic"]["data"]
     return SolutionInput(
         start=group.attrs["start"],
         stop=group.attrs["stop"],
@@ -542,7 +542,7 @@ def _input_loader4(group):
     if group["jump_before_sonic"] is None:
         jump_before_sonic = None
     else:
-        jump_before_sonic = group["jump_before_sonic"]
+        jump_before_sonic = group["jump_before_sonic"]["data"]
     return SolutionInput(
         start=group.attrs["start"],
         stop=group.attrs["stop"],
@@ -573,7 +573,7 @@ def _input_loader5(group):
     if group["jump_before_sonic"] is None:
         jump_before_sonic = None
     else:
-        jump_before_sonic = group["jump_before_sonic"]
+        jump_before_sonic = group["jump_before_sonic"]["data"]
     return SolutionInput(
         start=group.attrs["start"],
         stop=group.attrs["stop"],
@@ -603,7 +603,7 @@ def _input_loader6(group):
     if group["jump_before_sonic"] is None:
         jump_before_sonic = None
     else:
-        jump_before_sonic = group["jump_before_sonic"]
+        jump_before_sonic = group["jump_before_sonic"]["data"]
     return SolutionInput(
         start=group.attrs["start"],
         stop=group.attrs["stop"],
@@ -634,7 +634,7 @@ def _input_loader7(group):
     if group["jump_before_sonic"] is None:
         jump_before_sonic = None
     else:
-        jump_before_sonic = group["jump_before_sonic"]
+        jump_before_sonic = group["jump_before_sonic"]["data"]
     return SolutionInput(
         start=group.attrs["start"],
         stop=group.attrs["stop"],
@@ -665,7 +665,7 @@ def _input_loader8(group):
     if group["jump_before_sonic"] is None:
         jump_before_sonic = None
     else:
-        jump_before_sonic = group["jump_before_sonic"]
+        jump_before_sonic = group["jump_before_sonic"]["data"]
     return SolutionInput(
         start=group.attrs["start"],
         stop=group.attrs["stop"],
@@ -697,7 +697,7 @@ def _input_loader9(group):
     if group["jump_before_sonic"] is None:
         jump_before_sonic = None
     else:
-        jump_before_sonic = group["jump_before_sonic"]
+        jump_before_sonic = group["jump_before_sonic"]["data"]
     return SolutionInput(
         start=group.attrs["start"],
         stop=group.attrs["stop"],
@@ -730,11 +730,11 @@ def _input_loader10(group):
     if group["jump_before_sonic"] is None:
         jump_before_sonic = None
     else:
-        jump_before_sonic = group["jump_before_sonic"]
+        jump_before_sonic = group["jump_before_sonic"]["data"]
     if group["v_θ_sonic_crit"] is None:
         v_θ_sonic_crit = None
     else:
-        v_θ_sonic_crit = group["v_θ_sonic_crit"]
+        v_θ_sonic_crit = group["v_θ_sonic_crit"]["data"]
     return SolutionInput(
         start=group.attrs["start"],
         stop=group.attrs["stop"],
