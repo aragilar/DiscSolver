@@ -547,3 +547,26 @@ def plot_log_lines(ax, angles, values, *args, **kwargs):
     ax.plot(angles[pos_slice], values[pos_slice], *args, **kwargs)
     ax.plot(angles[neg_slice], - values[neg_slice], *args, **kwargs)
     ax.set_yscale("log")
+
+
+def single_fig_legend_setup(fig, *, nrows, ncols, **kwargs):
+    """
+    Add a legend for the whole figure to the right of existing plots
+    """
+    axes = fig.subplots(nrows=nrows, ncols=ncols + 1, **kwargs)
+
+    gs = axes[0, 0].get_gridspec()
+    for ax in axes[:, -1]:
+        ax.remove()
+
+    def figlegend(**kwargs):
+        ax0 = fig.axes[0]
+        handles, labels = ax0.get_legend_handles_labels()
+        legend_ax = fig.add_subplot(gs[:, -1])
+        legend = legend_ax.legend(
+            handles=handles, labels=labels, borderaxespad=0, **kwargs
+        )
+        legend_ax.axis("off")
+        return legend
+
+    return axes[:, :-1], figlegend

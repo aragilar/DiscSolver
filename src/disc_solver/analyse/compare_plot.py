@@ -9,6 +9,7 @@ from .utils import (
     analysis_func_wrapper_multisolution, common_plotting_options,
     get_common_plot_args, plot_output_wrapper, DEFAULT_MPL_STYLE,
     get_common_arguments, PlotOrdering, distinct_color_map,
+    single_fig_legend_setup,
 )
 
 
@@ -75,10 +76,9 @@ def generate_plot(
     """
     Generate plot, with enough freedom to be able to format fig
     """
-    axes = fig.subplots(
-        nrows=2, ncols=4, sharex=True, gridspec_kw=dict(hspace=0)
+    axes, figlegend = single_fig_legend_setup(
+        fig, nrows=2, ncols=4, sharex=True, gridspec_kw=dict(hspace=0)
     )
-
     # only add label to bottom plots
     for ax in axes[1]:
         ax.set_xlabel("angle from plane (°)")
@@ -109,6 +109,5 @@ def generate_plot(
             )
             ax.set_ylabel(settings["name"])
             ax.set_yscale(settings.get("scale", "linear"))
-    for ax in axes:
-        ax.legend(loc=0)
+    figlegend(fontsize="small")
     return fig
