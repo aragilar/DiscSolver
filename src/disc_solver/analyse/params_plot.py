@@ -2,13 +2,13 @@
 """
 Params-plot command for DiscSolver
 """
-import numpy as np
 from numpy import degrees
 
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
     get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
     AnalysisError, DEFAULT_MPL_STYLE, get_common_arguments, PlotOrdering,
+    plot_log_lines,
 )
 
 
@@ -76,8 +76,6 @@ def generate_params_plot(
 
     param_angles = internal_data.angles
     params = internal_data.params
-    npnot = np.logical_not
-    npand = np.logical_and
     indexes = (
         (start <= degrees(param_angles)) & (degrees(param_angles) <= stop)
     )
@@ -86,19 +84,9 @@ def generate_params_plot(
     axes.shape = len(param_names)
     for i, settings in enumerate(param_names):
         ax = axes[i]
-        pos_params = params[:, i] >= 0
-        ax.plot(
-            degrees(param_angles[npand(pos_params, indexes)]),
-            params[npand(pos_params, indexes), i],
-            linestyle,
-        )
-        ax.plot(
-            degrees(param_angles[npand(npnot(pos_params), indexes)]),
-            - params[npand(npnot(pos_params), indexes), i], linestyle,
+        plot_log_lines(
+            ax, degrees(param_angles[indexes]), params[indexes, i], linestyle
         )
         ax.set_xlabel("angle from plane (°)")
-        ax.set_yscale(settings.get("scale", "log"))
         ax.set_title(settings["name"])
-        if settings.get("legend"):
-            ax.legend()
     return fig

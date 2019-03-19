@@ -11,7 +11,7 @@ import sys
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
 
-from numpy import sqrt, linspace
+from numpy import sqrt, linspace, logical_not as npnot
 from scipy.interpolate import interp1d
 
 from matplotlib.cm import get_cmap
@@ -536,3 +536,16 @@ def add_label_display_on_select(axis):
     label_cursor.connect(
         "add", lambda sel: sel.annotation.set_text(sel.artist.get_label())
     )
+
+
+def plot_log_lines(
+    ax, angles, values, linestyle, **kwargs
+):
+    """
+    Plot positive and negative values separately
+    """
+    pos_slice = values >= 0
+    neg_slice = npnot(pos_slice)
+    ax.plot(angles[pos_slice], values[pos_slice], linestyle, **kwargs)
+    ax.plot(angles[neg_slice], - values[neg_slice], linestyle, **kwargs)
+    ax.set_yscale("log")

@@ -2,13 +2,13 @@
 """
 Deriv-plot command for DiscSolver
 """
-import numpy as np
 from numpy import degrees
 
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
     get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
     AnalysisError, DEFAULT_MPL_STYLE, get_common_arguments, PlotOrdering,
+    plot_log_lines,
 )
 
 
@@ -91,8 +91,6 @@ def generate_derivs_plot(
 
     deriv_angles = internal_data.angles
     derivs = internal_data.derivs
-    npnot = np.logical_not
-    npand = np.logical_and
     indexes = (
         (start <= degrees(deriv_angles)) & (degrees(deriv_angles) <= stop)
     )
@@ -101,23 +99,17 @@ def generate_derivs_plot(
     axes.shape = len(param_names)
     for i, settings in enumerate(param_names):
         ax = axes[i]
+
         if nolog:
             ax.plot(
                 degrees(deriv_angles[indexes]),
                 derivs[indexes, i], linestyle,
             )
-
         else:
-            pos_deriv = derivs[:, i] >= 0
-            ax.plot(
-                degrees(deriv_angles[npand(pos_deriv, indexes)]),
-                derivs[npand(pos_deriv, indexes), i], linestyle,
+            plot_log_lines(
+                ax, degrees(deriv_angles[indexes]),
+                derivs[indexes, i], linestyle
             )
-            ax.plot(
-                degrees(deriv_angles[npand(npnot(pos_deriv), indexes)]),
-                - derivs[npand(npnot(pos_deriv), indexes), i], linestyle,
-            )
-            ax.set_yscale("log")
 
         ax.set_xlabel("angle from plane (°)")
         ax.set_title(settings["name"])
