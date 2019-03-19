@@ -538,14 +538,12 @@ def add_label_display_on_select(axis):
     )
 
 
-def plot_log_lines(
-    ax, angles, values, linestyle, **kwargs
-):
+def plot_log_lines(ax, angles, values, *args, **kwargs):
     """
     Plot positive and negative values separately
     """
     pos_slice = values >= 0
     neg_slice = npnot(pos_slice)
-    ax.plot(angles[pos_slice], values[pos_slice], linestyle, **kwargs)
-    ax.plot(angles[neg_slice], - values[neg_slice], linestyle, **kwargs)
+    ax.plot(angles[pos_slice], values[pos_slice], *args, **kwargs)
+    ax.plot(angles[neg_slice], - values[neg_slice], *args, **kwargs)
     ax.set_yscale("log")
