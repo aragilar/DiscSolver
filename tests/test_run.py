@@ -6,6 +6,7 @@ import pytest
 from disc_solver.analyse.info import info
 from disc_solver.analyse.plot import plot
 from disc_solver.analyse.compare_plot import compare_plot
+from disc_solver.analyse.v_deriv_cmp import plot as v_θ_deriv_cmp
 from disc_solver.analyse.derivs_plot import derivs_plot
 from disc_solver.analyse.params_plot import params_plot
 from disc_solver.analyse.taylor_plot import taylor_plot
@@ -298,6 +299,14 @@ class TestAnalysis:
     def test_compare_plot_show(self, solution, mpl_interactive):
         solutions = [[solution, None], [solution, None]]
         compare_plot(solutions, show=True)
+
+    def test_v_θ_deriv_cmp_file(self, solution_deriv, plot_file):
+        solutions = [[solution_deriv, None], [solution_deriv, None]]
+        return v_θ_deriv_cmp(solutions, plot_filename=plot_file)
+
+    def test_v_θ_deriv_cmp_show(self, solution_deriv, mpl_interactive):
+        solutions = [[solution_deriv, None], [solution_deriv, None]]
+        v_θ_deriv_cmp(solutions, show=True)
 
     def test_sonic_ratio_plot_file(self, solution, plot_file):
         solutions = [[solution, None], [solution, None]]
