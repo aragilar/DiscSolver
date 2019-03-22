@@ -15,11 +15,11 @@ from numpy import sqrt, linspace, logical_not as npnot
 from scipy.interpolate import interp1d
 
 from matplotlib.cm import get_cmap
-from matplotlib.colors import TABLEAU_COLORS
 import matplotlib.pyplot as plt
 from matplotlib.style import context as use_style
 import matplotlib._layoutbox as layoutbox
 import mplcursors
+import palettable
 
 from h5preserve import open as h5open
 
@@ -503,12 +503,23 @@ def distinct_color_map(size):
     """
     Generate a list of unique colours for matplotlib line/scatter plots
     """
-    if size > len(TABLEAU_COLORS):
-        grey_section = list(
-            GREYS(linspace(0.1, 0.9, num=size - len(TABLEAU_COLORS)))
-        )
-        return grey_section + list(TABLEAU_COLORS.keys())
-    return TABLEAU_COLORS.keys()
+    tab10 = palettable.tableau.Tableau_10.mpl_colors
+    tab20 = palettable.tableau.Tableau_20.mpl_colors
+    tab30 = (
+        palettable.tableau.Tableau_10.mpl_colors +
+        palettable.tableau.TableauLight_10.mpl_colors +
+        palettable.tableau.TableauMedium_10.mpl_colors
+    )
+    if size <= len(tab10):
+        return tab10
+    elif size <= len(tab20):
+        return tab20
+    elif size <= len(tab30):
+        return tab30
+    grey_section = list(
+        GREYS(linspace(0.1, 0.9, num=size - len(tab30)))
+    )
+    return grey_section + tab30
 
 
 def plot_output_wrapper(

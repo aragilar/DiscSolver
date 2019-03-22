@@ -28,6 +28,7 @@ setuptools.setup(
         "root-solver",
         "tqdm",
         "mplcursors",
+        "palettable",
     ],
     author = "James Tocknell",
     author_email = "aragilar@gmail.com",
