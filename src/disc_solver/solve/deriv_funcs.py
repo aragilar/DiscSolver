@@ -580,8 +580,7 @@ def deriv_v_θ_sonic(
             η_H * (b_r * (1 / 4 - γ) + b_θ * tan(θ))
         )
     ) - deriv_B_φ * (
-        deriv_η_O_v + deriv_η_A_v * (1 - b_r ** 2) -
-        2 * η_A * b_r * deriv_b_r + A_v * (
+        deriv_η_O_v + deriv_η_A_v * (1 - b_r ** 2) + A_v * (
             η_H * b_θ + η_A * b_r * b_φ
         )
     )
