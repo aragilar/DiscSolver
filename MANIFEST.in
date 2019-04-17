@@ -18,3 +18,5 @@ exclude doc-requirements.txt
 exclude bors.toml
 exclude .circleci
 recursive-exclude .circleci *
+exclude .builds
+recursive-exclude .builds *

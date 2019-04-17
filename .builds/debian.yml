@@ -1,0 +1,31 @@
+image: debian/unstable
+packages:
+# python
+- python3-dev
+- python3-tk
+- python3-pip
+#
+- libsundials-dev # scikits.odes
+- libhdf5-dev # h5py
+#
+- xvfb # headless testing
+
+sources:
+- https://git.sr.ht/~aragilar/DiscSolver
+
+environment:
+  PIPI: '"python3 -m pip install --user -U"'
+  PATH: '$HOME/.local/bin:$PATH'
+
+tasks:
+    - deps_install: |
+        cd DiscSolver
+        $PIPI pip setuptools wheel
+        $PIPI -c known_broken_constraints.txt --pre coverage # coverage major versions need to match
+        $PIPI tox codecov
+    - test: |
+        cd DiscSolver
+        tox
+    - post_test: |
+        cd DiscSolver
+        codecov
