@@ -231,11 +231,11 @@ def create_soln_splitter(method):
     Create func to see split in solution
     """
     method_dict = {
-        "v_θ_deriv": v_θ_deriv_splitter,
-        "human": human_view_splitter_generator(),
+        "v_θ_deriv": lambda: v_θ_deriv_splitter,
+        "human": human_view_splitter_generator,
     }
 
-    return method_dict.get(method) or v_θ_deriv_splitter
+    return method_dict.get(method)() or v_θ_deriv_splitter
 
 
 def solution_generator(*, store_internal=True, run):
