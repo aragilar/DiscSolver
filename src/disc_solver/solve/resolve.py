@@ -60,11 +60,11 @@ def resolve(
         sonic_solver = SONIC_METHOD_MAP.get(sonic_method)
         if sonic_solver is None:
             raise SolverError("No method chosen to cross sonic point")
-        sonic_solver(
+        succeeded = sonic_solver(
             new_soln_input, run, store_internal=store_internal, **kwargs
         )
 
-    return output_file
+    return output_file, succeeded
 
 
 def main():
@@ -88,9 +88,11 @@ def main():
     use_E_r = args.get("use_E_r", False)
 
     with log_handler(args), redirected_warnings(), redirected_logging():
-        print(resolve(
+        filename, succeeded = resolve(
             soln_filename=soln_filename, soln_range=soln_range,
             sonic_method=sonic_method, output_dir=output_dir,
             store_internal=store_internal, output_file=output_file,
             use_E_r=use_E_r, overrides=overrides,
-        ))
+        )
+        print(filename)
+        return int(not succeeded)

@@ -83,6 +83,7 @@ def solver(inp, run, *, store_internal=True):
         ))
 
     run.final_solution = run.solutions[str(len(run.solutions) - 1)]
+    return result.success
 
 
 def generate_root_func(

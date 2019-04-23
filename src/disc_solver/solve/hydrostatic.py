@@ -681,3 +681,4 @@ def solver(inp, run, *, store_internal=True):
     )
     run.solutions["0"] = hydro_solution
     run.final_solution = run.solutions["0"]
+    return True

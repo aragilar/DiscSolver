@@ -50,7 +50,7 @@ def single_solution_default(tmpdir_factory):
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=True,
-    )
+    )[0]
 
 
 @pytest.fixture(scope="session")
@@ -60,7 +60,7 @@ def mcmc_solution_default(tmpdir_factory):
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=True,
-    )
+    )[0]
 
 
 @pytest.fixture(scope="session")
@@ -71,7 +71,7 @@ def step_solution_default(tmpdir_factory):
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=True,
         max_search_steps=3, num_attempts=5,
-    )
+    )[0]
 
 
 @pytest.fixture(scope="session")
@@ -81,7 +81,7 @@ def sonic_root_solution_default(tmpdir_factory):
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=True,
-    )
+    )[0]
 
 
 @pytest.fixture(scope="session")
@@ -91,7 +91,7 @@ def hydrostatic_solution_default(tmpdir_factory):
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=True,
-    )
+    )[0]
 
 
 @pytest.fixture(scope="session")
@@ -101,7 +101,7 @@ def mod_hydro_solution_default(tmpdir_factory):
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=True,
-    )
+    )[0]
 
 
 @pytest.fixture(scope="session")
@@ -111,7 +111,7 @@ def single_solution_no_internal(tmpdir_factory):
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=False,
-    )
+    )[0]
 
 
 @pytest.fixture(scope="session")
@@ -121,7 +121,7 @@ def mcmc_solution_no_internal(tmpdir_factory):
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=False,
-    )
+    )[0]
 
 
 @pytest.fixture(scope="session")
@@ -131,7 +131,7 @@ def sonic_root_solution_no_internal(tmpdir_factory):
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=False,
-    )
+    )[0]
 
 
 @pytest.fixture(scope="session")
@@ -141,7 +141,7 @@ def hydrostatic_solution_no_internal(tmpdir_factory):
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=False,
-    )
+    )[0]
 
 
 @pytest.fixture(scope="session")
@@ -151,7 +151,7 @@ def mod_hydro_solution_no_internal(tmpdir_factory):
     return solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=False,
-    )
+    )[0]
 
 
 @pytest.fixture(scope="session")
@@ -162,7 +162,7 @@ def mod_hydro_solution_use_E_r(tmpdir_factory):
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=True,
         use_E_r=True,
-    )
+    )[0]
 
 
 @pytest.fixture(scope="session", params=ALL_SOLUTIONS)

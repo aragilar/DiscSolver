@@ -159,6 +159,7 @@ def cleanup_generator(run, writer):
         """
         writer(soln, attempt)
         run.final_solution = run.solutions[str(attempt)]
+        return run.final_solution
 
     return cleanup
 
@@ -172,6 +173,7 @@ def alternate_cleanup_generator(run):
         alternate cleanup
         """
         run.final_solution = run.solutions[str(attempt)]
+        return run.final_solution
 
     return cleanup
 
@@ -293,7 +295,7 @@ def solver(
     step_func = step_input()
     writer = writer_generator(run)
     cleanup = cleanup_generator(run, writer)
-    binary_searcher(
+    best_solution = binary_searcher(
         solution_generator(store_internal=store_internal, run=run), cleanup,
         stepper_creator(
             writer, step_func,
@@ -305,3 +307,7 @@ def solver(
     )
     if not isinstance(run.final_solution, Solution):
         run.final_solution = None
+
+    if best_solution is None:
+        return False
+    return True

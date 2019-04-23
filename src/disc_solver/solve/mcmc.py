@@ -94,6 +94,7 @@ def solver(soln_input, run, store_internal=True):
             soln_input.iterations, progress=True,
         )
     run.final_solution = logprobfunc.best_solution
+    return True
 
 
 class LogProbGenerator:
