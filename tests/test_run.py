@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from disc_solver.analyse.info import info
+from disc_solver.analyse.dump_csv import dump_csv
 from disc_solver.analyse.plot import plot
 from disc_solver.analyse.compare_plot import compare_plot
 from disc_solver.analyse.v_deriv_cmp import plot as v_θ_deriv_cmp
@@ -274,6 +275,18 @@ class TestAnalysis:
     def test_info_solutions(self, solution, tmp_text_stream):
         info(
             solution, group="solutions", soln_range=None,
+            output_file=tmp_text_stream,
+        )
+
+    def test_dump(self, solution, tmp_text_stream):
+        dump_csv(
+            solution, with_header=False, soln_range=None,
+            output_file=tmp_text_stream,
+        )
+
+    def test_dump_with_header(self, solution, tmp_text_stream):
+        dump_csv(
+            solution, with_header=True, soln_range=None,
             output_file=tmp_text_stream,
         )
 

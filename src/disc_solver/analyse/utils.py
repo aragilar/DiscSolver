@@ -3,10 +3,14 @@
 Utils for analysis code
 """
 import argparse
+from contextlib import contextmanager
 from enum import Enum
 from functools import wraps
+from io import IOBase
 from os import fspath
 import sys
+from sys import stdout
+
 
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
@@ -581,3 +585,24 @@ def single_fig_legend_setup(fig, *, nrows, ncols, **kwargs):
         return legend
 
     return axes[:, :-1], figlegend
+
+
+@contextmanager
+def open_or_stream(filename, *args, **kwargs):
+    """
+    Open a file or use existing stream.
+
+    Passing '-' as the filename uses stdout.
+    """
+    if filename == '-':
+        file = None
+        yield stdout
+    elif isinstance(filename, IOBase):
+        file = None
+        yield filename
+    else:
+        file = open(filename, *args, **kwargs)
+        yield file
+
+    if file is not None:
+        file.close()

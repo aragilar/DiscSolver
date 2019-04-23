@@ -69,6 +69,7 @@ setuptools.setup(
             "ds-surface-density-plot = disc_solver.analyse.surface_density_plot:surface_density_main",
             "ds-phys-ratio-plot = disc_solver.analyse.phys_ratio_plot:plot_main",
             "ds-v-deriv-plot = disc_solver.analyse.v_deriv_cmp:plot_main",
+            "ds-tocsv = disc_solver.analyse.dump_csv:dump_main",
         ],
     },
     cmdclass=versioneer.get_cmdclass(),

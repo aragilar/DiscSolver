@@ -18,3 +18,4 @@ from ._utils import ds_registry as _ds_registry, get_fields
 registries = new_registry_list(_ds_registry, _dict_as_group_registry)
 
 CONFIG_FIELDS = get_fields(ConfigInput)
+SOLUTION_INPUT_FIELDS = get_fields(SolutionInput)
