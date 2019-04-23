@@ -245,3 +245,45 @@ def new_inputs_with_overrides(config_input, solution_input, overrides):
         setattr(new_soln_input, key, soln_dict[key])
 
     return new_config_input, new_soln_input
+
+
+def config_input_to_conf_file(filename, config_input):
+    """
+    Convert ConfigInput to cfg file
+    """
+    cfg = CaseDependentConfigParser()
+
+    cfg["config"]["start"] = config_input.start
+    cfg["config"]["stop"] = config_input.stop
+    cfg["config"]["taylor_stop_angle"] = config_input.taylor_stop_angle
+    cfg["config"]["max_steps"] = config_input.max_steps
+    cfg["config"]["num_angles"] = config_input.num_angles
+    cfg["config"]["label"] = config_input.label
+    cfg["config"]["relative_tolerance"] = config_input.relative_tolerance
+    cfg["config"]["absolute_tolerance"] = config_input.absolute_tolerance
+    cfg["config"]["nwalkers"] = config_input.nwalkers
+    cfg["config"]["iterations"] = config_input.iterations
+    cfg["config"]["threads"] = config_input.threads
+    cfg["config"]["target_velocity"] = config_input.target_velocity
+    cfg["config"]["split_method"] = config_input.split_method
+
+    cfg["initial"]["γ"] = config_input.γ
+    cfg["initial"]["v_rin_on_c_s"] = config_input.v_rin_on_c_s
+    cfg["initial"]["v_a_on_c_s"] = config_input.v_a_on_c_s
+    cfg["initial"]["c_s_on_v_k"] = config_input.c_s_on_v_k
+    cfg["initial"]["η_O"] = config_input.η_O
+    cfg["initial"]["η_H"] = config_input.η_H
+    cfg["initial"]["η_A"] = config_input.η_A
+
+    cfg["config"]["η_derivs"] = config_input.η_derivs
+    cfg["config"]["use_taylor_jump"] = config_input.use_taylor_jump
+
+    if config_input.jump_before_sonic is not None:
+        cfg["config"]["jump_before_sonic"] = config_input.jump_before_sonic
+    if config_input.mcmc_vars is not None:
+        cfg["config"]["mcmc_vars"] = config_input.mcmc_vars
+    if config_input.v_θ_sonic_crit is not None:
+        cfg["config"]["v_θ_sonic_crit"] = config_input.v_θ_sonic_crit
+
+    with open(filename, 'w') as f:
+        cfg.write(f)
