@@ -65,6 +65,12 @@ class ConfigInput:
     mcmc_vars = attr.ib(default=None)
     v_θ_sonic_crit = attr.ib(default=None)
 
+    def asdict(self):
+        """
+        Convert ConfigInput to dict
+        """
+        return attr.asdict(self, recurse=False)
+
 
 @attr.s
 class SolutionInput:
@@ -95,6 +101,12 @@ class SolutionInput:
     use_taylor_jump = attr.ib(default=True)
     mcmc_vars = attr.ib(default=None)
     v_θ_sonic_crit = attr.ib(default=None)
+
+    def asdict(self):
+        """
+        Convert SolutionInput to dict
+        """
+        return attr.asdict(self, recurse=False)
 
 
 class Problems(MutableMapping):
@@ -405,5 +417,15 @@ class MCMCVars:
     with_v_r = attr.ib()
     with_v_a = attr.ib()
     with_v_k = attr.ib()
+
+    def __str__(self):
+        true_vars = []
+        if self.with_v_r:
+            true_vars.append("v_r")
+        if self.with_v_a:
+            true_vars.append("v_a")
+        if self.with_v_k:
+            true_vars.append("v_k")
+        return ','.join(true_vars)
 
 # pylint: enable=too-few-public-methods

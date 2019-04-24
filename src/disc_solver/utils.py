@@ -3,10 +3,13 @@
 Useful functions
 """
 
-from enum import IntEnum
-from math import pi
 from configparser import ConfigParser
+from contextlib import contextmanager
+from enum import IntEnum
+from io import IOBase
+from math import pi
 from pathlib import Path
+from sys import stdout
 
 import numpy as np
 from numpy import cos, sin, sqrt
@@ -355,3 +358,24 @@ def convert_spherical_to_cylindrical(angles, soln, *, use_E_r, γ, c_s_on_v_k):
             ]
 
     return heights, new_soln
+
+
+@contextmanager
+def open_or_stream(filename, *args, **kwargs):
+    """
+    Open a file or use existing stream.
+
+    Passing '-' as the filename uses stdout.
+    """
+    if filename == '-':
+        file = None
+        yield stdout
+    elif isinstance(filename, IOBase):
+        file = None
+        yield filename
+    else:
+        file = open(filename, *args, **kwargs)
+        yield file
+
+    if file is not None:
+        file.close()
