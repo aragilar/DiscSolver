@@ -11,9 +11,7 @@ from logbook.compat import redirected_warnings, redirected_logging
 
 from h5preserve import open as h5open
 
-from .config import (
-    get_input_from_conffile, config_input_to_soln_input
-)
+from .config import get_input_from_conffile
 from .stepper import solver as stepper_solver
 from .single import solver as single_solver
 from .mcmc import solver as mcmc_solver
@@ -69,7 +67,7 @@ def solve(
         if sonic_solver is None:
             raise SolverError("No method chosen to cross sonic point")
         succeeded = sonic_solver(
-            config_input_to_soln_input(config_input), run,
+            config_input.to_soln_input(), run,
             store_internal=store_internal, **kwargs
         )
 

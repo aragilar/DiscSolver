@@ -3,20 +3,14 @@
 Define input and environment for ode system
 """
 
-import attr
 import logbook
 
 import numpy as np
 from numpy import sqrt
 
 from ..float_handling import float_type, FLOAT_TYPE
-from ..file_format import (
-    ConfigInput, InitialConditions, SolutionInput, MCMCVars,
-)
-from ..utils import (
-    str_to_float, str_to_int, str_to_bool, CaseDependentConfigParser,
-    ODEIndex,
-)
+from ..file_format import ConfigInput, InitialConditions
+from ..utils import CaseDependentConfigParser, ODEIndex
 
 from .utils import SolverError, add_overrides
 
@@ -51,18 +45,6 @@ def E_r_boundary_func(*, v_r, v_φ, η_P, η_H, η_perp_sq, a_0):
     Compute E_r at the midplane
     """
     return - v_φ - v_r / η_P * (η_H + η_perp_sq * v_φ / (2 * a_0))
-
-
-def mcmc_vars_str_to_obj(mcmc_str):
-    """
-    Convert mcmc_vars string to MCMCVars
-    """
-    split_str = mcmc_str.strip().split(',')
-    return MCMCVars(
-        with_v_r="v_r" in split_str,
-        with_v_a="v_a" in split_str,
-        with_v_k="v_k" in split_str,
-    )
 
 
 def define_conditions(inp, *, use_E_r=False):
@@ -177,44 +159,6 @@ def get_input_from_conffile(*, config_file, overrides=None):
     ))
 
 
-def config_input_to_soln_input(inp):
-    """
-    Convert user input into solver input
-    """
-    return SolutionInput(
-        start=float_type(str_to_float(inp.start)),
-        stop=float_type(str_to_float(inp.stop)),
-        taylor_stop_angle=float_type(str_to_float(inp.taylor_stop_angle)),
-        max_steps=str_to_int(inp.max_steps),
-        num_angles=str_to_int(inp.num_angles),
-        relative_tolerance=float_type(str_to_float(inp.relative_tolerance)),
-        absolute_tolerance=float_type(str_to_float(inp.absolute_tolerance)),
-        jump_before_sonic=(
-            None if inp.jump_before_sonic == "None"
-            else float_type(str_to_float(inp.jump_before_sonic))
-        ),
-        v_θ_sonic_crit=(
-            None if inp.v_θ_sonic_crit == "None" or inp.v_θ_sonic_crit is None
-            else float_type(str_to_float(inp.v_θ_sonic_crit))
-        ),
-        η_derivs=str_to_bool(inp.η_derivs),
-        nwalkers=str_to_int(inp.nwalkers),
-        iterations=str_to_int(inp.iterations),
-        threads=str_to_int(inp.threads),
-        target_velocity=float_type(str_to_float(inp.target_velocity)),
-        split_method=inp.split_method,
-        use_taylor_jump=str_to_bool(inp.use_taylor_jump),
-        mcmc_vars=mcmc_vars_str_to_obj(inp.mcmc_vars),
-        γ=float_type(str_to_float(inp.γ)),
-        v_rin_on_c_s=float_type(str_to_float(inp.v_rin_on_c_s)),
-        v_a_on_c_s=float_type(str_to_float(inp.v_a_on_c_s)),
-        c_s_on_v_k=float_type(str_to_float(inp.c_s_on_v_k)),
-        η_O=float_type(str_to_float(inp.η_O)),
-        η_H=float_type(str_to_float(inp.η_H)),
-        η_A=float_type(str_to_float(inp.η_A)),
-    )
-
-
 def new_inputs_with_overrides(config_input, solution_input, overrides):
     """
     Merge possibly differing ConfigInput and SolutionInput with additional
@@ -225,15 +169,15 @@ def new_inputs_with_overrides(config_input, solution_input, overrides):
     new_config_input = add_overrides(
         config_input=config_input, overrides=overrides,
     )
-    new_soln_input = config_input_to_soln_input(new_config_input)
+    new_soln_input = new_config_input.to_soln_input()
 
-    initial_soln_input = config_input_to_soln_input(config_input)
+    initial_soln_input = config_input.to_soln_input()
 
     if solution_input == initial_soln_input:
         return new_config_input, new_soln_input
 
-    conf_dict = attr.asdict(initial_soln_input)
-    soln_dict = attr.asdict(solution_input)
+    conf_dict = initial_soln_input.asdict()
+    soln_dict = solution_input.asdict()
     use_soln_keys = []
     for key, val in conf_dict.items():
         if key in overrides:
@@ -245,45 +189,3 @@ def new_inputs_with_overrides(config_input, solution_input, overrides):
         setattr(new_soln_input, key, soln_dict[key])
 
     return new_config_input, new_soln_input
-
-
-def config_input_to_conf_file(filename, config_input):
-    """
-    Convert ConfigInput to cfg file
-    """
-    cfg = CaseDependentConfigParser()
-
-    cfg["config"]["start"] = config_input.start
-    cfg["config"]["stop"] = config_input.stop
-    cfg["config"]["taylor_stop_angle"] = config_input.taylor_stop_angle
-    cfg["config"]["max_steps"] = config_input.max_steps
-    cfg["config"]["num_angles"] = config_input.num_angles
-    cfg["config"]["label"] = config_input.label
-    cfg["config"]["relative_tolerance"] = config_input.relative_tolerance
-    cfg["config"]["absolute_tolerance"] = config_input.absolute_tolerance
-    cfg["config"]["nwalkers"] = config_input.nwalkers
-    cfg["config"]["iterations"] = config_input.iterations
-    cfg["config"]["threads"] = config_input.threads
-    cfg["config"]["target_velocity"] = config_input.target_velocity
-    cfg["config"]["split_method"] = config_input.split_method
-
-    cfg["initial"]["γ"] = config_input.γ
-    cfg["initial"]["v_rin_on_c_s"] = config_input.v_rin_on_c_s
-    cfg["initial"]["v_a_on_c_s"] = config_input.v_a_on_c_s
-    cfg["initial"]["c_s_on_v_k"] = config_input.c_s_on_v_k
-    cfg["initial"]["η_O"] = config_input.η_O
-    cfg["initial"]["η_H"] = config_input.η_H
-    cfg["initial"]["η_A"] = config_input.η_A
-
-    cfg["config"]["η_derivs"] = config_input.η_derivs
-    cfg["config"]["use_taylor_jump"] = config_input.use_taylor_jump
-
-    if config_input.jump_before_sonic is not None:
-        cfg["config"]["jump_before_sonic"] = config_input.jump_before_sonic
-    if config_input.mcmc_vars is not None:
-        cfg["config"]["mcmc_vars"] = config_input.mcmc_vars
-    if config_input.v_θ_sonic_crit is not None:
-        cfg["config"]["v_θ_sonic_crit"] = config_input.v_θ_sonic_crit
-
-    with open(filename, 'w') as f:
-        cfg.write(f)

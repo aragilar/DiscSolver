@@ -10,7 +10,26 @@ from numpy import asarray, concatenate, zeros
 
 from h5preserve import wrap_on_demand, OnDemandWrapper, DelayedContainer
 
-from ..utils import ODEIndex
+from ..float_handling import float_type
+from ..utils import (
+    ODEIndex, str_to_float, str_to_int, str_to_bool, CaseDependentConfigParser,
+)
+
+
+def mcmc_vars_str_to_obj(mcmc_str):
+    """
+    Convert mcmc_vars string to MCMCVars
+    """
+    if mcmc_str is None:
+        return None
+    if isinstance(mcmc_str, MCMCVars):
+        return mcmc_str
+    split_str = mcmc_str.strip().split(',')
+    return MCMCVars(
+        with_v_r="v_r" in split_str,
+        with_v_a="v_a" in split_str,
+        with_v_k="v_k" in split_str,
+    )
 
 
 # pylint: disable=too-few-public-methods
@@ -71,6 +90,89 @@ class ConfigInput:
         """
         return attr.asdict(self, recurse=False)
 
+    def to_conf_file(self, filename):
+        """
+        Convert ConfigInput to cfg file
+        """
+        cfg = CaseDependentConfigParser()
+
+        cfg["config"]["start"] = self.start
+        cfg["config"]["stop"] = self.stop
+        cfg["config"]["taylor_stop_angle"] = self.taylor_stop_angle
+        cfg["config"]["max_steps"] = self.max_steps
+        cfg["config"]["num_angles"] = self.num_angles
+        cfg["config"]["label"] = self.label
+        cfg["config"]["relative_tolerance"] = self.relative_tolerance
+        cfg["config"]["absolute_tolerance"] = self.absolute_tolerance
+        cfg["config"]["nwalkers"] = self.nwalkers
+        cfg["config"]["iterations"] = self.iterations
+        cfg["config"]["threads"] = self.threads
+        cfg["config"]["target_velocity"] = self.target_velocity
+        cfg["config"]["split_method"] = self.split_method
+
+        cfg["initial"]["γ"] = self.γ
+        cfg["initial"]["v_rin_on_c_s"] = self.v_rin_on_c_s
+        cfg["initial"]["v_a_on_c_s"] = self.v_a_on_c_s
+        cfg["initial"]["c_s_on_v_k"] = self.c_s_on_v_k
+        cfg["initial"]["η_O"] = self.η_O
+        cfg["initial"]["η_H"] = self.η_H
+        cfg["initial"]["η_A"] = self.η_A
+
+        cfg["config"]["η_derivs"] = self.η_derivs
+        cfg["config"]["use_taylor_jump"] = self.use_taylor_jump
+
+        if self.jump_before_sonic is not None:
+            cfg["config"]["jump_before_sonic"] = self.jump_before_sonic
+        if self.mcmc_vars is not None:
+            cfg["config"]["mcmc_vars"] = self.mcmc_vars
+        if self.v_θ_sonic_crit is not None:
+            cfg["config"]["v_θ_sonic_crit"] = self.v_θ_sonic_crit
+
+        with open(filename, 'w') as f:
+            cfg.write(f)
+
+    def to_soln_input(self):
+        """
+        Convert user input into solver input
+        """
+        return SolutionInput(
+            start=float_type(str_to_float(self.start)),
+            stop=float_type(str_to_float(self.stop)),
+            taylor_stop_angle=float_type(str_to_float(self.taylor_stop_angle)),
+            max_steps=str_to_int(self.max_steps),
+            num_angles=str_to_int(self.num_angles),
+            relative_tolerance=float_type(
+                str_to_float(self.relative_tolerance)
+            ),
+            absolute_tolerance=float_type(
+                str_to_float(self.absolute_tolerance)
+            ),
+            jump_before_sonic=(
+                None if self.jump_before_sonic == "None"
+                else float_type(str_to_float(self.jump_before_sonic))
+            ),
+            v_θ_sonic_crit=(
+                None if self.v_θ_sonic_crit == "None" or
+                self.v_θ_sonic_crit is None
+                else float_type(str_to_float(self.v_θ_sonic_crit))
+            ),
+            η_derivs=str_to_bool(self.η_derivs),
+            nwalkers=str_to_int(self.nwalkers),
+            iterations=str_to_int(self.iterations),
+            threads=str_to_int(self.threads),
+            target_velocity=float_type(str_to_float(self.target_velocity)),
+            split_method=self.split_method,
+            use_taylor_jump=str_to_bool(self.use_taylor_jump),
+            mcmc_vars=mcmc_vars_str_to_obj(self.mcmc_vars),
+            γ=float_type(str_to_float(self.γ)),
+            v_rin_on_c_s=float_type(str_to_float(self.v_rin_on_c_s)),
+            v_a_on_c_s=float_type(str_to_float(self.v_a_on_c_s)),
+            c_s_on_v_k=float_type(str_to_float(self.c_s_on_v_k)),
+            η_O=float_type(str_to_float(self.η_O)),
+            η_H=float_type(str_to_float(self.η_H)),
+            η_A=float_type(str_to_float(self.η_A)),
+        )
+
 
 @attr.s
 class SolutionInput:
@@ -99,7 +201,7 @@ class SolutionInput:
     η_derivs = attr.ib(default=True)
     jump_before_sonic = attr.ib(default=None)
     use_taylor_jump = attr.ib(default=True)
-    mcmc_vars = attr.ib(default=None)
+    mcmc_vars = attr.ib(default=None, converter=mcmc_vars_str_to_obj)
     v_θ_sonic_crit = attr.ib(default=None)
 
     def asdict(self):
