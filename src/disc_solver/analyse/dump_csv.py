@@ -57,9 +57,9 @@ def dump_csv(soln_file, *, soln_range, output_file, with_header, **kwargs):
     # pylint: disable=unused-argument
     soln_instance = get_solutions(soln_file, soln_range)
     inp = soln_instance.solution_input
-    with open_or_stream(output_file, mode='a'):
+    with open_or_stream(output_file, mode='a') as out:
         csvwriter = DictWriter(
-            output_file, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
+            out, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
         )
         if with_header:
             csvwriter.writeheader()
