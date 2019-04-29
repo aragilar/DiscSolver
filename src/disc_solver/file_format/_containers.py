@@ -32,6 +32,15 @@ def mcmc_vars_str_to_obj(mcmc_str):
     )
 
 
+def replace_empty_string(string):
+    """
+    Helper for attrs which expect "None".
+    """
+    if string == '':
+        return "None"
+    return string
+
+
 # pylint: disable=too-few-public-methods
 
 @attr.s(cmp=False, hash=False)
@@ -79,10 +88,10 @@ class ConfigInput:
     η_H = attr.ib()
     η_A = attr.ib()
     η_derivs = attr.ib(default="True")
-    jump_before_sonic = attr.ib(default=None)
+    jump_before_sonic = attr.ib(default=None, converter=replace_empty_string)
     use_taylor_jump = attr.ib(default="True")
     mcmc_vars = attr.ib(default=None)
-    v_θ_sonic_crit = attr.ib(default=None)
+    v_θ_sonic_crit = attr.ib(default=None, converter=replace_empty_string)
 
     def asdict(self):
         """
@@ -148,7 +157,8 @@ class ConfigInput:
                 str_to_float(self.absolute_tolerance)
             ),
             jump_before_sonic=(
-                None if self.jump_before_sonic == "None"
+                None if self.jump_before_sonic == "None" or
+                self.jump_before_sonic is None
                 else float_type(str_to_float(self.jump_before_sonic))
             ),
             v_θ_sonic_crit=(
