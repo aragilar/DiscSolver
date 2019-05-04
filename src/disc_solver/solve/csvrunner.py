@@ -5,8 +5,10 @@ csvrunner module
 
 import argparse
 from csv import DictWriter, DictReader, Sniffer
-from multiprocessing import Pool
+from multiprocessing import Pool, current_process
 from warnings import warn
+
+from pympler.asizeof import asizeof
 
 from . import SONIC_METHOD_MAP
 from .utils import SolverError
@@ -39,6 +41,8 @@ class SolutionFinder:
             sonic_method=self.sonic_method,
             use_E_r=False,
         )
+        process_name = current_process().name
+        print(f"Run size in {process_name} is {asizeof(run)}")
         soln_input = ConfigInput(**input_dict).to_soln_input()
         sonic_solver = SONIC_METHOD_MAP.get(self.sonic_method)
         if sonic_solver is None:
@@ -52,6 +56,8 @@ class SolutionFinder:
         except SolverError as e:
             warn(str(e))
             return None
+
+        print(f"Run size in {process_name} is {asizeof(run)}")
 
         if succeeded:
             return run.final_solution.solution_input.asdict()

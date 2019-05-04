@@ -29,6 +29,7 @@ setuptools.setup(
         "tqdm",
         "mplcursors",
         "palettable",
+        "pympler",
     ],
     author = "James Tocknell",
     author_email = "aragilar@gmail.com",
