@@ -4,14 +4,14 @@ csvrunner module
 """
 
 import argparse
-from csv import DictWriter, DictReader, Sniffer
+from csv import DictWriter
 from multiprocessing import Pool, current_process
 from warnings import warn
 
 from pympler.asizeof import asizeof
 
 from . import SONIC_METHOD_MAP
-from .utils import SolverError
+from .utils import SolverError, get_csv_inputs
 
 from .. import __version__ as ds_version
 from ..file_format import Run, ConfigInput, SOLUTION_INPUT_FIELDS
@@ -65,38 +65,11 @@ class SolutionFinder:
 # pylint: enable=too-few-public-methods
 
 
-def add_labels(seq):
-    """
-    Add labels
-    """
-    new_seq = []
-    for d in seq:
-        d['label'] = ''
-        new_seq.append(d)
-    return new_seq
-
-
-def has_csv_header(file):
-    """
-    Checks if csv file has header
-    """
-    has_header = Sniffer().has_header(file.readline())
-    file.seek(0)
-    return has_header
-
-
 def csvrunner(*, output_file, input_file, nworkers=None, **kwargs):
     """
     Find the best solution for the inputs given in the csv file.
     """
-    with open(input_file) as infile:
-        has_header = has_csv_header(infile)
-        inputs = add_labels(DictReader(
-            infile, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
-        ))
-
-    if has_header:
-        inputs = inputs[1:]
+    inputs = get_csv_inputs(input_file)
 
     with open_or_stream(output_file, mode='a') as out:
         csvwriter = DictWriter(

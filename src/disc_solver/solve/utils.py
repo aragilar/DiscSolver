@@ -2,6 +2,7 @@
 """
 Utility function and classes for solver associated code
 """
+from csv import DictReader, Sniffer
 
 import attr
 import logbook
@@ -16,7 +17,7 @@ from numpy import (
 from scikits.odes.sundials.cvode import StatusEnum
 
 from .. import __version__ as ds_version
-from ..file_format import CONFIG_FIELDS
+from ..file_format import CONFIG_FIELDS, SOLUTION_INPUT_FIELDS
 from ..logging import logging_options
 from ..utils import (
     ODEIndex, DiscSolverError, MHD_Wave_Index, mhd_wave_speeds,
@@ -220,3 +221,39 @@ def validate_overrides(overrides):
                 name
             ))
     return clean_overrides
+
+
+def add_labels(seq):
+    """
+    Add labels
+    """
+    new_seq = []
+    for d in seq:
+        d['label'] = ''
+        new_seq.append(d)
+    return new_seq
+
+
+def has_csv_header(file):
+    """
+    Checks if csv file has header
+    """
+    has_header = Sniffer().has_header(file.readline())
+    file.seek(0)
+    return has_header
+
+
+def get_csv_inputs(input_file):
+    """
+    Get inputs from csv file
+    """
+    with open(input_file) as infile:
+        has_header = has_csv_header(infile)
+        inputs = add_labels(DictReader(
+            infile, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
+        ))
+
+    if has_header:
+        inputs = inputs[1:]
+
+    return inputs
