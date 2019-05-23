@@ -223,13 +223,13 @@ def validate_overrides(overrides):
     return clean_overrides
 
 
-def add_labels(seq):
+def add_labels(seq, *, label=''):
     """
     Add labels
     """
     new_seq = []
     for d in seq:
-        d['label'] = ''
+        d['label'] = label
         new_seq.append(d)
     return new_seq
 
@@ -243,7 +243,7 @@ def has_csv_header(file):
     return has_header
 
 
-def get_csv_inputs(input_file):
+def get_csv_inputs(input_file, label=''):
     """
     Get inputs from csv file
     """
@@ -251,7 +251,7 @@ def get_csv_inputs(input_file):
         has_header = has_csv_header(infile)
         inputs = add_labels(DictReader(
             infile, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
-        ))
+        ), label=label)
 
     if has_header:
         inputs = inputs[1:]
