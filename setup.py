@@ -72,6 +72,7 @@ setuptools.setup(
             "ds-v-deriv-plot = disc_solver.analyse.v_deriv_cmp:plot_main",
             "ds-tocsv = disc_solver.analyse.dump_csv:dump_main",
             "ds-csvrunner = disc_solver.solve.csvrunner:main",
+            "ds-hdf5runner = disc_solver.solve.hdf5runner:main",
         ],
     },
     cmdclass=versioneer.get_cmdclass(),
