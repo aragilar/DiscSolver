@@ -435,6 +435,11 @@ def main_solution(
         else:
             raise SolverError("Need to specify size of root array")
 
+    if len(angles) < 2:
+        raise SolverError(
+            f"Insufficient angles to solve at - angles: {angles}"
+        )
+
     system, internal_data = ode_system(
         γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,
         init_con=system_initial_conditions, η_derivs=η_derivs,
