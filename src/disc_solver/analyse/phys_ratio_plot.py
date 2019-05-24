@@ -101,7 +101,6 @@ def generate_plot(
     a_0_mapping = {}
 
     for soln_name, soln in solutions:
-        solution = soln.solution
         angles = soln.angles
         η_A = soln.initial_conditions.η_A
         a_0 = soln.initial_conditions.a_0
@@ -117,8 +116,7 @@ def generate_plot(
         m_marker = a_0_mapping[a_0]
 
         indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
-        Σ = np_sum(solution[indexes, ODEIndex.ρ])
-
+        Σ = compute_Σ(soln, indexes)
         c_s_on_v_k = soln.solution_input.c_s_on_v_k
 
         axes[0].plot(
@@ -139,7 +137,9 @@ def generate_plot(
     return fig
 
 
-def compute_M_dot_out_on_M_dot_in(soln, indexes, r_in=0.1, r_out=100):
+def compute_M_dot_out_on_M_dot_in(
+    soln, indexes=slice(None), r_in=0.1, r_out=100
+):
     """
     Find M_dot_out / M_dot_in
     """
@@ -162,3 +162,10 @@ def compute_M_dot_out_on_M_dot_in(soln, indexes, r_in=0.1, r_out=100):
     return scaling * (
         solution[-1, ODEIndex.ρ] * solution[-1, ODEIndex.v_θ]
     ) / M_in
+
+
+def compute_Σ(soln, indexes=slice(None)):
+    """
+    Compute Σ
+    """
+    return np_sum(soln.solution[indexes, ODEIndex.ρ])

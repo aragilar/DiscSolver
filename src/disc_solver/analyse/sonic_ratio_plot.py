@@ -2,17 +2,13 @@
 """
 Plot command for DiscSolver
 """
-from numpy import degrees, sqrt
-
-from ..utils import (
-    mhd_wave_speeds, MHD_Wave_Index, ODEIndex, MAGNETIC_INDEXES,
-)
+from numpy import degrees
 
 from .utils import (
     multiple_solution_plotter, analyse_main_wrapper_multisolution,
     analysis_func_wrapper_multisolution, common_plotting_options,
     get_common_plot_args, plot_output_wrapper, DEFAULT_MPL_STYLE,
-    distinct_color_map,
+    distinct_color_map, get_mach_numbers
 )
 
 
@@ -76,25 +72,19 @@ def generate_plot(
     colors = distinct_color_map(num_solutions)
 
     for (soln_name, soln), color in zip(solutions, colors):
-        solution = soln.solution
+        _, _, alfven_mach, fast_mach = get_mach_numbers(soln)
         angles = soln.angles
-
-        wave_speeds = sqrt(mhd_wave_speeds(
-            solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1
-        ))
-        alfven = wave_speeds[MHD_Wave_Index.alfven]
-        fast = wave_speeds[MHD_Wave_Index.fast]
 
         indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
 
         axes[0].plot(
             degrees(angles[indexes]),
-            solution[indexes, ODEIndex.v_θ] / alfven[indexes],
+            alfven_mach[indexes],
             linestyle, color=color, label=soln_name,
         )
         axes[1].plot(
             degrees(angles[indexes]),
-            solution[indexes, ODEIndex.v_θ] / fast[indexes],
+            fast_mach[indexes],
             linestyle, color=color, label=soln_name,
         )
 

@@ -4,16 +4,10 @@ Info command and associated code
 """
 from sys import stdout
 
-import numpy as np
-from numpy import degrees
-
-from ..utils import (
-    is_supersonic, find_in_array, get_normalisation, ODEIndex,
-    MAGNETIC_INDEXES, get_solutions,
-)
+from ..utils import get_solutions
 from .utils import (
     analyse_main_wrapper, analysis_func_wrapper, get_sonic_point,
-    get_scale_height, AnalysisError,
+    get_scale_height, AnalysisError, get_all_sonic_points,
 )
 from ..solve.mcmc import get_logprob_of_soln
 
@@ -104,8 +98,6 @@ def info(soln_file, *, group, soln_range, output_file, filename):
     else:
         inp = soln_instance.solution_input
         init_con = soln_instance.initial_conditions
-        v_norm = get_normalisation(inp)["v_norm"]  # need to fix config here
-        c_s = v_norm
         if group == "input":
             print("input settings:", file=output_file)
             for name, value in vars(inp).items():
@@ -115,35 +107,27 @@ def info(soln_file, *, group, soln_range, output_file, filename):
             for name, value in vars(init_con).items():
                 print(INIT_FORMAT.format(name, value), file=output_file)
         else:
-            soln = soln_instance.solution
-            angles = soln_instance.angles
-            zero_soln = np.zeros(len(soln))
-            v = np.array([zero_soln, zero_soln, soln[:, ODEIndex.v_θ]])
-            slow_index = find_in_array(is_supersonic(
-                v.T, soln[:, MAGNETIC_INDEXES], soln[:, ODEIndex.ρ],
-                c_s, "slow"
-            ), True)
-            alfven_index = find_in_array(is_supersonic(
-                v.T, soln[:, MAGNETIC_INDEXES], soln[:, ODEIndex.ρ],
-                c_s, "alfven"
-            ), True)
-            fast_index = find_in_array(is_supersonic(
-                v.T, soln[:, MAGNETIC_INDEXES], soln[:, ODEIndex.ρ],
-                c_s, "fast"
-            ), True)
+            slow_θ, sonic_θ, alfven_θ, fast_θ = get_all_sonic_points(
+                soln_instance
+            )
 
             if group == "crosses-points":
-                if fast_index:
+                if fast_θ is not None:
                     print(
                         "{}: fast".format(soln_file.config_input.label),
                         file=output_file
                     )
-                elif alfven_index:
+                elif alfven_θ is not None:
                     print(
                         "{}: alfven".format(soln_file.config_input.label),
                         file=output_file
                     )
-                elif slow_index:
+                elif sonic_θ is not None:
+                    print(
+                        "{}: sonic".format(soln_file.config_input.label),
+                        file=output_file
+                    )
+                elif slow_θ is not None:
                     print(
                         "{}: slow".format(soln_file.config_input.label),
                         file=output_file
@@ -155,16 +139,16 @@ def info(soln_file, *, group, soln_range, output_file, filename):
                     )
             elif group == "sonic-points":
                 print(OTHER_FORMAT.format(
-                    "slow sonic point",
-                    degrees(angles[slow_index]) if slow_index else None
+                    "slow sonic point", slow_θ
                 ), file=output_file)
                 print(OTHER_FORMAT.format(
-                    "alfven sonic point",
-                    degrees(angles[alfven_index]) if alfven_index else None
+                    "sonic point", sonic_θ
                 ), file=output_file)
                 print(OTHER_FORMAT.format(
-                    "fast sonic point",
-                    degrees(angles[fast_index]) if fast_index else None
+                    "alfven sonic point", alfven_θ
+                ), file=output_file)
+                print(OTHER_FORMAT.format(
+                    "fast sonic point", fast_θ
                 ), file=output_file)
             else:
                 raise AnalysisError("Cannot find {}.".format(group))
