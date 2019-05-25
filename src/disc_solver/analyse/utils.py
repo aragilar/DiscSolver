@@ -6,8 +6,6 @@ import argparse
 from enum import Enum
 from functools import wraps
 from os import fspath
-from sys import argv as sys_argv
-
 
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
@@ -26,10 +24,10 @@ from h5preserve import open as h5open
 
 from .. import __version__ as ds_version
 from ..file_format import registries
-from ..logging import log_handler, logging_options
+from ..logging import log_handler
 from ..utils import (
     ODEIndex, str_to_float, get_solutions, DiscSolverError,
-    CylindricalODEIndex,
+    CylindricalODEIndex, main_entry_point_wrapper
 )
 
 logger = logbook.Logger(__name__)
@@ -312,7 +310,7 @@ def get_common_plot_args(args):
 
 
 def analyse_main_wrapper(
-    cmd_description, cmd_parser_func, cmd_parser_splitters=None
+    description, cmd_parser_func, cmd_parser_splitters=None, **kwargs
 ):
     """
     Wrapper for main cmd for analysis cmds
@@ -324,25 +322,19 @@ def analyse_main_wrapper(
         """
         decorator for analyse_main_wrapper
         """
+        @main_entry_point_wrapper(
+            argument_default=argparse.SUPPRESS, description=description,
+            **kwargs
+        )
         @wraps(cmd)
-        def wrap_analysis_main(argv=None):
+        def wrap_analysis_main(argv, parser):
             """
             Actual main function for analysis code, deals with parsers and
             logging
             """
-            if argv is None:
-                argv = sys_argv[1:]
             cmd_args = {}
-            parser = argparse.ArgumentParser(
-                description=cmd_description,
-                argument_default=argparse.SUPPRESS,
-            )
-            parser.add_argument(
-                '--version', action='version', version='%(prog)s ' + ds_version
-            )
             parser.add_argument("soln_file")
             parser.add_argument("soln_range")
-            logging_options(parser)
             cmd_parser = cmd_parser_func(parser)
             args = vars(cmd_parser.parse_args(argv))
             for name, func in cmd_parser_splitters.items():
@@ -361,7 +353,7 @@ def analyse_main_wrapper(
 
 
 def analyse_main_wrapper_multisolution(
-    cmd_description, cmd_parser_func, cmd_parser_splitters=None
+    description, cmd_parser_func, cmd_parser_splitters=None, **kwargs
 ):
     """
     Wrapper for main cmd for analysis cmds
@@ -373,27 +365,21 @@ def analyse_main_wrapper_multisolution(
         """
         decorator for analyse_main_wrapper_multisolution
         """
+        @main_entry_point_wrapper(
+            argument_default=argparse.SUPPRESS, description=description,
+            **kwargs
+        )
         @wraps(cmd)
-        def wrap_analysis_main(argv=None):
+        def wrap_analysis_main(argv, parser):
             """
             Actual main function for analysis code, deals with parsers and
             logging
             """
-            if argv is None:
-                argv = sys_argv[1:]
             cmd_args = {}
-            parser = argparse.ArgumentParser(
-                description=cmd_description,
-                argument_default=argparse.SUPPRESS,
-            )
-            parser.add_argument(
-                '--version', action='version', version='%(prog)s ' + ds_version
-            )
             parser.add_argument(
                 "-r", "--runs", action="append", nargs=2,
                 metavar=("soln_file", "soln_range"), dest="soln_pairs",
             )
-            logging_options(parser)
             cmd_parser = cmd_parser_func(parser)
             args = vars(cmd_parser.parse_args(argv))
             for name, func in cmd_parser_splitters.items():
@@ -408,7 +394,7 @@ def analyse_main_wrapper_multisolution(
 
 
 def analyse_multisolution_wrapper(
-    cmd_description, cmd_parser_func, cmd_parser_splitters=None
+    description, cmd_parser_func, cmd_parser_splitters=None, **kwargs
 ):
     """
     Wrapper for main entry point for analysis functions which use multiple
@@ -418,24 +404,18 @@ def analyse_multisolution_wrapper(
         """
         decorator for analyse_main_wrapper
         """
+        @main_entry_point_wrapper(
+            argument_default=argparse.SUPPRESS, description=description,
+            **kwargs
+        )
         @wraps(cmd)
-        def wrap_analysis_main(argv=None):
+        def wrap_analysis_main(argv, parser):
             """
             Actual main function for analysis code, deals with parsers and
             logging
             """
-            if argv is None:
-                argv = sys_argv[1:]
             cmd_args = {}
-            parser = argparse.ArgumentParser(
-                description=cmd_description,
-                argument_default=argparse.SUPPRESS,
-            )
-            parser.add_argument(
-                '--version', action='version', version='%(prog)s ' + ds_version
-            )
             parser.add_argument("soln_file")
-            logging_options(parser)
             cmd_parser = cmd_parser_func(parser)
             args = vars(cmd_parser.parse_args(argv))
             for name, func in cmd_parser_splitters.items():
