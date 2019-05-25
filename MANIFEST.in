@@ -13,6 +13,7 @@ recursive-include dev_hooks *.sh
 recursive-include tests *.out
 recursive-include tests *.png
 recursive-include tests *.py
+recursive-include tests/data *
 exclude dev-requirements.txt
 exclude doc-requirements.txt
 exclude bors.toml

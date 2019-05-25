@@ -6,6 +6,8 @@ from disc_solver.solve import solve
 from disc_solver.float_handling import float_type as FLOAT_TYPE
 
 PLOT_FILE = "plot.png"
+
+
 DEFAULT_SOLUTIONS = [
     "single_solution_default",
     "sonic_root_solution_default",
@@ -231,3 +233,13 @@ def plot_file(tmpdir):
 @pytest.fixture
 def test_id(request):
     return str(request.node) + str(FLOAT_TYPE)
+
+
+@pytest.fixture
+def ds_csv_file_header(shared_datadir):
+    return shared_datadir / "header.csv"
+
+
+@pytest.fixture
+def ds_csv_file_no_header(shared_datadir):
+    return shared_datadir / "noheader.csv"

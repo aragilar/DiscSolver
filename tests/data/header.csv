@@ -1,0 +1,2 @@
+"start","stop","taylor_stop_angle","max_steps","num_angles","relative_tolerance","absolute_tolerance","γ","nwalkers","iterations","threads","target_velocity","split_method","v_rin_on_c_s","v_a_on_c_s","c_s_on_v_k","η_O","η_H","η_A","η_derivs","jump_before_sonic","use_taylor_jump","mcmc_vars","v_θ_sonic_crit"
+"0.0","10.0","0.001","100000","100000","1e-10","1e-15","0.005438203883537511","10","100","1","0.9","v_θ_deriv","0.6","1.0","0.05","0.004","0.0","0.0","True","","True","",""

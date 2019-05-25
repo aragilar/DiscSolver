@@ -25,6 +25,8 @@ from disc_solver.analyse.surface_density_plot import surface_density_plot
 from disc_solver.analyse.utils import AnalysisError
 from disc_solver.solve import solve
 from disc_solver.solve.resolve import resolve
+from disc_solver.solve.csvrunner import csvrunner
+from disc_solver.solve.hdf5runner import hdf5runner
 from disc_solver.solve.utils import SolverError
 from disc_solver.analyse.j_e_plot import j_e_plot
 from disc_solver.solve.taylor_space import main as taylor_space_main
@@ -503,3 +505,17 @@ class TestAnalysis:
 
 def test_taylor_space(mpl_interactive):
     taylor_space_main()
+
+
+def test_csvrunner(tmp_text_stream, ds_csv_file_header):
+    csvrunner(
+        output_file=tmp_text_stream, input_file=ds_csv_file_header,
+        sonic_method='single',
+    )
+
+
+def test_hdf5runner(tmpdir, ds_csv_file_header):
+    hdf5runner(
+        output_dir=tmpdir, input_file=ds_csv_file_header, use_E_r=False,
+        store_internal=False, sonic_method='single', overrides={},
+    )
