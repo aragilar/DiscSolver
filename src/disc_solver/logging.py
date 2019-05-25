@@ -31,6 +31,8 @@ def log_handler(args):
     """
     Return log handler with given config
     """
+    if not isinstance(args, dict):
+        args = vars(args)
     if args.get("quiet"):
         stderr_handler = ColorizedStderrHandler(level="ERROR")
     elif args.get("verbose"):

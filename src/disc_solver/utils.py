@@ -3,13 +3,15 @@
 Useful functions
 """
 
+from argparse import ArgumentParser
 from configparser import ConfigParser
 from contextlib import contextmanager
 from enum import IntEnum
+from functools import wraps
 from io import IOBase
 from math import pi
 from pathlib import Path
-from sys import stdout
+from sys import stdout, argv as sys_argv
 
 import numpy as np
 from numpy import cos, sin, sqrt
@@ -20,7 +22,9 @@ from stringtopy import (
     str_to_float_converter, str_to_int_converter, str_to_bool_converter
 )
 
+from . import __version__ as ds_version
 from .constants import G, AU, M_SUN
+from .logging import logging_options
 
 logger = logbook.Logger(__name__)
 
@@ -379,3 +383,34 @@ def open_or_stream(filename, *args, **kwargs):
 
     if file is not None:
         file.close()
+
+
+def main_entry_point_wrapper(description, **kwargs):
+    """
+    Wrapper for all entry points
+    """
+    def decorator(cmd):
+        """
+        decorator for entry points
+        """
+        @wraps(cmd)
+        def wrap_main(argv=None):
+            """
+            Actual main function for analysis code, deals with parsers and
+            logging
+            """
+            if argv is None:
+                argv = sys_argv[1:]
+            parser = ArgumentParser(
+                description=description,
+                **kwargs
+            )
+            parser.add_argument(
+                '--version', action='version', version='%(prog)s ' + ds_version
+            )
+            logging_options(parser)
+            return cmd(argv=argv, parser=parser)
+
+        return wrap_main
+
+    return decorator

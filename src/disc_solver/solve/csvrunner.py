@@ -3,7 +3,6 @@
 csvrunner module
 """
 
-import argparse
 from csv import DictWriter
 from multiprocessing import Pool, current_process
 from warnings import warn
@@ -11,12 +10,12 @@ from warnings import warn
 from pympler.asizeof import asizeof
 
 from . import SONIC_METHOD_MAP
-from .utils import SolverError, get_csv_inputs
+from .utils import SolverError, get_csv_inputs, add_worker_arguments
 
 from .. import __version__ as ds_version
 from ..file_format import Run, ConfigInput, SOLUTION_INPUT_FIELDS
 from ..float_handling import float_type
-from ..utils import open_or_stream
+from ..utils import open_or_stream, main_entry_point_wrapper
 
 
 # pylint: disable=too-few-public-methods
@@ -86,16 +85,16 @@ def csvrunner(*, output_file, input_file, nworkers=None, **kwargs):
                     out.flush()
 
 
-def main():
+@main_entry_point_wrapper(description='csvrunner for DiscSolver')
+def main(argv, parser):
     """
     Entry point for ds-csvrunner
     """
-    parser = argparse.ArgumentParser(description='Solver for DiscSolver')
+    add_worker_arguments(parser)
     parser.add_argument("input_file")
     parser.add_argument("--output-file", default='-')
-    parser.add_argument('-n', "--nworkers", default=None, type=int)
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     csvrunner(
         output_file=args.output_file,

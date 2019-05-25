@@ -2,7 +2,6 @@
 """
 hdf5runner module
 """
-import argparse
 from multiprocessing import Pool, current_process
 from pathlib import Path
 from warnings import warn
@@ -15,13 +14,13 @@ from h5preserve import open as h5open
 from . import SONIC_METHOD_MAP
 from .utils import (
     SolverError, add_solver_arguments, get_csv_inputs, validate_overrides,
-    add_overrides,
+    add_overrides, add_worker_arguments,
 )
 
 from .. import __version__ as ds_version
 from ..file_format import registries, Run, ConfigInput
 from ..float_handling import float_type
-from ..utils import expanded_path
+from ..utils import expanded_path, main_entry_point_wrapper
 
 
 # pylint: disable=too-few-public-methods
@@ -110,23 +109,22 @@ def hdf5runner(
                 warn("Solver failed for input")
 
 
-def main():
+@main_entry_point_wrapper(description='hdf5runner for DiscSolver')
+def main(argv, parser):
     """
     Entry point for ds-hdf5runner
     """
-    parser = argparse.ArgumentParser(description='Solver for DiscSolver')
     add_solver_arguments(parser)
-    parser.add_argument("input_file")
-    parser.add_argument('-n', "--nworkers", default=None, type=int)
+    add_worker_arguments(parser)
+    parser.add_argument("input_file", type=expanded_path)
     parser.add_argument('-l', "--label", default='', type=str)
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
-    output_dir = expanded_path(args.output_dir)
     overrides = validate_overrides(args.override)
 
     hdf5runner(
-        output_dir=output_dir, input_file=args.input_file,
+        output_dir=args.output_dir, input_file=args.input_file,
         nworkers=args.nworkers, sonic_method=args.sonic_method,
         store_internal=args.store_internal, overrides=overrides,
         use_E_r=args.use_E_r, label=args.label,

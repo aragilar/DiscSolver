@@ -2,7 +2,6 @@
 """
 reSolver component of Disc Solver
 """
-import argparse
 from pathlib import Path
 
 import arrow
@@ -19,7 +18,7 @@ from .. import __version__ as ds_version
 from ..file_format import registries, Run
 from ..float_handling import float_type
 from ..logging import log_handler
-from ..utils import expanded_path, get_solutions
+from ..utils import expanded_path, get_solutions, main_entry_point_wrapper
 
 log = logbook.Logger(__name__)
 
@@ -67,32 +66,26 @@ def resolve(
     return output_file, succeeded
 
 
-def main():
+@main_entry_point_wrapper(description='reSolver for DiscSolver')
+def main(argv, parser):
     """
     Entry point for ds-resoln
     """
-    parser = argparse.ArgumentParser(description='reSolver for DiscSolver')
     add_solver_arguments(parser)
-    parser.add_argument("soln_filename")
+    parser.add_argument("soln_filename", type=expanded_path)
     parser.add_argument("soln_range")
 
-    args = vars(parser.parse_args())
+    args = parser.parse_args(argv)
 
-    soln_filename = expanded_path(args["soln_filename"])
-    soln_range = args["soln_range"]
-    output_dir = expanded_path(args["output_dir"])
-    sonic_method = args["sonic_method"]
-    output_file = args.get("output_file", None)
-    store_internal = args.get("store_internal", True)
-    overrides = validate_overrides(args.get("override", []))
-    use_E_r = args.get("use_E_r", False)
+    overrides = validate_overrides(args.override)
 
     with log_handler(args), redirected_warnings(), redirected_logging():
         filename, succeeded = resolve(
-            soln_filename=soln_filename, soln_range=soln_range,
-            sonic_method=sonic_method, output_dir=output_dir,
-            store_internal=store_internal, output_file=output_file,
-            use_E_r=use_E_r, overrides=overrides,
+            soln_filename=args.soln_filename, soln_range=args.soln_range,
+            output_file=args.output_file, sonic_method=args.sonic_method,
+            config_file=args.config_file, output_dir=args.output_dir,
+            store_internal=args.store_internal, overrides=overrides,
+            use_E_r=args.use_E_r,
         )
         print(filename)
         return int(not succeeded)

@@ -16,12 +16,10 @@ from numpy import (
 
 from scikits.odes.sundials.cvode import StatusEnum
 
-from .. import __version__ as ds_version
 from ..file_format import CONFIG_FIELDS, SOLUTION_INPUT_FIELDS
-from ..logging import logging_options
 from ..utils import (
     ODEIndex, DiscSolverError, MHD_Wave_Index, mhd_wave_speeds,
-    MAGNETIC_INDEXES,
+    MAGNETIC_INDEXES, expanded_path
 )
 
 log = logbook.Logger(__name__)
@@ -131,32 +129,35 @@ def closest_less_than_index(a, max_val):
     return closest_index(a[less_than], max_val)
 
 
-def add_solver_arguments(parser):
+def add_solver_arguments(
+    parser, *, store_internal=True, sonic_method='single'
+):
     """
     Add common parser arguments for solver
     """
     parser.add_argument(
-        '--version', action='version', version='%(prog)s ' + ds_version
-    )
-    parser.add_argument(
         "--sonic-method", choices=(
             "step", "single", "mcmc", "sonic_root", "hydrostatic", "mod_hydro",
-        ), default="single",
+        ), default=sonic_method,
     )
-    parser.add_argument("--output-file")
-    parser.add_argument(
-        "--output-dir", default=".",
-    )
+    parser.add_argument("--output-file", default=None)
+    parser.add_argument("--output-dir", default=".", type=expanded_path)
     internal_store_group = parser.add_mutually_exclusive_group()
     internal_store_group.add_argument(
-        "--store-internal", action='store_true', default=True
+        "--store-internal", action='store_true', default=store_internal
     )
     internal_store_group.add_argument(
         "--no-store-internal", action='store_false', dest="store_internal",
     )
     parser.add_argument("--override", action='append', nargs=2, default=[])
     parser.add_argument("--use-E_r", action='store_true', default=False)
-    logging_options(parser)
+
+
+def add_worker_arguments(parser):
+    """
+    Add arguments related to workers
+    """
+    parser.add_argument('-n', "--nworkers", default=None, type=int)
 
 
 def velocity_stop_generator(target_velocity):
