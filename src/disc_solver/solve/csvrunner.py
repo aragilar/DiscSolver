@@ -4,7 +4,7 @@ csvrunner module
 """
 
 from csv import DictWriter
-from multiprocessing import Pool, current_process
+from multiprocessing import current_process
 from warnings import warn
 
 from pympler.asizeof import asizeof
@@ -15,7 +15,7 @@ from .utils import SolverError, get_csv_inputs, add_worker_arguments
 from .. import __version__ as ds_version
 from ..file_format import Run, ConfigInput, SOLUTION_INPUT_FIELDS
 from ..float_handling import float_type
-from ..utils import open_or_stream, main_entry_point_wrapper
+from ..utils import open_or_stream, main_entry_point_wrapper, nicer_mp_pool
 
 
 # pylint: disable=too-few-public-methods
@@ -76,7 +76,7 @@ def csvrunner(*, output_file, input_file, nworkers=None, **kwargs):
         )
         csvwriter.writeheader()
         out.flush()
-        with Pool(nworkers) as pool:
+        with nicer_mp_pool(nworkers) as pool:
             for best_input in pool.imap(SolutionFinder(**kwargs), inputs):
                 if best_input is None:
                     warn("No final solution found for input")

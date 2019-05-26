@@ -2,7 +2,7 @@
 """
 hdf5runner module
 """
-from multiprocessing import Pool, current_process
+from multiprocessing import current_process
 from pathlib import Path
 from warnings import warn
 
@@ -20,7 +20,7 @@ from .utils import (
 from .. import __version__ as ds_version
 from ..file_format import registries, Run, ConfigInput
 from ..float_handling import float_type
-from ..utils import expanded_path, main_entry_point_wrapper
+from ..utils import expanded_path, main_entry_point_wrapper, nicer_mp_pool
 
 
 # pylint: disable=too-few-public-methods
@@ -99,7 +99,7 @@ def hdf5runner(
     """
     inputs = get_csv_inputs(input_file, label=label)
 
-    with Pool(nworkers) as pool:
+    with nicer_mp_pool(nworkers) as pool:
         for result in pool.imap(SolutionFinder(
             output_file=output_file, output_dir=output_dir,
             sonic_method=sonic_method, store_internal=store_internal,

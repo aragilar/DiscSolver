@@ -10,6 +10,7 @@ from enum import IntEnum
 from functools import wraps
 from io import IOBase
 from math import pi
+from multiprocessing import Pool
 from pathlib import Path
 from sys import stdout, argv as sys_argv
 
@@ -414,3 +415,18 @@ def main_entry_point_wrapper(description, **kwargs):
         return wrap_main
 
     return decorator
+
+
+@contextmanager
+def nicer_mp_pool(*args, **kwargs):
+    """
+    Wrapper around multiprocessing.Pool - maybe look at forks or alternatives?
+    """
+    try:
+        pool = Pool(*args, **kwargs)
+        yield pool
+    finally:
+        # terminate is usually called, which can break stuff if there's a
+        # problem
+        pool.close()
+        pool.join()
