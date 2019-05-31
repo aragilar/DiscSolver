@@ -273,15 +273,18 @@ def common_plotting_options(parser):
     Common plotting options to control appearance and output
     """
     parser.add_argument("--show", action="store_true", default=False)
-    parser.add_argument("--filename")
-    parser.add_argument("--figsize", nargs=2)
-    parser.add_argument("--start")
-    parser.add_argument("--stop")
-    parser.add_argument("--linestyle")
-    parser.add_argument("--title")
-    parser.add_argument("--style")
+    parser.add_argument("--filename", default=None)
     parser.add_argument(
-        "--no-show-version", action="store_false", dest="with_version"
+        "--figsize", nargs=2, default=None, type=str_to_float
+    )
+    parser.add_argument("--start", default='0', type=str_to_float)
+    parser.add_argument("--stop", default='90', type=str_to_float)
+    parser.add_argument("--linestyle", default="-")
+    parser.add_argument("--title", default=None)
+    parser.add_argument("--style", default=DEFAULT_MPL_STYLE)
+    parser.add_argument(
+        "--no-show-version", action="store_false", dest="with_version",
+        default=True,
     )
     return parser
 
@@ -292,21 +295,18 @@ def get_common_plot_args(args):
     """
     figargs = {}
     if args.get("figsize") is not None:
-        figargs["figsize"] = (
-            int(args["figsize"][0]),
-            int(args["figsize"][1])
-        )
+        figargs["figsize"] = args["figsize"]
 
     return {
-        "show": args.get("show", False),
-        "plot_filename": args.get("filename"),
+        "show": args["show"],
+        "plot_filename": args["filename"],
         "figargs": figargs,
-        "start": str_to_float(args.get("start", "0")),
-        "stop": str_to_float(args.get("stop", "90")),
-        "linestyle": args.get("linestyle", "-"),
-        "title": args.get("title"),
-        "mpl_style": args.get("style", DEFAULT_MPL_STYLE),
-        "with_version": args.get("with_version", True),
+        "start": args["start"],
+        "stop": args["stop"],
+        "linestyle": args["linestyle"],
+        "title": args["title"],
+        "mpl_style": args["style"],
+        "with_version": args["with_version"],
     }
 
 
