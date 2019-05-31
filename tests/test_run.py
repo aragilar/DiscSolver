@@ -477,16 +477,16 @@ class TestAnalysis:
         return plot(solution, plot_filename=plot_file)
 
     def test_diverge_show(self, solution, mpl_interactive):
-        diverge_main([str(solution), '--show'])
+        diverge_main([solution, '--show'])
 
     def test_diverge_file(self, solution, plot_file):
-        diverge_main([str(solution), '--filename', str(plot_file)])
+        diverge_main([solution, '--filename', str(plot_file)])
 
     def test_conserve_show(self, solution, mpl_interactive):
-        conserve_main([str(solution), '--show'])
+        conserve_main([solution, '--show'])
 
     def test_conserve_file(self, solution, plot_file):
-        conserve_main([str(solution), '--filename', str(plot_file)])
+        conserve_main([solution, '--filename', str(plot_file)])
 
     def test_j_e_plot_show(self, solution, mpl_interactive):
         j_e_plot(solution, show=True)
@@ -504,7 +504,7 @@ class TestAnalysis:
         return vert_plot(solution, plot_filename=plot_file)
 
     def test_stats(self, solution, tmpdir):
-        return stats_main([str(solution), '--file', str(tmpdir / 'stats.csv')])
+        return stats_main([solution, '--file', str(tmpdir / 'stats.csv')])
 
 
 def test_taylor_space(mpl_interactive):
