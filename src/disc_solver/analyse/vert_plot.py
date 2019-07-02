@@ -2,7 +2,7 @@
 """
 Plot command for DiscSolver
 """
-from numpy import degrees, sqrt, ones as np_ones
+from numpy import sqrt, ones as np_ones
 
 from ..utils import (
     mhd_wave_speeds, MHD_Wave_Index, CylindricalODEIndex,
@@ -139,7 +139,7 @@ def generate_plot(
     if with_sonic:
         param_names[CylindricalODEIndex.v_z]["extras"].append({
             "label": "sound",
-            "data": np_ones(len(solution)),
+            "data": np_ones(len(vert_soln)),
         })
 
     axes = fig.subplots(
@@ -148,20 +148,20 @@ def generate_plot(
 
     # only add label to bottom plots
     for ax in axes[1]:
-        ax.set_xlabel("angle from plane (°)")
+        ax.set_xlabel("height from plane ($c_s/v_k$ scale heights)")
 
     axes.shape = len(param_names)
     for i, settings in enumerate(param_names):
         ax = axes[i]
         ax.plot(
-            degrees(angles[indexes]),
+            heights[indexes],
             (
-                solution[:, i] - settings.get("offset", 0)
+                vert_soln[:, i] - settings.get("offset", 0)
             )[indexes], linestyle, label=settings["name"]
         )
         for extra in settings.get("extras", []):
             ax.plot(
-                degrees(angles[indexes]),
+                heights[indexes],
                 extra["data"][indexes],
                 label=extra.get("label")
             )

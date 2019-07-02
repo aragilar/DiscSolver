@@ -15,7 +15,7 @@ from pathlib import Path
 from sys import stdout, argv as sys_argv
 
 import numpy as np
-from numpy import cos, sin, sqrt
+from numpy import cos, sin, sqrt, tan
 
 import logbook
 
@@ -267,19 +267,27 @@ def scale_solution_to_radii(soln, new_r, *, γ, use_E_r):
     return scaled_soln
 
 
+def get_heights(angles, *, c_s_on_v_k):
+    """
+    Get heights from angles
+    """
+    return tan(angles) / c_s_on_v_k
+
+
 def get_vertical_scaling(angles, *, c_s_on_v_k):
     """
     Get scaling from spherical to vertical_scale
     """
-    return 1 + (1 - cos(angles)) / (c_s_on_v_k ** 2 * cos(angles))
+    heights = get_heights(angles, c_s_on_v_k=c_s_on_v_k)
+    return sqrt(1 + heights**2)
 
 
 def convert_solution_to_vertical(angles, soln, *, γ, c_s_on_v_k, use_E_r):
     """
     Shift solution values to vertical. Does not change to cylindrical
     """
+    heights = get_heights(angles, c_s_on_v_k=c_s_on_v_k)
     scaling = get_vertical_scaling(angles, c_s_on_v_k=c_s_on_v_k)
-    heights = sqrt((1 - cos(angles)) / cos(angles)) / c_s_on_v_k
 
     new_soln = scale_solution_to_radii(soln, scaling, γ=γ, use_E_r=use_E_r)
 
