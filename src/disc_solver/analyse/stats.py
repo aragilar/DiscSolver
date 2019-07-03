@@ -7,13 +7,13 @@ from sys import stdin
 
 from logbook.compat import redirected_warnings, redirected_logging
 
-from numpy import degrees, argmax, max as np_max
+from numpy import degrees, argmax, max as np_max, sqrt
 
 from h5preserve import open as h5open
 
 from ..file_format import SOLUTION_INPUT_FIELDS, registries
 from ..logging import log_handler
-from ..utils import open_or_stream, main_entry_point_wrapper
+from ..utils import open_or_stream, main_entry_point_wrapper, ODEIndex
 from .utils import get_mach_numbers, get_all_sonic_points
 from .phys_ratio_plot import compute_M_dot_out_on_M_dot_in, compute_Σ
 
@@ -36,6 +36,7 @@ FIELD_NAMES = list(SOLUTION_INPUT_FIELDS) + [
     "fast_sonic_point",
     "M_dot_out_on_M_dot_in",
     "Σ",
+    "max_B_p_on_B_t",
     "filename",
     "solution_name",
 ]
@@ -66,6 +67,16 @@ def get_max_mach_numbers(solution):
     }
 
 
+def compute_B_poloidal_vs_B_toroidal(solution, indexes=slice(None)):
+    """
+    Compute B_p/B_t (i.e. B_φ / sqrt(B_r^2 + B_θ^2))
+    """
+    soln = solution.solution
+    return soln[indexes, ODEIndex.B_φ] / sqrt(
+        soln[indexes, ODEIndex.B_r] ** 2 + soln[indexes, ODEIndex.B_θ] ** 2
+    )
+
+
 def labelled_get_all_sonic_points(solution):
     """
     Labels the output from get_all_sonic_points for writing to csv files.
@@ -85,7 +96,12 @@ def singluar_stats(solution):
     """
     M_dot_out_on_M_dot_in = compute_M_dot_out_on_M_dot_in(solution)
     Σ = compute_Σ(solution)
-    return {"M_dot_out_on_M_dot_in": M_dot_out_on_M_dot_in, "Σ": Σ}
+    max_B_p_on_B_t = max(compute_B_poloidal_vs_B_toroidal(solution))
+    return {
+        "M_dot_out_on_M_dot_in": M_dot_out_on_M_dot_in,
+        "Σ": Σ,
+        "max_B_p_on_B_t": max_B_p_on_B_t,
+    }
 
 
 STATS_FUNCS = [
