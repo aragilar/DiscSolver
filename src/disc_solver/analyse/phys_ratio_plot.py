@@ -2,7 +2,7 @@
 """
 Plot command for DiscSolver
 """
-from numpy import degrees, sum as np_sum
+from numpy import degrees, sum as np_sum, pi
 from scipy.integrate import simps
 
 from ..float_handling import float_type
@@ -143,25 +143,47 @@ def compute_M_dot_out_on_M_dot_in(
     """
     Find M_dot_out / M_dot_in
     """
+    M_dot_out = compute_M_dot_out(
+        soln, indexes=indexes, r_in=r_in, r_out=r_out
+    )
+    M_dot_in = compute_M_dot_in(soln, indexes=indexes, r_in=r_in, r_out=r_out)
+
+    return M_dot_out / M_dot_in
+
+
+def compute_M_dot_out(soln, indexes=slice(None), r_in=0.1, r_out=100):
+    """
+    Find M_dot_out
+    """
+
     # Integers don't work with negative powers
     r_in, r_out = float_type(r_in), float_type(r_out)
 
     solution = soln.solution[indexes]
-    angles = soln.angles[indexes]
     γ = soln.initial_conditions.γ
-    ρ = solution[:, ODEIndex.ρ]
-    v_r = solution[:, ODEIndex.v_r]
 
-    # need minus sign as by default in is negative
-    M_in = - simps(y=ρ*v_r, x=angles)
+    scaling = (r_out ** (2 * γ) - r_in ** (2 * γ)) / (2 * γ)
 
-    scaling = (r_out ** (2 * γ) - r_in ** (2 * γ)) / (2 * γ) / (
-        r_in ** (2 * γ - 1) - r_out ** (2 * γ - 1)
+    return 4 * pi * scaling * (
+        solution[-1, ODEIndex.ρ] * solution[-1, ODEIndex.v_θ]
     )
 
-    return scaling * (
-        solution[-1, ODEIndex.ρ] * solution[-1, ODEIndex.v_θ]
-    ) / M_in
+
+def compute_M_dot_in(soln, indexes=slice(None), r_in=0.1, r_out=100):
+    """
+    Find M_dot_in
+    """
+    # Integers don't work with negative powers
+    r_in, r_out = float_type(r_in), float_type(r_out)
+    solution = soln.solution[indexes]
+    angles = soln.angles[indexes]
+    ρ = solution[:, ODEIndex.ρ]
+    v_r = solution[:, ODEIndex.v_r]
+    γ = soln.initial_conditions.γ
+    # need minus sign as by default in is negative
+    return - 4 * pi * simps(y=ρ*v_r, x=angles) * (
+        r_in ** (2 * γ - 1) - r_out ** (2 * γ - 1)
+    )
 
 
 def compute_Σ(soln, indexes=slice(None)):
