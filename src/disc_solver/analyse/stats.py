@@ -13,7 +13,10 @@ from h5preserve import open as h5open
 
 from ..file_format import SOLUTION_INPUT_FIELDS, registries
 from ..logging import log_handler
-from ..utils import open_or_stream, main_entry_point_wrapper, ODEIndex
+from ..utils import (
+    open_or_stream, main_entry_point_wrapper, ODEIndex, CylindricalODEIndex,
+    convert_spherical_to_cylindrical,
+)
 from .utils import get_mach_numbers, get_all_sonic_points
 from .phys_ratio_plot import compute_M_dot_out_on_M_dot_in, compute_Σ
 
@@ -37,9 +40,30 @@ FIELD_NAMES = list(SOLUTION_INPUT_FIELDS) + [
     "M_dot_out_on_M_dot_in",
     "Σ",
     "max_B_p_on_B_t",
+    "max_jet_v_z",
+    "max_jet_v_z_height",
     "filename",
     "solution_name",
 ]
+
+
+def compute_max_vert_jet_velocity(soln):
+    """
+    Find the maximum v_z velocity of the jet, and its height
+    """
+    solution = soln.solution
+    angles = soln.angles
+    inp = soln.solution_input
+
+    heights, vert_soln = convert_spherical_to_cylindrical(
+        angles, solution, γ=inp.γ, c_s_on_v_k=inp.c_s_on_v_k, use_E_r=False,
+    )
+    max_v_z = max(vert_soln[:, CylindricalODEIndex.v_z])
+    max_v_z_height = heights[argmax(max_v_z)]
+    return {
+        "max_jet_v_z": max_v_z,
+        "max_jet_v_z_height": max_v_z_height,
+    }
 
 
 def get_max_mach_numbers(solution):
@@ -105,7 +129,8 @@ def singluar_stats(solution):
 
 
 STATS_FUNCS = [
-    get_max_mach_numbers, labelled_get_all_sonic_points, singluar_stats
+    get_max_mach_numbers, labelled_get_all_sonic_points, singluar_stats,
+    compute_max_vert_jet_velocity,
 ]
 
 
