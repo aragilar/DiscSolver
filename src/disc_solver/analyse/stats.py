@@ -19,10 +19,12 @@ from ..utils import (
 )
 from .utils import get_mach_numbers, get_all_sonic_points
 from .phys_ratio_plot import compute_M_dot_out_on_M_dot_in, compute_Σ
+from .validate_plot import (
+    validate_continuity, validate_solenoid, validate_radial_momentum,
+    validate_polar_momentum, validate_azimuthal_mometum,
+    validate_polar_induction, validate_E_φ, get_values,
+)
 
-
-# STATS
-# validate_plot has things
 
 FIELD_NAMES = list(SOLUTION_INPUT_FIELDS) + [
     "max_slow_mach",
@@ -42,9 +44,46 @@ FIELD_NAMES = list(SOLUTION_INPUT_FIELDS) + [
     "max_B_p_on_B_t",
     "max_jet_v_z",
     "max_jet_v_z_height",
+    "max_diff_continuity",
+    "max_diff_solenoid",
+    "max_diff_radial_momentum",
+    "max_diff_azimuthal_momentum",
+    "max_diff_polar_momentum",
+    "max_diff_polar_induction",
+    "max_diff_E_φ",
     "filename",
     "solution_name",
 ]
+
+
+def compute_max_difference_in_equations(solution):
+    """
+    Use validity calculations to determine worst fit values.
+    """
+    values = get_values(solution)
+    return {
+        "max_diff_continuity": max(validate_continuity(
+            values.initial_conditions, values
+        )),
+        "max_diff_solenoid": max(validate_solenoid(
+            values.initial_conditions, values
+        )),
+        "max_diff_radial_momentum": max(validate_radial_momentum(
+            values.initial_conditions, values
+        )),
+        "max_diff_azimuthal_momentum": max(validate_azimuthal_mometum(
+            values.initial_conditions, values
+        )),
+        "max_diff_polar_momentum": max(validate_polar_momentum(
+            values.initial_conditions, values
+        )),
+        "max_diff_polar_induction": max(validate_polar_induction(
+            values.initial_conditions, values
+        )),
+        "max_diff_E_φ": max(validate_E_φ(
+            values.initial_conditions, values
+        )),
+    }
 
 
 def compute_max_vert_jet_velocity(soln):
@@ -130,7 +169,7 @@ def singluar_stats(solution):
 
 STATS_FUNCS = [
     get_max_mach_numbers, labelled_get_all_sonic_points, singluar_stats,
-    compute_max_vert_jet_velocity,
+    compute_max_vert_jet_velocity, compute_max_difference_in_equations,
 ]
 
 

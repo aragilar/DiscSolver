@@ -4,7 +4,9 @@ Validate-plot command for DiscSolver
 """
 from types import SimpleNamespace
 
-from numpy import sqrt, tan, degrees, absolute
+import logbook
+
+from numpy import sqrt, tan, degrees, absolute, gradient, array
 
 from ..float_handling import float_type
 from ..utils import ODEIndex
@@ -15,6 +17,8 @@ from .utils import (
     get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
     AnalysisError, DEFAULT_MPL_STYLE,
 )
+
+logger = logbook.Logger(__name__)
 
 
 def plot_parser(parser):
@@ -179,13 +183,25 @@ def get_values(solution):
     internal_data = solution.internal_data
     init_con = solution.initial_conditions
 
-    params = internal_data.params
-    derivs = internal_data.derivs
-
     values = SimpleNamespace(
         deriv=SimpleNamespace(),
         initial_conditions=SimpleNamespace(),
     )
+
+    if internal_data is not None:
+        params = internal_data.params
+        derivs = internal_data.derivs
+        values.angles = internal_data.angles
+    else:
+        logger.notice(
+            "No internal data, using solution and approximating derivatives"
+        )
+        params = solution.solution
+        derivs = array([
+            gradient(solution.solution[:, i], solution.angles)
+            for i in range(len(ODEIndex))
+        ]).T
+        values.angles = solution.angles
 
     values.initial_conditions.a_0 = init_con.a_0
     values.initial_conditions.γ = init_con.γ
@@ -213,8 +229,6 @@ def get_values(solution):
     values.deriv.η_O = derivs[:, ODEIndex.η_O]
     values.deriv.η_A = derivs[:, ODEIndex.η_A]
     values.deriv.η_H = derivs[:, ODEIndex.η_H]
-
-    values.angles = internal_data.angles
 
     B_mag = sqrt(values.B_r ** 2 + values.B_φ ** 2 + values.B_θ ** 2)
     values.norm_B_r, values.norm_B_φ, values.norm_B_θ = (
