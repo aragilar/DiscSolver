@@ -156,13 +156,17 @@ def ode_system(
         )
 
         if v_θ_sonic_crit is not None and np_abs(1 - v_θ) < v_θ_sonic_crit:
-            deriv_v_θ = deriv_v_θ_sonic(
-                a_0=a_0, ρ=ρ, B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H,
-                η_A=η_A, θ=θ, v_r=v_r, v_φ=v_φ, deriv_v_r=deriv_v_r,
-                deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r, deriv_B_θ=deriv_B_θ,
-                B_φ_prime=B_φ_prime, γ=γ, η_O_0=η_O_0, η_A_0=η_A_0,
-                η_H_0=η_H_0, η_derivs=η_derivs,
-            )
+            try:
+                deriv_v_θ = deriv_v_θ_sonic(
+                    a_0=a_0, ρ=ρ, B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H,
+                    η_A=η_A, θ=θ, v_r=v_r, v_φ=v_φ, deriv_v_r=deriv_v_r,
+                    deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r,
+                    deriv_B_θ=deriv_B_θ, B_φ_prime=B_φ_prime, γ=γ, η_O_0=η_O_0,
+                    η_A_0=η_A_0, η_H_0=η_H_0, η_derivs=η_derivs,
+                )
+            except SolverError as e:
+                log.warning(e)
+                return 1
         else:
             deriv_v_θ = (
                 v_r / 2 * (v_θ ** 2 - 4 * γ) + v_θ * (
