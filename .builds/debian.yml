@@ -7,6 +7,8 @@ packages:
 #
 - libsundials-dev # scikits.odes
 - libhdf5-dev # h5py
+- libgirepository1.0-dev # matplotlib/pygobject
+- libgtk-3-dev # matplotlib/pygobject
 #
 - xvfb # headless testing
 
