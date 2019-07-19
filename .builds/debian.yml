@@ -16,6 +16,7 @@ sources:
 environment:
   PIPI: '"python3 -m pip install --user -U"'
   PATH: '$HOME/.local/bin:$PATH'
+  CODECOV_TOKEN: "879ba747-6e2f-4177-9cd9-4966dd876c0e"
 
 tasks:
     - disable_manylinux: |
