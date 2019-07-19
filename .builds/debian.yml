@@ -18,6 +18,8 @@ environment:
   PATH: '$HOME/.local/bin:$PATH'
 
 tasks:
+    - disable_manylinux: |
+        sudo cp DiscSolver/.builds/_manylinux.py /usr/lib/python3.7/_manylinux.py
     - deps_install: |
         cd DiscSolver
         $PIPI pip setuptools wheel
