@@ -56,7 +56,7 @@ def ode_system(
     """
     # pylint: disable=too-many-statements
     taylor_derivs = taylor_series(
-        γ=γ, a_0=a_0, init_con=init_con, η_derivs=η_derivs
+        γ=γ, a_0=a_0, init_con=init_con, η_derivs=η_derivs, use_E_r=use_E_r,
     )
     dderiv_v_rM = taylor_derivs[ODEIndex.v_r]
     dderiv_v_φM = taylor_derivs[ODEIndex.v_φ]
@@ -323,7 +323,8 @@ def jump_across_sonic(
 def taylor_solution(
     *, angles, init_con, γ, a_0, norm_kepler_sq, taylor_stop_angle,
     relative_tolerance=float_type(1e-6), absolute_tolerance=float_type(1e-10),
-    max_steps=500, η_derivs=True, store_internal=True, θ_scale=float_type(1)
+    max_steps=500, η_derivs=True, store_internal=True, θ_scale=float_type(1),
+    use_E_r=False
 ):
     """
     Compute solution using taylor series
@@ -332,7 +333,7 @@ def taylor_solution(
     system, internal_data = ode_system(
         γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,
         init_con=init_con, with_taylor=True, η_derivs=η_derivs,
-        store_internal=store_internal, θ_scale=θ_scale,
+        store_internal=store_internal, θ_scale=θ_scale, use_E_r=use_E_r,
     )
 
     solver = ode(
@@ -375,7 +376,7 @@ def taylor_solution(
 
 def taylor_jump(
     *, angles, init_con, γ, a_0, taylor_stop_angle,
-    η_derivs=True, θ_scale=float_type(1)
+    η_derivs=True, θ_scale=float_type(1), use_E_r=False
 ):
     """
     Perform a single large step off the midplane using a taylor series
@@ -386,13 +387,13 @@ def taylor_jump(
     insert(new_angles, 0, taylor_stop_angle)
 
     first_order_taylor_values = get_taylor_first_order(
-        init_con=init_con, γ=γ
+        init_con=init_con, γ=γ, a_0=a_0,
     )
     second_order_taylor_values = get_taylor_second_order(
-        init_con=init_con, γ=γ, a_0=a_0, η_derivs=η_derivs
+        init_con=init_con, γ=γ, a_0=a_0, η_derivs=η_derivs, use_E_r=use_E_r,
     )
     third_order_taylor_values = get_taylor_third_order(
-        init_con=init_con, γ=γ, a_0=a_0, η_derivs=η_derivs
+        init_con=init_con, γ=γ, a_0=a_0, η_derivs=η_derivs, use_E_r=use_E_r,
     )
 
     taylor_values = init_con + taylor_stop_angle * (
@@ -516,11 +517,7 @@ def solution(
     jump_before_sonic = soln_input.jump_before_sonic
     v_θ_sonic_crit = soln_input.v_θ_sonic_crit
 
-    if with_taylor and use_E_r:
-        raise SolverError(
-            "Cannot use taylor series and E_r at the same time currently"
-        )
-    elif with_taylor:
+    if with_taylor:
         taylor_stop_angle = radians(soln_input.taylor_stop_angle)
     else:
         taylor_stop_angle = None
@@ -536,7 +533,7 @@ def solution(
             taylor_soln = taylor_jump(
                 angles=angles, init_con=init_con, γ=γ, a_0=a_0,
                 taylor_stop_angle=taylor_stop_angle, η_derivs=η_derivs,
-                θ_scale=θ_scale,
+                θ_scale=θ_scale, use_E_r=use_E_r,
             )
 
         else:
@@ -547,6 +544,7 @@ def solution(
                 absolute_tolerance=absolute_tolerance, max_steps=max_steps,
                 taylor_stop_angle=taylor_stop_angle, η_derivs=η_derivs,
                 store_internal=store_internal, θ_scale=θ_scale,
+                use_E_r=use_E_r,
             )
         post_taylor_angles = taylor_soln.new_angles
         post_taylor_initial_conditions = taylor_soln.new_initial_conditions

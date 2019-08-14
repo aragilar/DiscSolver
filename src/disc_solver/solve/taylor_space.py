@@ -92,12 +92,12 @@ def compute_taylor_values(inp, *, use_E_r=False):
     a_0 = cons.a_0
     return (
         init_con,
-        get_taylor_first_order(init_con=init_con, γ=γ),
+        get_taylor_first_order(init_con=init_con, γ=γ, a_0=a_0),
         get_taylor_second_order(
-            γ=γ, a_0=a_0, init_con=init_con, η_derivs=False
+            γ=γ, a_0=a_0, init_con=init_con, η_derivs=False, use_E_r=use_E_r,
         ),
         get_taylor_third_order(
-            γ=γ, a_0=a_0, init_con=init_con, η_derivs=False
+            γ=γ, a_0=a_0, init_con=init_con, η_derivs=False, use_E_r=use_E_r,
         )
     )
 
