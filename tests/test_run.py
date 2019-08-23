@@ -63,12 +63,11 @@ class TestSolve:
         )
 
     def test_single_default_use_E_r(self, tmpdir):
-        with pytest.raises(SolverError):
-            solve(
-                output_dir=Path(str(tmpdir)), sonic_method="single",
-                config_file=None, output_file=None, store_internal=True,
-                use_E_r=True,
-            )
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="single",
+            config_file=None, output_file=None, store_internal=True,
+            use_E_r=True,
+        )
 
     def test_step_default(self, tmpdir):
         solve(
