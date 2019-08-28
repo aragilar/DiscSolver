@@ -16,13 +16,16 @@ sources:
 - https://git.sr.ht/~aragilar/DiscSolver
 
 environment:
-  PIPI: '"python3 -m pip install --user -U"'
-  PATH: '$HOME/.local/bin:$PATH'
+  PIPI: python3 -m pip install --user -U
   CODECOV_TOKEN: "879ba747-6e2f-4177-9cd9-4966dd876c0e"
 
 tasks:
+    - setup_path: |
+        echo "export PATH=$HOME/.local/bin:$PATH" >> ~/.buildenv
     - disable_manylinux: |
-        sudo cp DiscSolver/.builds/_manylinux.py /usr/lib/python3.7/_manylinux.py
+        /bin/echo $PATH
+        cd DiscSolver
+        sudo cp .builds/_manylinux.py /usr/lib/python3.7/_manylinux.py
     - deps_install: |
         cd DiscSolver
         $PIPI pip setuptools wheel
