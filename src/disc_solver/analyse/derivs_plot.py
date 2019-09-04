@@ -75,9 +75,6 @@ def generate_derivs_plot(
     """
     Generate plot of derivatives
     """
-    if use_E_r:
-        raise AnalysisError("Function needs modification to work with use_E_r")
-
     internal_data = soln.internal_data
     if internal_data is None:
         raise AnalysisError("Internal data required to generate plot")
