@@ -9,7 +9,7 @@ import logbook
 
 from numpy import (
     array, concatenate, copy, insert, errstate, sqrt, tan, degrees, radians,
-    zeros, abs as np_abs
+    zeros,
 )
 
 from scikits.odes import ode
@@ -50,12 +50,15 @@ TaylorSolution = namedtuple(
 def ode_system(
     *, γ, a_0, norm_kepler_sq, init_con, θ_scale=float_type(1),
     with_taylor=False, η_derivs=True, store_internal=True, use_E_r=False,
-    v_θ_sonic_crit=None
+    v_θ_sonic_crit=None, after_sonic=None
 ):
     """
     Set up the system we are solving for.
     """
     # pylint: disable=too-many-statements
+    if v_θ_sonic_crit is not None and after_sonic is None:
+        after_sonic = v_θ_sonic_crit
+
     taylor_derivs = taylor_series(
         γ=γ, a_0=a_0, init_con=init_con, η_derivs=η_derivs, use_E_r=use_E_r,
     )
@@ -158,7 +161,9 @@ def ode_system(
             deriv_v_φ_taylor if with_taylor else deriv_v_φ_normal
         )
 
-        if v_θ_sonic_crit is not None and np_abs(1 - v_θ) < v_θ_sonic_crit:
+        if v_θ_sonic_crit is not None and (
+            (- after_sonic) < (1 - v_θ) < v_θ_sonic_crit
+        ):
             try:
                 deriv_v_θ = deriv_v_θ_sonic(
                     a_0=a_0, ρ=ρ, B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H,
@@ -294,11 +299,13 @@ def jacobian_viewer_generator(internal_data):
 def jump_across_sonic(
     *, base_solution, angles, system_initial_conditions, γ, a_0,
     norm_kepler_sq, η_derivs=True, θ_scale=float_type(1), use_E_r=False,
-    jump_before_sonic
+    jump_before_sonic, jump_after_sonic
 ):
     """
     Cross sonic point via a jump
     """
+    if jump_after_sonic is None:
+        jump_after_sonic = jump_before_sonic
     initial_angle = base_solution.values.t[-1]
     initial_values = base_solution.values.y[-1]
 
@@ -311,7 +318,7 @@ def jump_across_sonic(
     derivs = zeros(len(ODEIndex))
     system(initial_angle, initial_values, derivs)
 
-    dθ = 2 * jump_before_sonic / derivs[ODEIndex.v_θ]
+    dθ = (jump_before_sonic + jump_after_sonic) / derivs[ODEIndex.v_θ]
     final_angle = initial_angle + dθ
 
     post_sonic_angles = concatenate(
@@ -423,7 +430,7 @@ def main_solution(
     absolute_tolerance=float_type(1e-10), max_steps=500, onroot_func=None,
     jump_before_sonic=None, tstop=None, ontstop_func=None, η_derivs=True,
     store_internal=True, root_func=None, root_func_args=None,
-    θ_scale=float_type(1), use_E_r=False, v_θ_sonic_crit=None
+    θ_scale=float_type(1), use_E_r=False, v_θ_sonic_crit=None, after_sonic=None
 ):
     """
     Find solution
@@ -453,6 +460,7 @@ def main_solution(
         init_con=system_initial_conditions, η_derivs=η_derivs,
         store_internal=store_internal, with_taylor=False, θ_scale=θ_scale,
         use_E_r=use_E_r, v_θ_sonic_crit=v_θ_sonic_crit,
+        after_sonic=after_sonic,
     )
 
     solver = ode(
@@ -519,6 +527,7 @@ def solution(
     use_taylor_jump = soln_input.use_taylor_jump
     jump_before_sonic = soln_input.jump_before_sonic
     v_θ_sonic_crit = soln_input.v_θ_sonic_crit
+    after_sonic = soln_input.after_sonic
 
     if with_taylor:
         taylor_stop_angle = radians(soln_input.taylor_stop_angle)
@@ -562,7 +571,7 @@ def solution(
         η_derivs=η_derivs, store_internal=store_internal,
         jump_before_sonic=jump_before_sonic, root_func=root_func,
         root_func_args=root_func_args, θ_scale=θ_scale, use_E_r=use_E_r,
-        v_θ_sonic_crit=v_θ_sonic_crit,
+        v_θ_sonic_crit=v_θ_sonic_crit, after_sonic=after_sonic
     )
 
     if jump_before_sonic is not None:
@@ -574,7 +583,7 @@ def solution(
             system_initial_conditions=init_con, γ=γ, a_0=a_0,
             norm_kepler_sq=norm_kepler_sq, η_derivs=η_derivs,
             jump_before_sonic=jump_before_sonic, θ_scale=θ_scale,
-            use_E_r=use_E_r,
+            use_E_r=use_E_r, jump_after_sonic=after_sonic
         )
 
         post_jump_soln, post_jump_internal_data = main_solution(

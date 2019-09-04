@@ -135,6 +135,9 @@ def get_input_from_conffile(*, config_file, overrides=None):
         v_θ_sonic_crit=config.get(
             "config", "v_θ_sonic_crit", fallback="None"
         ),
+        after_sonic=config.get(
+            "config", "after_sonic", fallback="None"
+        ),
         η_derivs=config.get("config", "η_derivs", fallback="True"),
         nwalkers=config.get("config", "nwalkers", fallback="8"),
         iterations=config.get("config", "iterations", fallback="3"),

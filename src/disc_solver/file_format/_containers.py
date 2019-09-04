@@ -92,6 +92,7 @@ class ConfigInput:
     use_taylor_jump = attr.ib(default="True")
     mcmc_vars = attr.ib(default=None)
     v_θ_sonic_crit = attr.ib(default=None, converter=replace_empty_string)
+    after_sonic = attr.ib(default=None, converter=replace_empty_string)
 
     def asdict(self):
         """
@@ -138,6 +139,8 @@ class ConfigInput:
             cfg["config"]["mcmc_vars"] = self.mcmc_vars
         if self.v_θ_sonic_crit is not None:
             cfg["config"]["v_θ_sonic_crit"] = self.v_θ_sonic_crit
+        if self.after_sonic is not None:
+            cfg["config"]["after_sonic"] = self.after_sonic
 
         cfg.write(file)
 
@@ -166,6 +169,11 @@ class ConfigInput:
                 None if self.v_θ_sonic_crit == "None" or
                 self.v_θ_sonic_crit is None
                 else float_type(str_to_float(self.v_θ_sonic_crit))
+            ),
+            after_sonic=(
+                None if self.after_sonic == "None" or
+                self.after_sonic is None
+                else float_type(str_to_float(self.after_sonic))
             ),
             η_derivs=str_to_bool(self.η_derivs),
             nwalkers=str_to_int(self.nwalkers),
@@ -214,6 +222,7 @@ class SolutionInput:
     use_taylor_jump = attr.ib(default=True)
     mcmc_vars = attr.ib(default=None, converter=mcmc_vars_str_to_obj)
     v_θ_sonic_crit = attr.ib(default=None)
+    after_sonic = attr.ib(default=None)
 
     def asdict(self):
         """
@@ -241,6 +250,10 @@ class SolutionInput:
             v_θ_sonic_crit=(
                 "None" if self.v_θ_sonic_crit is None
                 else str(self.v_θ_sonic_crit)
+            ),
+            after_sonic=(
+                "None" if self.after_sonic is None
+                else str(self.after_sonic)
             ),
             η_derivs=str(self.η_derivs),
             nwalkers=str(self.nwalkers),
