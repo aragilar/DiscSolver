@@ -71,6 +71,7 @@ setuptools.setup(
             "ds-phys-ratio-plot = disc_solver.analyse.phys_ratio_plot:plot_main",
             "ds-v-deriv-plot = disc_solver.analyse.v_deriv_cmp:plot_main",
             "ds-tocsv = disc_solver.analyse.dump_csv:dump_main",
+            "ds-tocfg = disc_solver.analyse.dump_config:dump_main",
             "ds-stats = disc_solver.analyse.stats:stats_main",
             "ds-csvrunner = disc_solver.solve.csvrunner:main",
             "ds-hdf5runner = disc_solver.solve.hdf5runner:main",

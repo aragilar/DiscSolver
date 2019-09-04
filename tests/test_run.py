@@ -11,6 +11,7 @@ from disc_solver.analyse.conserve_plot import conserve_main
 from disc_solver.analyse.derivs_plot import derivs_plot
 from disc_solver.analyse.diverge_plot import diverge_main
 from disc_solver.analyse.dump_csv import dump_csv
+from disc_solver.analyse.dump_config import dump_cfg
 from disc_solver.analyse.hydro_check_plot import hydro_check_plot
 from disc_solver.analyse.info import info
 from disc_solver.analyse.j_e_plot import j_e_plot
@@ -290,6 +291,11 @@ class TestAnalysis:
         dump_csv(
             solution, with_header=True, soln_range=None,
             output_file=tmp_text_stream,
+        )
+
+    def test_dump_cfg(self, solution, tmp_text_stream):
+        dump_cfg(
+            solution, soln_range=None, output_file=tmp_text_stream,
         )
 
     def test_plot_show(self, solution, mpl_interactive):

@@ -99,11 +99,13 @@ class ConfigInput:
         """
         return attr.asdict(self, recurse=False)
 
-    def to_conf_file(self, filename):
+    def to_conf_file(self, file):
         """
         Convert ConfigInput to cfg file
         """
         cfg = CaseDependentConfigParser()
+        cfg["config"] = {}
+        cfg["initial"] = {}
 
         cfg["config"]["start"] = self.start
         cfg["config"]["stop"] = self.stop
@@ -137,8 +139,7 @@ class ConfigInput:
         if self.v_θ_sonic_crit is not None:
             cfg["config"]["v_θ_sonic_crit"] = self.v_θ_sonic_crit
 
-        with open(filename, 'w') as f:
-            cfg.write(f)
+        cfg.write(file)
 
     def to_soln_input(self):
         """
@@ -219,6 +220,44 @@ class SolutionInput:
         Convert SolutionInput to dict
         """
         return attr.asdict(self, recurse=False)
+
+    def to_config_input(self, label):
+        """
+        Convert solution input into config input
+        """
+        return ConfigInput(
+            label=label,
+            start=str(self.start),
+            stop=str(self.stop),
+            taylor_stop_angle=str(self.taylor_stop_angle),
+            max_steps=str(self.max_steps),
+            num_angles=str(self.num_angles),
+            relative_tolerance=str(self.relative_tolerance),
+            absolute_tolerance=str(self.absolute_tolerance),
+            jump_before_sonic=(
+                "None" if self.jump_before_sonic is None
+                else str(self.jump_before_sonic)
+            ),
+            v_θ_sonic_crit=(
+                "None" if self.v_θ_sonic_crit is None
+                else str(self.v_θ_sonic_crit)
+            ),
+            η_derivs=str(self.η_derivs),
+            nwalkers=str(self.nwalkers),
+            iterations=str(self.iterations),
+            threads=str(self.threads),
+            target_velocity=str(self.target_velocity),
+            split_method=self.split_method,
+            use_taylor_jump=str(self.use_taylor_jump),
+            mcmc_vars=str(self.mcmc_vars),
+            γ=str(self.γ),
+            v_rin_on_c_s=str(self.v_rin_on_c_s),
+            v_a_on_c_s=str(self.v_a_on_c_s),
+            c_s_on_v_k=str(self.c_s_on_v_k),
+            η_O=str(self.η_O),
+            η_H=str(self.η_H),
+            η_A=str(self.η_A),
+        )
 
 
 class Problems(MutableMapping):
