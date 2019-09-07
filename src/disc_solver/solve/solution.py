@@ -171,6 +171,7 @@ def ode_system(
                     deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r,
                     deriv_B_θ=deriv_B_θ, deriv_B_φ=deriv_B_φ, γ=γ, η_O_0=η_O_0,
                     η_A_0=η_A_0, η_H_0=η_H_0, η_derivs=η_derivs, E_r=E_r,
+                    v_θ=v_θ,
                 )
             except SolverError as e:
                 log.warning(e)
