@@ -280,7 +280,15 @@ def step_input():
         else:
             raise StepperError("Solution type not known")
         if prev_γ == inp_dict["γ"]:
-            raise StepperStop("Hit numerical limit")
+            # we've hit the numerical limit, now find a diverging solution
+            if soln_type == SplitterStatus.DIVERGE:
+                raise StepperStop("Hit numerical limit")
+
+            # we've got a sign flip solution then
+            bigger_step = 0
+            while prev_γ == inp_dict["γ"]:
+                bigger_step += step_size
+                inp_dict["γ"] += bigger_step
         return SolutionInput(**inp_dict)
     return step_func
 
