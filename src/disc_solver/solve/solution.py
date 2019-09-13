@@ -575,6 +575,19 @@ def solution(
         v_θ_sonic_crit=v_θ_sonic_crit, after_sonic=after_sonic
     )
 
+    if store_internal and taylor_stop_angle is not None:
+        if taylor_internal is not None:
+            internal_data = taylor_internal + internal_data
+
+    if taylor_stop_angle is None:
+        joined_angles = scaled_to_rad(soln.values.t, θ_scale)
+        joined_solution = soln.values.y
+    else:
+        joined_angles = concatenate(
+            (taylor_soln.angles, scaled_to_rad(soln.values.t, θ_scale))
+        )
+        joined_solution = concatenate((taylor_soln.params, soln.values.y))
+
     if jump_before_sonic is not None:
         log.info("jumping over sonic point with jump size {}".format(
             jump_before_sonic
@@ -599,20 +612,6 @@ def solution(
             θ_scale=θ_scale, use_E_r=use_E_r, v_θ_sonic_crit=v_θ_sonic_crit,
         )
 
-    if store_internal and taylor_stop_angle is not None:
-        if taylor_internal is not None:
-            internal_data = taylor_internal + internal_data
-
-    if taylor_stop_angle is None:
-        joined_angles = scaled_to_rad(soln.values.t, θ_scale)
-        joined_solution = soln.values.y
-    else:
-        joined_angles = concatenate(
-            (taylor_soln.angles, scaled_to_rad(soln.values.t, θ_scale))
-        )
-        joined_solution = concatenate((taylor_soln.params, soln.values.y))
-
-    if jump_before_sonic is not None:
         if store_internal and post_jump_internal_data is not None:
             internal_data = internal_data + post_jump_internal_data
 
