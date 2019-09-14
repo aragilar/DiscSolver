@@ -2,6 +2,7 @@
 """
 Utility function and classes for solver associated code
 """
+from collections import defaultdict
 from csv import DictReader, Sniffer
 
 import attr
@@ -12,7 +13,9 @@ from numpy import (
     diff,
     abs as np_abs,
     sqrt as np_sqrt,
+    max as np_max,
 )
+from scipy.interpolate import interp1d
 
 from scikits.odes.sundials.cvode import StatusEnum
 
@@ -259,3 +262,16 @@ def get_csv_inputs(input_file, label=''):
         inputs = inputs[1:]
 
     return inputs
+
+
+def deduplicate_and_interpolate(x, y, **kwargs):
+    """
+    As interp1d has issues with duplicates, fix x and y so that it works
+    """
+    dedup_dict = defaultdict(list)
+    for x_i, y_i in zip(x, y):
+        dedup_dict[x_i].append(y_i)
+    fixed_x, fixed_y = zip(*[
+        (x_i, np_max(y_i)) for x_i, y_i in dedup_dict.items()
+    ])
+    return interp1d(fixed_x, fixed_y, **kwargs)

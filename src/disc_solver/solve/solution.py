@@ -26,7 +26,7 @@ from .deriv_funcs import (
 from .sonic_point import deriv_v_θ_sonic
 from .utils import (
     velocity_stop_generator, error_handler, rad_to_scaled, scaled_to_rad,
-    SolverError,
+    SolverError, deduplicate_and_interpolate,
 )
 
 from ..float_handling import float_type
@@ -50,7 +50,7 @@ TaylorSolution = namedtuple(
 def ode_system(
     *, γ, a_0, norm_kepler_sq, init_con, θ_scale=float_type(1),
     with_taylor=False, η_derivs=True, store_internal=True, use_E_r=False,
-    v_θ_sonic_crit=None, after_sonic=None
+    v_θ_sonic_crit=None, after_sonic=None, deriv_v_θ_func=None
 ):
     """
     Set up the system we are solving for.
@@ -161,7 +161,9 @@ def ode_system(
             deriv_v_φ_taylor if with_taylor else deriv_v_φ_normal
         )
 
-        if v_θ_sonic_crit is not None and (
+        if deriv_v_θ_func is not None:
+            deriv_v_θ = deriv_v_θ_func(θ)
+        elif v_θ_sonic_crit is not None and (
             (- after_sonic) < (1 - v_θ) < v_θ_sonic_crit
         ):
             try:
@@ -425,22 +427,65 @@ def taylor_jump(
     )
 
 
+def interp_cross_sonic(
+    *, base_solution, angles, system_initial_conditions, after_sonic, γ, a_0,
+    norm_kepler_sq, base_internal_data, relative_tolerance=float_type(1e-6),
+    absolute_tolerance=float_type(1e-10), max_steps=500, η_derivs=True,
+    store_internal=True, θ_scale=float_type(1), use_E_r=False,
+    interp_slice=slice(-1000, -100)
+):
+    """
+    Cross sonic point interpolating deriv_v_θ
+    """
+    θ_interp = base_internal_data.angles[interp_slice]
+    deriv_v_θ_interp = base_internal_data.derivs[interp_slice, ODEIndex.v_θ]
+    deriv_v_θ_func = deduplicate_and_interpolate(
+        θ_interp, deriv_v_θ_interp, kind='cubic',
+        fill_value="extrapolate", assume_sorted=False,
+    )
+    starting_angle = base_solution.values.t[-1]
+    soln, internal_data = main_solution(
+        system_initial_conditions=system_initial_conditions,
+        root_func=velocity_stop_generator(1 + after_sonic), root_func_args=1,
+        angles=angles[angles >= starting_angle],
+        ode_initial_conditions=base_solution.values.y[-1], γ=γ, a_0=a_0,
+        norm_kepler_sq=norm_kepler_sq, relative_tolerance=relative_tolerance,
+        absolute_tolerance=absolute_tolerance, max_steps=max_steps,
+        η_derivs=η_derivs, store_internal=store_internal, θ_scale=θ_scale,
+        use_E_r=use_E_r, deriv_v_θ_func=deriv_v_θ_func,
+    )
+    new_angles = concatenate(
+        ([soln.values.t[-1]], angles[angles > soln.values.t[-1]])
+    )
+    new_init_con = soln.values.y[-1]
+
+    return soln, internal_data, new_angles, new_init_con
+
+
 def main_solution(
     *, angles, system_initial_conditions, ode_initial_conditions, γ, a_0,
     norm_kepler_sq, relative_tolerance=float_type(1e-6),
     absolute_tolerance=float_type(1e-10), max_steps=500, onroot_func=None,
     jump_before_sonic=None, tstop=None, ontstop_func=None, η_derivs=True,
     store_internal=True, root_func=None, root_func_args=None,
-    θ_scale=float_type(1), use_E_r=False, v_θ_sonic_crit=None, after_sonic=None
+    θ_scale=float_type(1), use_E_r=False, v_θ_sonic_crit=None,
+    after_sonic=None, deriv_v_θ_func=None, sonic_interp_size=None
 ):
     """
     Find solution
     """
     extra_args = {}
+    if sonic_interp_size is not None and root_func is not None:
+        raise SolverError("Cannot use both sonic point interp and root_func")
+    if sonic_interp_size is not None and jump_before_sonic is not None:
+        raise SolverError("Cannot use two sonic point methods")
     if jump_before_sonic is not None and root_func is not None:
         raise SolverError("Cannot use both sonic point jumper and root_func")
     elif jump_before_sonic is not None and onroot_func is not None:
         raise SolverError("Cannot use both sonic point jumper and onroot_func")
+    elif sonic_interp_size is not None:
+        extra_args["rootfn"] = velocity_stop_generator(1 - sonic_interp_size)
+        extra_args["nr_rootfns"] = 1
     elif jump_before_sonic is not None:
         extra_args["rootfn"] = velocity_stop_generator(1 - jump_before_sonic)
         extra_args["nr_rootfns"] = 1
@@ -461,7 +506,7 @@ def main_solution(
         init_con=system_initial_conditions, η_derivs=η_derivs,
         store_internal=store_internal, with_taylor=False, θ_scale=θ_scale,
         use_E_r=use_E_r, v_θ_sonic_crit=v_θ_sonic_crit,
-        after_sonic=after_sonic,
+        after_sonic=after_sonic, deriv_v_θ_func=deriv_v_θ_func,
     )
 
     solver = ode(
@@ -504,6 +549,9 @@ def main_solution(
                 degrees(scaled_to_rad(tstop_scaled, θ_scale))
             ))
 
+    if internal_data is not None:
+        internal_data._finalise()  # pylint: disable=protected-access
+
     return soln, internal_data
 
 
@@ -529,6 +577,8 @@ def solution(
     jump_before_sonic = soln_input.jump_before_sonic
     v_θ_sonic_crit = soln_input.v_θ_sonic_crit
     after_sonic = soln_input.after_sonic
+    interp_slice = soln_input.interp_slice
+    sonic_interp_size = soln_input.sonic_interp_size
 
     if with_taylor:
         taylor_stop_angle = radians(soln_input.taylor_stop_angle)
@@ -572,7 +622,8 @@ def solution(
         η_derivs=η_derivs, store_internal=store_internal,
         jump_before_sonic=jump_before_sonic, root_func=root_func,
         root_func_args=root_func_args, θ_scale=θ_scale, use_E_r=use_E_r,
-        v_θ_sonic_crit=v_θ_sonic_crit, after_sonic=after_sonic
+        v_θ_sonic_crit=v_θ_sonic_crit, after_sonic=after_sonic,
+        sonic_interp_size=sonic_interp_size,
     )
 
     if store_internal and taylor_stop_angle is not None:
@@ -588,7 +639,52 @@ def solution(
         )
         joined_solution = concatenate((taylor_soln.params, soln.values.y))
 
-    if jump_before_sonic is not None:
+    if sonic_interp_size is not None:
+        int_soln, int_internal, int_angles, int_init_con = interp_cross_sonic(
+            base_solution=soln, angles=post_taylor_angles,
+            system_initial_conditions=init_con, γ=γ, a_0=a_0,
+            norm_kepler_sq=norm_kepler_sq, η_derivs=η_derivs,
+            relative_tolerance=relative_tolerance,
+            absolute_tolerance=absolute_tolerance, max_steps=max_steps,
+            θ_scale=θ_scale, use_E_r=use_E_r, store_internal=store_internal,
+            interp_slice=interp_slice, after_sonic=(
+                sonic_interp_size if after_sonic is None else after_sonic
+            ), base_internal_data=internal_data,
+        )
+
+        if store_internal and int_internal is not None:
+            internal_data = internal_data + int_internal
+
+        joined_angles = concatenate(
+            (joined_angles, scaled_to_rad(int_soln.values.t, θ_scale))
+        )
+        joined_solution = concatenate(
+            (joined_solution, int_soln.values.y)
+        )
+
+        post_interp_soln, post_interp_internal_data = main_solution(
+            angles=int_angles, system_initial_conditions=init_con,
+            ode_initial_conditions=int_init_con, γ=γ, a_0=a_0,
+            norm_kepler_sq=norm_kepler_sq,
+            relative_tolerance=relative_tolerance,
+            absolute_tolerance=absolute_tolerance, max_steps=max_steps,
+            onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
+            η_derivs=η_derivs, store_internal=store_internal,
+            root_func=root_func, root_func_args=root_func_args,
+            θ_scale=θ_scale, use_E_r=use_E_r,
+        )
+
+        if store_internal and post_interp_internal_data is not None:
+            internal_data = internal_data + post_interp_internal_data
+
+        joined_angles = concatenate(
+            (joined_angles, scaled_to_rad(post_interp_soln.values.t, θ_scale))
+        )
+        joined_solution = concatenate(
+            (joined_solution, post_interp_soln.values.y)
+        )
+
+    elif jump_before_sonic is not None:
         log.info("jumping over sonic point with jump size {}".format(
             jump_before_sonic
         ))

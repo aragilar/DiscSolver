@@ -32,6 +32,27 @@ def mcmc_vars_str_to_obj(mcmc_str):
     )
 
 
+def str_to_slice(slice_str):
+    """
+    Convert a config slice string into a slice
+    """
+    if slice_str is None:
+        return None
+    if isinstance(slice_str, slice):
+        return slice_str
+    return slice(*[int(i) for i in slice_str.strip().split(',')])
+
+
+def slice_to_str(slice_):
+    """
+    Convert a slice back to a string
+    """
+    return ','.join([
+        str(i) for i in (slice_.start, slice_.stop, slice_.step)
+        if i is not None
+    ])
+
+
 def replace_empty_string(string):
     """
     Helper for attrs which expect "None".
@@ -93,6 +114,9 @@ class ConfigInput:
     mcmc_vars = attr.ib(default=None)
     v_θ_sonic_crit = attr.ib(default=None, converter=replace_empty_string)
     after_sonic = attr.ib(default=None, converter=replace_empty_string)
+    sonic_interp_size = attr.ib(default=None, converter=replace_empty_string)
+    interp_range = attr.ib(default="10")
+    interp_slice = attr.ib(default="-1000,-100")
 
     def asdict(self):
         """
@@ -121,6 +145,8 @@ class ConfigInput:
         cfg["config"]["threads"] = self.threads
         cfg["config"]["target_velocity"] = self.target_velocity
         cfg["config"]["split_method"] = self.split_method
+        cfg["config"]["interp_range"] = self.interp_range
+        cfg["config"]["interp_slice"] = self.interp_slice
 
         cfg["initial"]["γ"] = self.γ
         cfg["initial"]["v_rin_on_c_s"] = self.v_rin_on_c_s
@@ -141,6 +167,8 @@ class ConfigInput:
             cfg["config"]["v_θ_sonic_crit"] = self.v_θ_sonic_crit
         if self.after_sonic is not None:
             cfg["config"]["after_sonic"] = self.after_sonic
+        if self.sonic_interp_size is not None:
+            cfg["config"]["sonic_interp_size"] = self.sonic_interp_size
 
         cfg.write(file)
 
@@ -175,6 +203,17 @@ class ConfigInput:
                 self.after_sonic is None
                 else float_type(str_to_float(self.after_sonic))
             ),
+            sonic_interp_size=(
+                None if self.sonic_interp_size == "None" or
+                self.sonic_interp_size is None
+                else float_type(str_to_float(self.sonic_interp_size))
+            ),
+            interp_range=(
+                None if self.interp_range == "None" or
+                self.interp_range is None
+                else str_to_int(self.interp_range)
+            ),
+            interp_slice=str_to_slice(self.interp_slice),
             η_derivs=str_to_bool(self.η_derivs),
             nwalkers=str_to_int(self.nwalkers),
             iterations=str_to_int(self.iterations),
@@ -223,6 +262,9 @@ class SolutionInput:
     mcmc_vars = attr.ib(default=None, converter=mcmc_vars_str_to_obj)
     v_θ_sonic_crit = attr.ib(default=None)
     after_sonic = attr.ib(default=None)
+    sonic_interp_size = attr.ib(default=None)
+    interp_range = attr.ib(default=10)
+    interp_slice = attr.ib(default=slice(-1000, -100), converter=str_to_slice)
 
     def asdict(self):
         """
@@ -255,6 +297,12 @@ class SolutionInput:
                 "None" if self.after_sonic is None
                 else str(self.after_sonic)
             ),
+            sonic_interp_size=(
+                "None" if self.sonic_interp_size is None
+                else str(self.sonic_interp_size)
+            ),
+            interp_range=str(self.interp_range),
+            interp_slice=slice_to_str(self.interp_slice),
             η_derivs=str(self.η_derivs),
             nwalkers=str(self.nwalkers),
             iterations=str(self.iterations),

@@ -69,7 +69,7 @@ def _solution_dumper(solution):
     )
 
 
-@ds_registry.dumper(ConfigInput, "ConfigInput", version=11)
+@ds_registry.dumper(ConfigInput, "ConfigInput", version=13)
 def _config_dumper(config_input):
     return GroupContainer(
         attrs={
@@ -100,10 +100,13 @@ def _config_dumper(config_input):
         mcmc_vars=config_input.mcmc_vars,
         v_θ_sonic_crit=config_input.v_θ_sonic_crit,
         after_sonic=config_input.after_sonic,
+        sonic_interp_size=config_input.sonic_interp_size,
+        interp_range=config_input.interp_range,
+        interp_slice=config_input.interp_slice,
     )
 
 
-@ds_registry.dumper(SolutionInput, "SolutionInput", version=11)
+@ds_registry.dumper(SolutionInput, "SolutionInput", version=13)
 def _input_dumper(solution_input):
     return GroupContainer(
         attrs={
@@ -133,6 +136,9 @@ def _input_dumper(solution_input):
         mcmc_vars=solution_input.mcmc_vars,
         v_θ_sonic_crit=solution_input.v_θ_sonic_crit,
         after_sonic=solution_input.after_sonic,
+        sonic_interp_size=solution_input.sonic_interp_size,
+        interp_range=solution_input.interp_range,
+        interp_slice=solution_input.interp_slice,
     )
 
 
@@ -185,6 +191,15 @@ def _mcmc_vars_dumper(mcmc_vars):
         with_v_r=mcmc_vars.with_v_r,
         with_v_a=mcmc_vars.with_v_a,
         with_v_k=mcmc_vars.with_v_k,
+    )
+
+
+@ds_registry.dumper(slice, "slice", version=1)
+def _slice_dumper(slice_):
+    return GroupContainer(
+        start=slice_.start,
+        stop=slice_.stop,
+        step=slice_.step,
     )
 
 # pylint: enable=missing-docstring

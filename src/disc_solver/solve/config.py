@@ -138,6 +138,15 @@ def get_input_from_conffile(*, config_file, overrides=None):
         after_sonic=config.get(
             "config", "after_sonic", fallback="None"
         ),
+        interp_range=config.get(
+            "config", "interp_range", fallback="10"
+        ),
+        sonic_interp_size=config.get(
+            "config", "sonic_interp_size", fallback="None"
+        ),
+        interp_slice=config.get(
+            "config", "interp_slice", fallback="-1000,-100"
+        ),
         η_derivs=config.get("config", "η_derivs", fallback="True"),
         nwalkers=config.get("config", "nwalkers", fallback="8"),
         iterations=config.get("config", "iterations", fallback="3"),
