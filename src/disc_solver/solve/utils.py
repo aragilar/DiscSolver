@@ -138,6 +138,7 @@ def add_solver_arguments(
     parser.add_argument(
         "--sonic-method", choices=(
             "step", "single", "mcmc", "sonic_root", "hydrostatic", "mod_hydro",
+            "fast_crosser",
         ), default=sonic_method,
     )
     parser.add_argument("--output-file", default=None)

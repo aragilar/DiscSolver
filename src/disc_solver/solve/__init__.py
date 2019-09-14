@@ -17,6 +17,7 @@ from .mcmc import solver as mcmc_solver
 from .sonic_root import solver as sonic_root_solver
 from .hydrostatic import solver as hydrostatic_solver
 from .mod_hydro import solver as mod_hydro_solver
+from .fast_crosser import solver as fast_crosser_solver
 from .utils import add_solver_arguments, SolverError, validate_overrides
 
 from .. import __version__ as ds_version
@@ -34,6 +35,7 @@ SONIC_METHOD_MAP = {
     "sonic_root": sonic_root_solver,
     "hydrostatic": hydrostatic_solver,
     "mod_hydro": mod_hydro_solver,
+    "fast_crosser": fast_crosser_solver,
 }
 
 

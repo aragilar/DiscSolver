@@ -140,6 +140,13 @@ class TestSolve:
             use_E_r=True,
         )
 
+    def test_fast_crosser_use_E_r(self, tmpdir):
+        solve(
+            output_dir=Path(str(tmpdir)), sonic_method="fast_crosser",
+            config_file=None, output_file=None, store_internal=False,
+            use_E_r=True,
+        )
+
 
 class TestReSolve:
     def test_single_default(self, tmpdir, solution):

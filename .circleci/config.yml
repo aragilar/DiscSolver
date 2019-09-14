@@ -53,6 +53,7 @@ orbs:
             default: --
         steps:
           - run:
+              no_output_timeout: 1.5h
               environment:
                 BASH_ENV: ./ci_support/ensure_sundials_installed.sh
               command: tox -e <<parameters.tox_name>> <<parameters.tox_args>>
