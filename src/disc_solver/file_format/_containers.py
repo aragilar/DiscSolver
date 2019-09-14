@@ -493,6 +493,12 @@ class Solutions(MutableMapping):
         else:
             raise RuntimeError("Failed to guess a solution location")
 
+    def get_last_solution(self):
+        """
+        Get the last solution added
+        """
+        return self[sorted(list(self), key=int)[-1]]
+
 
 @attr.s(cmp=False, hash=False)
 class Run:

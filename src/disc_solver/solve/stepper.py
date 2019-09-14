@@ -144,12 +144,13 @@ def writer_generator(run):
         """
         writer
         """
-        run.solutions[str(attempt)] = soln
+        log.debug(f"Writing attempt {attempt}")
+        run.solutions.add_solution(soln)
 
     return writer
 
 
-def cleanup_generator(run, writer):
+def cleanup_generator(run, writer, no_final_solution):
     """
     creates symlink to correct solution
     """
@@ -158,13 +159,15 @@ def cleanup_generator(run, writer):
         cleanup
         """
         writer(soln, attempt)
-        run.final_solution = run.solutions[str(attempt)]
+        if no_final_solution:
+            return None
+        run.final_solution = run.solutions.get_last_solution()
         return run.final_solution
 
     return cleanup
 
 
-def alternate_cleanup_generator(run):
+def alternate_cleanup_generator(run, no_final_solution):
     """
     creates symlink for final solution if no perfect solution
     """
@@ -172,6 +175,8 @@ def alternate_cleanup_generator(run):
         """
         alternate cleanup
         """
+        if no_final_solution:
+            return None
         run.final_solution = run.solutions[str(attempt)]
         return run.final_solution
 
@@ -295,14 +300,16 @@ def step_input():
 
 def solver(
     soln_input, run, store_internal=True, num_attempts=DEFAULT_NUM_ATTEMPTS,
-    max_search_steps=DEFAULT_MAX_SEARCH_STEPS,
+    max_search_steps=DEFAULT_MAX_SEARCH_STEPS, no_final_solution=False
 ):
     """
     Stepping solver
     """
     step_func = step_input()
     writer = writer_generator(run)
-    cleanup = cleanup_generator(run, writer)
+    cleanup = cleanup_generator(
+        run, writer, no_final_solution=no_final_solution,
+    )
     best_solution = binary_searcher(
         solution_generator(store_internal=store_internal, run=run), cleanup,
         stepper_creator(
@@ -310,12 +317,13 @@ def solver(
             create_soln_splitter(soln_input.split_method),
             max_search_steps=max_search_steps,
             initial_step_size=0.1 * soln_input.γ
-        ), alternate_cleanup_generator(run), soln_input,
-        num_attempts=num_attempts,
+        ),
+        alternate_cleanup_generator(run, no_final_solution=no_final_solution),
+        soln_input, num_attempts=num_attempts,
     )
-    if not isinstance(run.final_solution, Solution):
+    if not isinstance(run.final_solution, Solution) and not no_final_solution:
         run.final_solution = None
 
-    if best_solution is None:
+    if best_solution is None and not no_final_solution:
         return False
     return True
