@@ -35,6 +35,7 @@ def minimiser_generator(
     v_θ_sonic_crit = soln_input.v_θ_sonic_crit
     jump_before_sonic = soln_input.jump_before_sonic
     after_sonic = soln_input.after_sonic
+    sonic_interp_size = soln_input.sonic_interp_size
     get_last_solution = run.solutions.get_last_solution
 
     def minimiser(v_rin_on_c_s):
@@ -47,6 +48,7 @@ def minimiser_generator(
             v_θ_sonic_crit=None,
             after_sonic=None,
             jump_before_sonic=None,
+            sonic_interp_size=None,
         )
 
         step_solver(
@@ -57,6 +59,7 @@ def minimiser_generator(
         final_solution_dict.update(
             v_θ_sonic_crit=v_θ_sonic_crit, after_sonic=after_sonic,
             jump_before_sonic=jump_before_sonic,
+            sonic_interp_size=sonic_interp_size,
             stop=final_stop, num_angles=final_steps,
         )
         single_solver(
@@ -86,7 +89,9 @@ def solver(
     log.notice("Adding best solution")
 
     v_θ_sonic_crit = soln_input.v_θ_sonic_crit
+    jump_before_sonic = soln_input.jump_before_sonic
     after_sonic = soln_input.after_sonic
+    sonic_interp_size = soln_input.sonic_interp_size
     get_last_solution = run.solutions.get_last_solution
 
     soln_input_dict = soln_input.asdict()
@@ -95,6 +100,7 @@ def solver(
         v_θ_sonic_crit=None,
         after_sonic=None,
         jump_before_sonic=None,
+        sonic_interp_size=None,
     )
 
     step_solver(
@@ -104,6 +110,8 @@ def solver(
     final_solution_dict = get_last_solution().solution_input.asdict()
     final_solution_dict.update(
         v_θ_sonic_crit=v_θ_sonic_crit, after_sonic=after_sonic,
+        jump_before_sonic=jump_before_sonic,
+        sonic_interp_size=sonic_interp_size,
         stop=final_stop, num_angles=final_steps,
     )
     single_solver(
