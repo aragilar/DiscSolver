@@ -80,6 +80,7 @@ class SolutionFinder:
                     config_input.to_soln_input(), run,
                     store_internal=self.store_internal, **self.kwargs
                 )
+                run.finalise()
         except SolverError as e:
             warn(str(e))
             return None

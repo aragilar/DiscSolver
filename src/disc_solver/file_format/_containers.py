@@ -578,6 +578,15 @@ class Run:
         else:
             raise RuntimeError("Cannot change final solution")
 
+    def finalise(self):
+        """
+        Do final changes before finishing script
+        """
+        if isinstance(self._final_solution, DelayedContainer):
+            soln = self.solutions.get_last_solution()
+            self._final_solution.write_container(soln)
+            self._final_solution = soln
+
 
 @attr.s(
     these={

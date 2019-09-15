@@ -62,6 +62,7 @@ def resolve(
         succeeded = sonic_solver(
             new_soln_input, run, store_internal=store_internal, **kwargs
         )
+        run.finalise()
 
     return output_file, succeeded
 
