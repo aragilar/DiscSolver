@@ -55,6 +55,7 @@ class SolutionFinder:
         config_input = add_overrides(
             config_input=ConfigInput(**input_dict), overrides=self.overrides
         )
+        print(f"Config is {config_input}")
 
         run = Run(
             config_input=config_input,
@@ -74,7 +75,7 @@ class SolutionFinder:
             output_file = self.output_file
         output_file = expanded_path(self.output_dir / output_file)
 
-        print(f"Run size in {process_name} is {asizeof(run)}")
+        print(f"Initial run size in {process_name} is {asizeof(run)}")
 
         try:
             with h5open(output_file, registries, mode='x') as f:
@@ -88,7 +89,7 @@ class SolutionFinder:
             print(str(e))
             return None
 
-        print(f"Run size in {process_name} is {asizeof(run)}")
+        print(f"Final run size in {process_name} is {asizeof(run)}")
 
         return succeeded
 # pylint: enable=too-few-public-methods
