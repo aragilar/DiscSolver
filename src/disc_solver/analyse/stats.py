@@ -5,6 +5,7 @@ stats command
 from csv import DictWriter
 from sys import stdin
 
+import logbook
 from logbook.compat import redirected_warnings, redirected_logging
 
 from numpy import degrees, argmax, max as np_max, sqrt
@@ -24,6 +25,8 @@ from .validate_plot import (
     validate_polar_momentum, validate_azimuthal_mometum,
     validate_polar_induction, validate_E_φ, get_values,
 )
+
+log = logbook.Logger(__name__)
 
 
 FIELD_NAMES = list(SOLUTION_INPUT_FIELDS) + [
@@ -216,9 +219,12 @@ def get_all_solutions(files):
     """
     for file in files:
         with h5open(file, registries, mode='r') as soln_file:
-            for soln_name, soln in soln_file["run"].solutions.items():
-                yield file, soln_name, soln
-            yield file, "final", soln_file["run"].final_solution
+            try:
+                for soln_name, soln in soln_file["run"].solutions.items():
+                    yield file, soln_name, soln
+                yield file, "final", soln_file["run"].final_solution
+            except KeyError as e:
+                log.notice(f"Failed to read stats from file {file}: {e}")
 
 
 def get_all_files(args):
