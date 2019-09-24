@@ -253,13 +253,14 @@ def get_csv_inputs(input_file, label=''):
     Get inputs from csv file
     """
     with open(input_file) as infile:
-        has_header = has_csv_header(infile)
-        inputs = add_labels(DictReader(
-            infile, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
-        ), label=label)
-
-    if has_header:
-        inputs = inputs[1:]
+        if has_csv_header(infile):
+            inputs = add_labels(
+                DictReader(infile, dialect="unix"), label=label
+            )
+        else:
+            inputs = add_labels(DictReader(
+                infile, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
+            ), label=label)
 
     return inputs
 
