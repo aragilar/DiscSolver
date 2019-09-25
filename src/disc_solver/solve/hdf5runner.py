@@ -7,6 +7,7 @@ from multiprocessing import current_process
 from pathlib import Path
 
 import arrow
+from logbook import Logger
 from pympler.asizeof import asizeof
 
 from h5preserve import open as h5open
@@ -22,6 +23,8 @@ from ..file_format import registries, Run, ConfigInput
 from ..float_handling import float_type
 from ..logging import enable_multiprocess_log_handing, start_logging_in_process
 from ..utils import expanded_path, main_entry_point_wrapper, nicer_mp_pool
+
+log = Logger(__name__)
 
 
 # pylint: disable=too-few-public-methods
@@ -55,7 +58,7 @@ class SolutionFinder:
         config_input = add_overrides(
             config_input=ConfigInput(**input_dict), overrides=self.overrides
         )
-        print(f"Config is {config_input}")
+        log.info(f"Config is {config_input}")
 
         run = Run(
             config_input=config_input,
@@ -75,7 +78,7 @@ class SolutionFinder:
             output_file = self.output_file
         output_file = expanded_path(self.output_dir / output_file)
 
-        print(f"Initial run size in {process_name} is {asizeof(run)}")
+        log.notice(f"Initial run size in {process_name} is {asizeof(run)}")
 
         try:
             with h5open(output_file, registries, mode='x') as f:
@@ -86,10 +89,10 @@ class SolutionFinder:
                 )
                 run.finalise()
         except SolverError as e:
-            print(str(e))
+            log.warning(str(e))
             return None
 
-        print(f"Final run size in {process_name} is {asizeof(run)}")
+        log.notice(f"Final run size in {process_name} is {asizeof(run)}")
 
         return succeeded
 # pylint: enable=too-few-public-methods
@@ -111,7 +114,7 @@ def hdf5runner(
             use_E_r=use_E_r, overrides=overrides, **kwargs
         ), zip(inputs, repeat(queue))):
             if not result:
-                print("Solver failed for input")
+                log.notice("Solver failed for input")
 
 
 @main_entry_point_wrapper(description='hdf5runner for DiscSolver')

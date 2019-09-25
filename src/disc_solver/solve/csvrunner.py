@@ -7,6 +7,7 @@ from csv import DictWriter
 from itertools import repeat
 from multiprocessing import current_process
 
+from logbook import Logger
 from pympler.asizeof import asizeof
 
 from . import SONIC_METHOD_MAP
@@ -17,6 +18,8 @@ from ..file_format import Run, ConfigInput, SOLUTION_INPUT_FIELDS
 from ..float_handling import float_type
 from ..logging import enable_multiprocess_log_handing, start_logging_in_process
 from ..utils import open_or_stream, main_entry_point_wrapper, nicer_mp_pool
+
+log = Logger(__name__)
 
 
 # pylint: disable=too-few-public-methods
@@ -44,7 +47,7 @@ class SolutionFinder:
             use_E_r=False,
         )
         process_name = current_process().name
-        print(f"Run size in {process_name} is {asizeof(run)}")
+        log.notice(f"Run size in {process_name} is {asizeof(run)}")
         soln_input = ConfigInput(**input_dict).to_soln_input()
         sonic_solver = SONIC_METHOD_MAP.get(self.sonic_method)
         if sonic_solver is None:
@@ -56,10 +59,10 @@ class SolutionFinder:
                 **self.kwargs
             )
         except SolverError as e:
-            print(str(e))
+            log.warning(str(e))
             return None
 
-        print(f"Run size in {process_name} is {asizeof(run)}")
+        log.notice(f"Run size in {process_name} is {asizeof(run)}")
 
         if succeeded:
             return run.final_solution.solution_input.asdict()
@@ -84,7 +87,7 @@ def csvrunner(*, output_file, input_file, nworkers=None, queue=None, **kwargs):
                     SolutionFinder(**kwargs), zip(inputs, repeat(queue))
             ):
                 if best_input is None:
-                    print("No final solution found for input")
+                    log.warning("No final solution found for input")
                 else:
                     csvwriter.writerow(best_input)
                     out.flush()
