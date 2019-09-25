@@ -2,9 +2,9 @@
 """
 hdf5runner module
 """
+from itertools import repeat
 from multiprocessing import current_process
 from pathlib import Path
-from warnings import warn
 
 import arrow
 from pympler.asizeof import asizeof
@@ -20,6 +20,7 @@ from .utils import (
 from .. import __version__ as ds_version
 from ..file_format import registries, Run, ConfigInput
 from ..float_handling import float_type
+from ..logging import enable_multiprocess_log_handing, start_logging_in_process
 from ..utils import expanded_path, main_entry_point_wrapper, nicer_mp_pool
 
 
@@ -40,10 +41,12 @@ class SolutionFinder:
         self.overrides = overrides
         self.kwargs = kwargs
 
-    def __call__(self, input_dict):
+    def __call__(self, args):
         """
         Function to be mapped over
         """
+        input_dict, queue = args
+        start_logging_in_process(queue)
         sonic_solver = SONIC_METHOD_MAP.get(self.sonic_method)
         if sonic_solver is None:
             raise SolverError("No method chosen to cross sonic point")
@@ -82,7 +85,7 @@ class SolutionFinder:
                 )
                 run.finalise()
         except SolverError as e:
-            warn(str(e))
+            print(str(e))
             return None
 
         print(f"Run size in {process_name} is {asizeof(run)}")
@@ -93,7 +96,7 @@ class SolutionFinder:
 
 def hdf5runner(
     *, output_file=None, input_file, nworkers=None, use_E_r, output_dir,
-    store_internal, sonic_method, overrides, label='', **kwargs
+    store_internal, sonic_method, overrides, label='', queue=None, **kwargs
 ):
     """
     Find the best solution for the inputs given in the csv file.
@@ -105,9 +108,9 @@ def hdf5runner(
             output_file=output_file, output_dir=output_dir,
             sonic_method=sonic_method, store_internal=store_internal,
             use_E_r=use_E_r, overrides=overrides, **kwargs
-        ), inputs):
+        ), zip(inputs, repeat(queue))):
             if not result:
-                warn("Solver failed for input")
+                print("Solver failed for input")
 
 
 @main_entry_point_wrapper(description='hdf5runner for DiscSolver')
@@ -124,9 +127,11 @@ def main(argv, parser):
 
     overrides = validate_overrides(args.override)
 
+    queue = enable_multiprocess_log_handing(args)
+
     hdf5runner(
         output_dir=args.output_dir, input_file=args.input_file,
         nworkers=args.nworkers, sonic_method=args.sonic_method,
         store_internal=args.store_internal, overrides=overrides,
-        use_E_r=args.use_E_r, label=args.label,
+        use_E_r=args.use_E_r, label=args.label, queue=queue,
     )

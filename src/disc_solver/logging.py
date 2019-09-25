@@ -2,10 +2,13 @@
 """
 Logging configuration functions
 """
+import multiprocessing
 
 from logbook import NullHandler, FileHandler, NestedSetup
 from logbook.more import ColorizedStderrHandler
-from logbook.queues import ThreadedWrapperHandler
+from logbook.queues import (
+    ThreadedWrapperHandler, MultiProcessingHandler, MultiProcessingSubscriber,
+)
 
 
 def logging_options(parser):
@@ -27,7 +30,7 @@ def logging_options(parser):
     )
 
 
-def log_handler(args):
+def log_handler(args, thread_wrapping=True):
     """
     Return log handler with given config
     """
@@ -48,8 +51,35 @@ def log_handler(args):
         )
     else:
         file_handler = NullHandler()
+
+    if thread_wrapping:
+        file_handler = ThreadedWrapperHandler(file_handler)
+        stderr_handler = ThreadedWrapperHandler(stderr_handler)
+
     return NestedSetup([
         NullHandler(),  # catch everything else
-        ThreadedWrapperHandler(file_handler),
-        ThreadedWrapperHandler(stderr_handler)
+        file_handler, stderr_handler
     ])
+
+
+def enable_multiprocess_log_handing(args):
+    """
+    Set up logging when using multiprocessing
+    """
+    normal_handler = log_handler(args, thread_wrapping=False)
+    manager = multiprocessing.Manager()
+    queue = manager.Queue(-1)
+    mp_handler = MultiProcessingHandler(queue)
+    mp_handler.push_application()
+    mp_sub = MultiProcessingSubscriber(queue)
+    mp_sub.dispatch_in_background(normal_handler)
+    return queue
+
+
+def start_logging_in_process(queue):
+    """
+    Start logging in multiprocessing process
+    """
+    if queue is not None:
+        mp_handler = MultiProcessingHandler(queue)
+        mp_handler.push_application()

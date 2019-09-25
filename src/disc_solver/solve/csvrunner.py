@@ -4,8 +4,8 @@ csvrunner module
 """
 
 from csv import DictWriter
+from itertools import repeat
 from multiprocessing import current_process
-from warnings import warn
 
 from pympler.asizeof import asizeof
 
@@ -15,6 +15,7 @@ from .utils import SolverError, get_csv_inputs, add_worker_arguments
 from .. import __version__ as ds_version
 from ..file_format import Run, ConfigInput, SOLUTION_INPUT_FIELDS
 from ..float_handling import float_type
+from ..logging import enable_multiprocess_log_handing, start_logging_in_process
 from ..utils import open_or_stream, main_entry_point_wrapper, nicer_mp_pool
 
 
@@ -28,10 +29,12 @@ class SolutionFinder:
         self.store_internal = store_internal
         self.kwargs = kwargs
 
-    def __call__(self, input_dict):
+    def __call__(self, args):
         """
         Function to be mapped over
         """
+        input_dict, queue = args
+        start_logging_in_process(queue)
         run = Run(
             config_input=None,
             config_filename=None,
@@ -53,7 +56,7 @@ class SolutionFinder:
                 **self.kwargs
             )
         except SolverError as e:
-            warn(str(e))
+            print(str(e))
             return None
 
         print(f"Run size in {process_name} is {asizeof(run)}")
@@ -64,7 +67,7 @@ class SolutionFinder:
 # pylint: enable=too-few-public-methods
 
 
-def csvrunner(*, output_file, input_file, nworkers=None, **kwargs):
+def csvrunner(*, output_file, input_file, nworkers=None, queue=None, **kwargs):
     """
     Find the best solution for the inputs given in the csv file.
     """
@@ -77,9 +80,11 @@ def csvrunner(*, output_file, input_file, nworkers=None, **kwargs):
         csvwriter.writeheader()
         out.flush()
         with nicer_mp_pool(nworkers) as pool:
-            for best_input in pool.imap(SolutionFinder(**kwargs), inputs):
+            for best_input in pool.imap(
+                    SolutionFinder(**kwargs), zip(inputs, repeat(queue))
+            ):
                 if best_input is None:
-                    warn("No final solution found for input")
+                    print("No final solution found for input")
                 else:
                     csvwriter.writerow(best_input)
                     out.flush()
@@ -96,8 +101,11 @@ def main(argv, parser):
 
     args = parser.parse_args(argv)
 
+    queue = enable_multiprocess_log_handing(args)
+
     csvrunner(
         output_file=args.output_file,
         input_file=args.input_file,
         nworkers=args.nworkers,
+        queue=queue,
     )
