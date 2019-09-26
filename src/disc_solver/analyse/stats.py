@@ -218,13 +218,16 @@ def get_all_solutions(files):
     in `files`.
     """
     for file in files:
-        with h5open(file, registries, mode='r') as soln_file:
-            try:
-                for soln_name, soln in soln_file["run"].solutions.items():
-                    yield file, soln_name, soln
-                yield file, "final", soln_file["run"].final_solution
-            except KeyError as e:
-                log.notice(f"Failed to read stats from file {file}: {e}")
+        try:
+            with h5open(file, registries, mode='r') as soln_file:
+                try:
+                    for soln_name, soln in soln_file["run"].solutions.items():
+                        yield file, soln_name, soln
+                    yield file, "final", soln_file["run"].final_solution
+                except KeyError as e:
+                    log.notice(f"Failed to read stats from file {file}: {e}")
+        except OSError as e:
+            log.warning(f"Failed to read stats from file {file}: {e}")
 
 
 def get_all_files(args):
