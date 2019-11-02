@@ -14,7 +14,7 @@ recursive-include tests *.out
 recursive-include tests *.png
 recursive-include tests *.py
 recursive-include tests/data *
-exclude pylint-deps.txt
+exclude pylint-requirements.txt
 exclude bors.toml
 exclude .circleci
 recursive-exclude .circleci *
