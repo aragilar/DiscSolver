@@ -7,6 +7,10 @@ from disc_solver.float_handling import float_type as FLOAT_TYPE
 
 PLOT_FILE = "plot.png"
 
+NON_INTERACTIVE_BACKENDS = [
+    "agg", "cairo", "pdf", "pgf", "ps", "svg", "template"
+]
+
 
 DEFAULT_SOLUTIONS = [
     "single_solution_default",
@@ -208,8 +212,21 @@ def solution_use_E_r(request):
 
 
 @pytest.fixture()
-def mpl_interactive():
+def mpl_interactive(request):
+    import matplotlib as mpl
     import matplotlib.pyplot as plt
+
+    if mpl.get_backend() in NON_INTERACTIVE_BACKENDS:
+        pytest.skip(
+            "Skip interactive plots when using non-interactive backend used"
+        )
+    is_interactive = mpl.is_interactive()
+
+    def fin():
+        plt.close()
+        mpl.interactive(is_interactive)
+
+    request.addfinalizer(fin)
     plt.ion()
 
 
