@@ -6,3 +6,4 @@ status = [
   "ci/circleci: check-manifest",
   "Mergeable"
 ]
+timeout_sec = 7200
