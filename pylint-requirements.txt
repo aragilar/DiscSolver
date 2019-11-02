@@ -1,2 +1,2 @@
 pylint
-wheel
+wheel==0.33.6
