@@ -22,7 +22,7 @@ setuptools.setup(
         "h5preserve>=0.17.2",
         "stringtopy",
         "corner",
-        "attrs",
+        "attrs>=19.2",
         "emcee",
         "spaceplot",
         "root-solver",
