@@ -113,6 +113,7 @@ class TestSolve:
             config_file=None, output_file=None, store_internal=False,
         )
 
+    @pytest.mark.filterwarnings("ignore::h5preserve._utils.H5PreserveWarning")
     def test_hydrostatic_use_E_r(self, tmpdir):
         with pytest.raises(SolverError):
             solve(

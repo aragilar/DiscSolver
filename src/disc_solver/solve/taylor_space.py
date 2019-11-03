@@ -40,7 +40,7 @@ class Parameters(IntEnum):
     c_s_on_v_k = 3
 
 
-@attr.s(cmp=False, hash=False)
+@attr.s(eq=False, hash=False)
 class TaylorSpace:
     """
     Data class for holding taylor information

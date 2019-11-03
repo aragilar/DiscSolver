@@ -3,7 +3,6 @@
 Stepper related logic
 """
 from enum import Enum
-from warnings import warn
 
 import logbook
 
@@ -250,7 +249,7 @@ def solution_generator(*, store_internal=True, run):
     Generate solution func
     """
     if store_internal is False:
-        warn("Step split functions may need internal data to function")
+        log.warning("Step split functions may need internal data to function")
 
     def solution_func(inp):
         """
