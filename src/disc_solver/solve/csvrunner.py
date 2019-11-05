@@ -2,12 +2,9 @@
 """
 csvrunner module
 """
-
 from csv import DictWriter
-from itertools import repeat
 from multiprocessing import current_process
 
-from logbook import Logger
 from pympler.asizeof import asizeof
 
 from . import SONIC_METHOD_MAP
@@ -16,10 +13,7 @@ from .utils import SolverError, get_csv_inputs, add_worker_arguments
 from .. import __version__ as ds_version
 from ..file_format import Run, ConfigInput, SOLUTION_INPUT_FIELDS
 from ..float_handling import float_type
-from ..logging import enable_multiprocess_log_handing, start_logging_in_process
 from ..utils import open_or_stream, main_entry_point_wrapper, nicer_mp_pool
-
-log = Logger(__name__)
 
 
 # pylint: disable=too-few-public-methods
@@ -32,12 +26,10 @@ class SolutionFinder:
         self.store_internal = store_internal
         self.kwargs = kwargs
 
-    def __call__(self, args):
+    def __call__(self, input_dict):
         """
         Function to be mapped over
         """
-        input_dict, queue = args
-        start_logging_in_process(queue)
         run = Run(
             config_input=None,
             config_filename=None,
@@ -47,7 +39,7 @@ class SolutionFinder:
             use_E_r=False,
         )
         process_name = current_process().name
-        log.notice(f"Run size in {process_name} is {asizeof(run)}")
+        print(f"Run size in {process_name} is {asizeof(run)}")
         soln_input = ConfigInput(**input_dict).to_soln_input()
         sonic_solver = SONIC_METHOD_MAP.get(self.sonic_method)
         if sonic_solver is None:
@@ -59,10 +51,10 @@ class SolutionFinder:
                 **self.kwargs
             )
         except SolverError as e:
-            log.warning(str(e))
+            print(str(e))
             return None
 
-        log.notice(f"Run size in {process_name} is {asizeof(run)}")
+        print(f"Run size in {process_name} is {asizeof(run)}")
 
         if succeeded:
             return run.final_solution.solution_input.asdict()
@@ -70,7 +62,7 @@ class SolutionFinder:
 # pylint: enable=too-few-public-methods
 
 
-def csvrunner(*, output_file, input_file, nworkers=None, queue=None, **kwargs):
+def csvrunner(*, output_file, input_file, nworkers=None, **kwargs):
     """
     Find the best solution for the inputs given in the csv file.
     """
@@ -83,11 +75,9 @@ def csvrunner(*, output_file, input_file, nworkers=None, queue=None, **kwargs):
         csvwriter.writeheader()
         out.flush()
         with nicer_mp_pool(nworkers) as pool:
-            for best_input in pool.imap(
-                    SolutionFinder(**kwargs), zip(inputs, repeat(queue))
-            ):
+            for best_input in pool.imap(SolutionFinder(**kwargs), inputs):
                 if best_input is None:
-                    log.warning("No final solution found for input")
+                    print("No final solution found for input")
                 else:
                     csvwriter.writerow(best_input)
                     out.flush()
@@ -104,11 +94,8 @@ def main(argv, parser):
 
     args = parser.parse_args(argv)
 
-    queue = enable_multiprocess_log_handing(args)
-
     csvrunner(
         output_file=args.output_file,
         input_file=args.input_file,
         nworkers=args.nworkers,
-        queue=queue,
     )
