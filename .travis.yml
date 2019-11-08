@@ -22,19 +22,19 @@ matrix:
   include:
     - python: 3.7
       env:
-      - TOXENV=py37 SUNDIALS_VERSION='3.1.1'
+      - TOXENV=py37 SUNDIALS_VERSION='4.1.0'
     - python: 3.7
       env:
-      - TOXENV=flake8 SUNDIALS_VERSION='3.1.1'
+      - TOXENV=flake8 SUNDIALS_VERSION='4.1.0'
     - python: 3.7
       env:
-      - TOXENV=pylint SUNDIALS_VERSION='3.1.1'
+      - TOXENV=pylint SUNDIALS_VERSION='4.1.0'
     - python: 3.7
       env:
-      - TOXENV=check-manifest SUNDIALS_VERSION='3.1.1'
+      - TOXENV=check-manifest SUNDIALS_VERSION='4.1.0'
     - python: 3.7
       env:
-      - TOXENV=checkreadme SUNDIALS_VERSION='3.1.1'
+      - TOXENV=checkreadme SUNDIALS_VERSION='4.1.0'
 
 install:
   - source ./ci_support/ensure_sundials_installed.sh

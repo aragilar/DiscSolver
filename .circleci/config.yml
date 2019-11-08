@@ -10,7 +10,7 @@ orbs:
             default: py37
           sundials_version:
             type: string
-            default: 3.1.1
+            default: 4.1.0
           tox_args:
             type: string
             default: --
