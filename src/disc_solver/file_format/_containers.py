@@ -40,6 +40,8 @@ def str_to_slice(slice_str):
         return None
     if isinstance(slice_str, slice):
         return slice_str
+    if slice_str.startswith('slice('):
+        return eval(slice_str)  # pylint: disable=eval-used
     return slice(*[int(i) for i in slice_str.strip().split(',')])
 
 
