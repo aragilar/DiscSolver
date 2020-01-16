@@ -80,7 +80,34 @@ orbs:
           - image: circleci/python:<<parameters.version>>
 
 workflows:
-  build-test-deploy:
+  version: 2
+  commit:
+    jobs:
+      - tox_orb/tox_job:
+          name: py37
+          tox_name: py37
+          tox_args: -- -n 2
+      - tox_orb/tox_job:
+          name: flake8
+          tox_name: flake8
+      - tox_orb/tox_job:
+          name: pylint
+          tox_name: pylint
+      - tox_orb/tox_job:
+          name: check-manifest
+          tox_name: check-manifest
+      - tox_orb/tox_job:
+          name: checkreadme
+          tox_name: checkreadme
+
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
     jobs:
       - tox_orb/tox_job:
           name: py37
