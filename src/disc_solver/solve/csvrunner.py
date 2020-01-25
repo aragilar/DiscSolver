@@ -122,6 +122,6 @@ def main(argv, parser):
     csvrunner(
         input_file=args.input_file, nworkers=args.nworkers,
         sonic_method=args.sonic_method, store_internal=args.store_internal,
-        overrides=overrides, use_E_r=args.use_E_r, label=args.label,
+        overrides=overrides, use_E_r=args.use_E_r,
         output_file=args.output_file,
     )
