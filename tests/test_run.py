@@ -527,7 +527,8 @@ def test_taylor_space(mpl_interactive):
 def test_csvrunner(tmp_text_stream, ds_csv_file_header):
     csvrunner(
         output_file=tmp_text_stream, input_file=ds_csv_file_header,
-        sonic_method='single',
+        sonic_method='single', store_internal=False, use_E_r=False,
+        overrides={},
     )
 
 

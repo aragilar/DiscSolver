@@ -133,7 +133,7 @@ def closest_less_than_index(a, max_val):
 
 
 def add_solver_arguments(
-    parser, *, store_internal=True, sonic_method='single'
+    parser, *, store_internal=True, sonic_method='single', output_file=None,
 ):
     """
     Add common parser arguments for solver
@@ -144,7 +144,7 @@ def add_solver_arguments(
             "fast_crosser",
         ), default=sonic_method,
     )
-    parser.add_argument("--output-file", default=None)
+    parser.add_argument("--output-file", default=output_file)
     parser.add_argument("--output-dir", default=".", type=expanded_path)
     internal_store_group = parser.add_mutually_exclusive_group()
     internal_store_group.add_argument(
