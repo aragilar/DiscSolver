@@ -3,7 +3,7 @@
 Utility function and classes for solver associated code
 """
 from collections import defaultdict
-from csv import DictReader, Sniffer
+from csv import DictReader, Sniffer, get_dialect
 
 import attr
 import logbook
@@ -239,13 +239,104 @@ def add_labels(seq, *, label=''):
     return new_seq
 
 
-def has_csv_header(file):
+class CSVReaderHelper:
     """
-    Checks if csv file has header
+    Helper class to handle comments in csv files
     """
-    has_header = Sniffer().has_header(file.readline())
-    file.seek(0)
-    return has_header
+    def __init__(self, file, *, comment='#'):
+        self.file = file
+        self.comment = comment
+        self._comments = []
+
+    def __iter__(self):
+        self._comments = []
+        for line in self.file:
+            filted_line = self._filter(line)
+            if filted_line is not None:
+                yield filted_line
+
+    def _filter(self, line):
+        """
+        Filter function which collects comments, and returns data lines
+        """
+        if line.strip().startswith(self.comment):
+            self._add_to_comments(line)
+            return None
+        return line
+
+    def _add_to_comments(self, line):
+        """
+        Add line to comments stored
+        """
+        self._comments.append(line.strip()[len(self.comment):])
+
+    def has_csv_header(self):
+        """
+        Checks if csv file has header
+        """
+        self.file.seek(0)
+        has_header = Sniffer().has_header(next(iter(self)))
+        self.file.seek(0)
+        return has_header
+
+    def get_dialect(self, *args, lines=5, **kwargs):
+        """
+        Wrap csv.Sniffer.sniff to handle comments
+        """
+        self.file.seek(0)
+        dialect = Sniffer().sniff(
+            [line for line, _ in zip(self, range(lines))],
+            *args, **kwargs
+        )
+        self.file.seek(0)
+        return dialect
+
+    @property
+    def comments(self):
+        """
+        Comments found whilst reading csv
+        """
+        return tuple(self._comments)
+
+
+class CSVWriterHelper:
+    """
+    Helper class to add comments to csv files
+    """
+    def __init__(self, file, *, comment='#', dialect="unix"):
+        self.file = file
+        self.comment = comment
+        self._dialect = get_dialect(dialect)
+
+    @property
+    def dialect(self):
+        """
+        CSV dialect to use when writing
+        """
+        return self._dialect
+
+    def write(self, *args, **kwargs):
+        """
+        Wrapper for calling write on the wrapped file
+        """
+        return self.file.write(*args, **kwargs)
+
+    def add_comment(self, comment, marker=None):
+        """
+        Add comment to file
+        """
+        comment_marker = marker or self.comment
+        print(
+            comment_marker + comment, file=self.file,
+            end=self.dialect.lineterminator,
+        )
+
+    def add_metadata(self, mapping):
+        """
+        Add metadata to file
+        """
+        for key, val in mapping.items():
+            self.add_comment(f"{key}={val}")
 
 
 def get_csv_inputs(input_file, label=''):
@@ -253,13 +344,14 @@ def get_csv_inputs(input_file, label=''):
     Get inputs from csv file
     """
     with open(input_file) as infile:
-        if has_csv_header(infile):
+        helper = CSVReaderHelper(infile)
+        if helper.has_csv_header():
             inputs = add_labels(
-                DictReader(infile, dialect="unix"), label=label
+                DictReader(helper, dialect="unix"), label=label
             )
         else:
             inputs = add_labels(DictReader(
-                infile, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
+                helper, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
             ), label=label)
 
     return inputs
