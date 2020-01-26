@@ -10,7 +10,7 @@ from pympler.asizeof import asizeof
 from . import SONIC_METHOD_MAP
 from .utils import (
     SolverError, add_solver_arguments, get_csv_inputs, validate_overrides,
-    add_overrides, add_worker_arguments,
+    add_overrides, add_worker_arguments, CSVWriterHelper,
 )
 
 from .. import __version__ as ds_version
@@ -32,7 +32,6 @@ class SolutionFinder:
         self.kwargs = kwargs
         self.use_E_r = use_E_r
         self.overrides = overrides
-        self.kwargs = kwargs
 
     def __call__(self, input_dict):
         """
@@ -87,9 +86,14 @@ def csvrunner(
     inputs = get_csv_inputs(input_file, label=label)
 
     with open_or_stream(output_file, mode='a') as out:
+        helper = CSVWriterHelper(out)
         csvwriter = DictWriter(
-            out, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
+            helper, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
         )
+        helper.add_metadata(dict(
+            nworkers=nworkers, use_E_r=use_E_r, store_internal=store_internal,
+            sonic_method=sonic_method,
+        ))
         csvwriter.writeheader()
         out.flush()
         with nicer_mp_pool(nworkers) as pool:
