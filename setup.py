@@ -20,7 +20,7 @@ setuptools.setup(
         "arrow",
         "h5py>2.5",
         "h5preserve>=0.17.2",
-        "stringtopy",
+        "stringtopy>=0.2.1",
         "corner",
         "attrs>=19.2",
         "emcee",

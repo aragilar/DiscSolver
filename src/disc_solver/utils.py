@@ -29,8 +29,8 @@ from .logging import logging_options
 
 logger = logbook.Logger(__name__)
 
-str_to_float = str_to_float_converter()
-str_to_int = str_to_int_converter()
+str_to_float = str_to_float_converter(use_none_on_fail=True)
+str_to_int = str_to_int_converter(use_none_on_fail=True)
 str_to_bool = str_to_bool_converter()
 
 

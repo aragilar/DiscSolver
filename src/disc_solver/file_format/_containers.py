@@ -20,7 +20,7 @@ def mcmc_vars_str_to_obj(mcmc_str):
     """
     Convert mcmc_vars string to MCMCVars
     """
-    if mcmc_str is None:
+    if mcmc_str is None or mcmc_str == "None":
         return None
     if isinstance(mcmc_str, MCMCVars):
         return mcmc_str
@@ -36,7 +36,7 @@ def str_to_slice(slice_str):
     """
     Convert a config slice string into a slice
     """
-    if slice_str is None:
+    if slice_str is None or slice_str == "None":
         return None
     if isinstance(slice_str, slice):
         return slice_str
@@ -113,12 +113,14 @@ class ConfigInput:
     η_derivs = attr.ib(default="True")
     jump_before_sonic = attr.ib(default=None, converter=replace_empty_string)
     use_taylor_jump = attr.ib(default="True")
-    mcmc_vars = attr.ib(default=None)
+    mcmc_vars = attr.ib(default=None, converter=replace_empty_string)
     v_θ_sonic_crit = attr.ib(default=None, converter=replace_empty_string)
     after_sonic = attr.ib(default=None, converter=replace_empty_string)
     sonic_interp_size = attr.ib(default=None, converter=replace_empty_string)
-    interp_range = attr.ib(default="10")
-    interp_slice = attr.ib(default="-1000,-100")
+    interp_range = attr.ib(default="10", converter=replace_empty_string)
+    interp_slice = attr.ib(
+        default="-1000,-100", converter=replace_empty_string
+    )
 
     def asdict(self):
         """
