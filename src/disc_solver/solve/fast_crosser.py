@@ -2,119 +2,181 @@
 """
 fast-crosser: combines different solvers to cross fast speed
 """
+from enum import Enum
+
 import logbook
 
 from numpy import max as np_max
-from scipy.optimize import minimize
 
 from .single import solver as single_solver
-from .stepper import solver as step_solver
+from .stepper import (
+    solver as step_solver, writer_generator, cleanup_generator,
+    binary_searcher, stepper_creator, alternate_cleanup_generator,
+    StepperStop, StepperError,
+)
 
 from ..analyse.utils import get_mach_numbers
-from ..file_format import SolutionInput
-
-V_R_BOUNDS = ((0.25, 1.0),)
+from ..file_format import SolutionInput, Solution
 
 log = logbook.Logger(__name__)
 
+DEFAULT_NUM_ATTEMPTS = 1000
+DEFAULT_MAX_SEARCH_STEPS = 200
+DEFAULT_FINAL_STOP = 90
+DEFAULT_FINAL_STEPS = 900000
 
-def compute_minimiser_value(soln):
+
+class SplitterStatus(Enum):
     """
-    Compute value for minimiser to cross fast speed
+    Status Enum for which way to the best solution
     """
-    _, _, _, fast_mach = get_mach_numbers(soln)
-    return - np_max(fast_mach)
+    STOP = "STOP"
+    INCREASE = "increase"
+    DECREASE = "decrease"
 
 
-def minimiser_generator(
-    *, soln_input, run, final_stop, final_steps, store_internal
+def step_input():
+    """
+    Create new input for next step
+    """
+    def step_func(soln, soln_type, step_size):
+        """
+        Return new input
+        """
+        inp_dict = vars(soln.solution_input)
+        prev_v_r = inp_dict["v_rin_on_c_s"]
+        if soln_type == SplitterStatus.DECREASE:
+            inp_dict["v_rin_on_c_s"] -= step_size
+        elif soln_type == SplitterStatus.INCREASE:
+            inp_dict["v_rin_on_c_s"] += step_size
+        elif soln_type == SplitterStatus.STOP:
+            raise StepperStop("Stepper stopped")
+        else:
+            raise StepperError("Solution type not known")
+        if prev_v_r == inp_dict["v_rin_on_c_s"]:
+            raise StepperStop("Hit numerical limit")
+        return SolutionInput(**inp_dict)
+    return step_func
+
+
+def solution_generator(
+    *, store_internal=True, run, final_stop=DEFAULT_FINAL_STOP,
+    final_steps=DEFAULT_FINAL_STEPS
 ):
     """
-    Create function to pass to minimiser
+    Generate solution func
     """
-    v_θ_sonic_crit = soln_input.v_θ_sonic_crit
-    jump_before_sonic = soln_input.jump_before_sonic
-    after_sonic = soln_input.after_sonic
-    sonic_interp_size = soln_input.sonic_interp_size
+    if store_internal is False:
+        log.warning("Step split functions may need internal data to function")
     get_last_solution = run.solutions.get_last_solution
 
-    def minimiser(v_rin_on_c_s):
+    def solution_func(inp):
         """
-        Function for minimiser
+        solution func
         """
-        soln_input_dict = soln_input.asdict()
-        soln_input_dict.update(
-            v_rin_on_c_s=v_rin_on_c_s,
-            v_θ_sonic_crit=None,
-            after_sonic=None,
-            jump_before_sonic=None,
-            sonic_interp_size=None,
-        )
-
         step_solver(
-            SolutionInput(**soln_input_dict), run,
-            store_internal=store_internal, no_final_solution=True
+            inp, run, store_internal=store_internal, no_final_solution=True
         )
         final_solution_dict = get_last_solution().solution_input.asdict()
         final_solution_dict.update(
-            v_θ_sonic_crit=v_θ_sonic_crit, after_sonic=after_sonic,
-            jump_before_sonic=jump_before_sonic,
-            sonic_interp_size=sonic_interp_size,
             stop=final_stop, num_angles=final_steps,
         )
         single_solver(
             SolutionInput(**final_solution_dict), run,
             store_internal=store_internal, no_final_solution=True,
         )
-        log.info("Minimise ran at v_rin_on_c_s = {}".format(v_rin_on_c_s))
-        return compute_minimiser_value(get_last_solution())
+        return get_last_solution(), False
 
-    return minimiser
+    return solution_func
+
+
+class SolutionSplitter:
+    """
+    Work out which way to look for best solution
+    """
+    # pylint: disable=too-few-public-methods
+    def __init__(self):
+        self._previous_value = None
+        self._previous_direction = None
+
+    def _get_direction(self, soln):
+        """
+        Work out which way to look for best solution
+        """
+        _, _, _, fast_mach = get_mach_numbers(soln)
+        current = np_max(fast_mach)
+
+        if self._previous_value is None:
+            self._previous_value = current
+            self._previous_direction = SplitterStatus.INCREASE
+            return self._previous_direction
+        if self._previous_value > current and (
+            self._previous_direction == SplitterStatus.DECREASE
+        ):
+            self._previous_value = current
+            self._previous_direction = SplitterStatus.INCREASE
+            return self._previous_direction
+        if self._previous_value > current and (
+            self._previous_direction == SplitterStatus.INCREASE
+        ):
+            self._previous_value = current
+            self._previous_direction = SplitterStatus.DECREASE
+            return self._previous_direction
+        if self._previous_value < current and (
+            self._previous_direction == SplitterStatus.DECREASE
+        ):
+            self._previous_value = current
+            self._previous_direction = SplitterStatus.DECREASE
+            return self._previous_direction
+        if self._previous_value < current and (
+            self._previous_direction == SplitterStatus.INCREASE
+        ):
+            self._previous_value = current
+            self._previous_direction = SplitterStatus.INCREASE
+            return self._previous_direction
+
+        # increase by default
+        self._previous_value = current
+        self._previous_direction = SplitterStatus.INCREASE
+        return self._previous_direction
+
+    def __call__(self, soln):
+        return soln, self._get_direction(soln)
 
 
 def solver(
-    soln_input, run, *, store_internal=True, final_stop=90, final_steps=900000
+    soln_input, run, *, store_internal=True, final_stop=DEFAULT_FINAL_STOP,
+    final_steps=DEFAULT_FINAL_STEPS, max_search_steps=DEFAULT_MAX_SEARCH_STEPS,
+    num_attempts=DEFAULT_NUM_ATTEMPTS,
 ):
     """
     fast-crosser solver
 
-    uses step solver and single solver plus minimisation to cross fast speed
+    uses step solver and single solver to cross fast speed
     """
-    minimiser = minimiser_generator(
-        soln_input=soln_input, run=run, final_stop=final_stop,
-        final_steps=final_steps, store_internal=store_internal,
+    step_func = step_input()
+    writer = writer_generator(run)
+    cleanup = cleanup_generator(
+        run, writer, no_final_solution=True,
     )
-    res = minimize(minimiser, soln_input.v_rin_on_c_s, bounds=V_R_BOUNDS)
-    log.info("Minimiser stopped: {}".format(res.message))
-    log.notice("Adding best solution")
+    best_solution = binary_searcher(
+        solution_generator(
+            store_internal=store_internal, run=run, final_stop=final_stop,
+            final_steps=final_steps,
+        ), cleanup,
+        stepper_creator(
+            writer, step_func,
+            SolutionSplitter(),
+            max_search_steps=max_search_steps,
+            initial_step_size=0.01 * soln_input.v_rin_on_c_s
+        ),
+        alternate_cleanup_generator(run, no_final_solution=True),
+        soln_input, num_attempts=num_attempts,
+    )
+    if not isinstance(run.final_solution, Solution):
+        if isinstance(best_solution, Solution):
+            run.final_solution = best_solution
+        else:
+            run.final_solution = run.solutions.get_last_solution()
 
-    v_θ_sonic_crit = soln_input.v_θ_sonic_crit
-    jump_before_sonic = soln_input.jump_before_sonic
-    after_sonic = soln_input.after_sonic
-    sonic_interp_size = soln_input.sonic_interp_size
-    get_last_solution = run.solutions.get_last_solution
-
-    soln_input_dict = soln_input.asdict()
-    soln_input_dict.update(
-        v_rin_on_c_s=res.x,
-        v_θ_sonic_crit=None,
-        after_sonic=None,
-        jump_before_sonic=None,
-        sonic_interp_size=None,
-    )
-
-    step_solver(
-        SolutionInput(**soln_input_dict), run,
-        store_internal=store_internal, no_final_solution=True
-    )
-    final_solution_dict = get_last_solution().solution_input.asdict()
-    final_solution_dict.update(
-        v_θ_sonic_crit=v_θ_sonic_crit, after_sonic=after_sonic,
-        jump_before_sonic=jump_before_sonic,
-        sonic_interp_size=sonic_interp_size,
-        stop=final_stop, num_angles=final_steps,
-    )
-    single_solver(
-        SolutionInput(**final_solution_dict), run,
-        store_internal=store_internal,
-    )
+    return True
