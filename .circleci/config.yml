@@ -39,7 +39,7 @@ orbs:
       tox_install:
         steps:
           - run: sudo apt-get update
-          - run: sudo apt-get install cmake gfortran liblapack-dev
+          - run: sudo apt-get install cmake gfortran liblapack-dev libgirepository1.0-dev libgtk-3-dev
           - run: sudo pip install -U pip setuptools wheel
           - run: sudo pip install -c known_broken_constraints.txt --pre -U coverage # coverage major versions need to match
           - run: sudo pip install -U tox codecov
