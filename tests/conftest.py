@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from logbook import StderrHandler
+
 import pytest
 
 from disc_solver.solve import solve
@@ -260,3 +262,9 @@ def ds_csv_file_header(shared_datadir):
 @pytest.fixture
 def ds_csv_file_no_header(shared_datadir):
     return shared_datadir / "noheader.csv"
+
+
+@pytest.fixture
+def log_with_logbook():
+    with StderrHandler(level='NOTICE'):
+        yield
