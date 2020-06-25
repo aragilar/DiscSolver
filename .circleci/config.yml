@@ -7,7 +7,7 @@ orbs:
         parameters:
           tox_name:
             type: string
-            default: py37
+            default: py38
           sundials_version:
             type: string
             default: 4.1.0
@@ -47,7 +47,7 @@ orbs:
         parameters:
           tox_name:
             type: string
-            default: py37
+            default: py38
           tox_args:
             type: string
             default: --
@@ -75,7 +75,7 @@ orbs:
         parameters:
           version:
             type: string
-            default: "3.7"
+            default: "3.8"
         docker:
           - image: circleci/python:<<parameters.version>>
 
@@ -84,8 +84,8 @@ workflows:
   commit:
     jobs:
       - tox_orb/tox_job:
-          name: py37
-          tox_name: py37
+          name: py38
+          tox_name: py38
           tox_args: -- -n 2
       - tox_orb/tox_job:
           name: flake8
@@ -110,8 +110,8 @@ workflows:
                 - master
     jobs:
       - tox_orb/tox_job:
-          name: py37
-          tox_name: py37
+          name: py38
+          tox_name: py38
           tox_args: -- -n 2
       - tox_orb/tox_job:
           name: flake8

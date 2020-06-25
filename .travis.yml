@@ -20,19 +20,19 @@ cache:
   #- TOXENV=docs
 matrix:
   include:
-    - python: 3.7
+    - python: 3.8
       env:
-      - TOXENV=py37 SUNDIALS_VERSION='4.1.0'
-    - python: 3.7
+      - TOXENV=py38 SUNDIALS_VERSION='4.1.0'
+    - python: 3.8
       env:
       - TOXENV=flake8 SUNDIALS_VERSION='4.1.0'
-    - python: 3.7
+    - python: 3.8
       env:
       - TOXENV=pylint SUNDIALS_VERSION='4.1.0'
-    - python: 3.7
+    - python: 3.8
       env:
       - TOXENV=check-manifest SUNDIALS_VERSION='4.1.0'
-    - python: 3.7
+    - python: 3.8
       env:
       - TOXENV=checkreadme SUNDIALS_VERSION='4.1.0'
 
