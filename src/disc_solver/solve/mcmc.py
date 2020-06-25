@@ -9,7 +9,7 @@ import logbook
 
 import emcee
 
-from numpy import diff, errstate, isfinite
+from numpy import diff, errstate, isfinite, exp
 from numpy.random import randn
 
 from .config import define_conditions
@@ -22,7 +22,7 @@ from ..utils import ODEIndex
 log = logbook.Logger(__name__)
 
 INITIAL_SPREAD = 0.1
-TARGETED_PROB_WEIGHTING = 1
+TARGETED_PROB_WEIGHTING = 10
 OUTFLOW_RATE_PROB_WEIGHTING = 1
 
 
@@ -154,11 +154,7 @@ def get_logprob_of_soln(soln):
     """
     Return log probability of solution
     """
-    targeted_prob = - (
-        soln.solution_input.target_velocity - max(
-            soln.solution[:, ODEIndex.v_θ]
-        )
-    ) ** 2
+    targeted_prob = - exp(- max(soln.solution[:, ODEIndex.v_θ]))
     return (
         targeted_prob * TARGETED_PROB_WEIGHTING +
         get_outflow_rate_probability(soln) * OUTFLOW_RATE_PROB_WEIGHTING
