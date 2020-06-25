@@ -239,6 +239,16 @@ def add_labels(seq, *, label=''):
     return new_seq
 
 
+def filter_csv_columns(seq, *, columns):
+    """
+    Only pass through specified columns
+    """
+    new_seq = []
+    for d in seq:
+        new_seq.append({k: v for k, v in d.items() if k in columns})
+    return new_seq
+
+
 class CSVReaderHelper:
     """
     Helper class to handle comments in csv files
@@ -346,13 +356,13 @@ def get_csv_inputs(input_file, label=''):
     with open(input_file) as infile:
         helper = CSVReaderHelper(infile)
         if helper.has_csv_header():
-            inputs = add_labels(
+            inputs = filter_csv_columns(add_labels(
                 DictReader(helper, dialect="unix"), label=label
-            )
+            ), columns=CONFIG_FIELDS)
         else:
-            inputs = add_labels(DictReader(
+            inputs = filter_csv_columns(add_labels(DictReader(
                 helper, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
-            ), label=label)
+            ), label=label), columns=CONFIG_FIELDS)
 
     return inputs
 
