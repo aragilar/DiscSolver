@@ -221,9 +221,11 @@ def get_all_solutions(files):
         try:
             with h5open(file, registries, mode='r') as soln_file:
                 try:
-                    for soln_name, soln in soln_file["run"].solutions.items():
+                    run = soln_file["run"]
+                    for soln_name, soln in run.solutions.items():
                         yield file, soln_name, soln
-                    yield file, "final", soln_file["run"].final_solution
+                        run.solutions.free(soln_name)
+                    yield file, "final", run.final_solution
                 except KeyError as e:
                     log.notice(f"Failed to read stats from file {file}: {e}")
         except OSError as e:

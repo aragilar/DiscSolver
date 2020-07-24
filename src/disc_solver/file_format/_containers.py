@@ -551,6 +551,15 @@ class Solutions(MutableMapping):
         """
         return self[sorted(list(self), key=int)[-1]]
 
+    def free(self, key):
+        """
+        Free the memory used to store the solution, allowing the solution to be
+        reloaded if need be
+        """
+        actual_val = self[key]
+        self[key] = actual_val
+        del actual_val
+
 
 @attr.s(eq=False, hash=False)
 class Run:
