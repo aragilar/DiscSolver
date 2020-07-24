@@ -121,6 +121,7 @@ class ConfigInput:
     interp_slice = attr.ib(
         default="-1000,-100", converter=replace_empty_string
     )
+    use_E_r = attr.ib(default="False")
 
     def asdict(self):
         """
@@ -151,6 +152,7 @@ class ConfigInput:
         cfg["config"]["split_method"] = self.split_method
         cfg["config"]["interp_range"] = self.interp_range
         cfg["config"]["interp_slice"] = self.interp_slice
+        cfg["config"]["use_E_r"] = self.use_E_r
 
         cfg["initial"]["γ"] = self.γ
         cfg["initial"]["v_rin_on_c_s"] = self.v_rin_on_c_s
@@ -233,6 +235,7 @@ class ConfigInput:
             η_O=float_type(str_to_float(self.η_O)),
             η_H=float_type(str_to_float(self.η_H)),
             η_A=float_type(str_to_float(self.η_A)),
+            use_E_r=str_to_bool(self.use_E_r),
         )
 
 
@@ -269,6 +272,7 @@ class SolutionInput:
     sonic_interp_size = attr.ib(default=None)
     interp_range = attr.ib(default=10)
     interp_slice = attr.ib(default=slice(-1000, -100), converter=str_to_slice)
+    use_E_r = attr.ib(default=False)
 
     def asdict(self):
         """
@@ -315,6 +319,7 @@ class SolutionInput:
             split_method=self.split_method,
             use_taylor_jump=str(self.use_taylor_jump),
             mcmc_vars=str(self.mcmc_vars),
+            use_E_r=str(self.use_E_r),
             γ=str(self.γ),
             v_rin_on_c_s=str(self.v_rin_on_c_s),
             v_a_on_c_s=str(self.v_a_on_c_s),

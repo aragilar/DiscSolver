@@ -67,7 +67,7 @@ class TestSolve:
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="single",
             config_file=None, output_file=None, store_internal=True,
-            use_E_r=True,
+            overrides={"use_E_r": "True"},
         )
 
     def test_step_default(self, tmpdir):
@@ -119,7 +119,7 @@ class TestSolve:
             solve(
                 output_dir=Path(str(tmpdir)), sonic_method="hydrostatic",
                 config_file=None, output_file=None, store_internal=True,
-                use_E_r=True,
+                overrides={"use_E_r": "True"},
             )
 
     def test_mod_hydro_default(self, tmpdir):
@@ -138,14 +138,14 @@ class TestSolve:
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="mod_hydro",
             config_file=None, output_file=None, store_internal=True,
-            use_E_r=True,
+            overrides={"use_E_r": "True"},
         )
 
     def test_fast_crosser_use_E_r(self, tmpdir):
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="fast_crosser",
             config_file=None, output_file=None, store_internal=False,
-            use_E_r=True,
+            overrides={"use_E_r": "True"},
         )
 
 
@@ -527,13 +527,12 @@ def test_taylor_space(mpl_interactive):
 def test_csvrunner(tmp_text_stream, ds_csv_file_header):
     csvrunner(
         output_file=tmp_text_stream, input_file=ds_csv_file_header,
-        sonic_method='single', store_internal=False, use_E_r=False,
-        overrides={},
+        sonic_method='single', store_internal=False, overrides={},
     )
 
 
 def test_hdf5runner(tmpdir, ds_csv_file_header):
     hdf5runner(
-        output_dir=tmpdir, input_file=ds_csv_file_header, use_E_r=False,
+        output_dir=tmpdir, input_file=ds_csv_file_header,
         store_internal=False, sonic_method='single', overrides={},
     )
