@@ -167,7 +167,7 @@ def mod_hydro_solution_use_E_r(tmpdir_factory):
     return str(solve(
         sonic_method=method, output_dir=Path(str(tmpdir)),
         output_file=None, config_file=None, store_internal=True,
-        use_E_r=True,
+        overrides={"use_E_r": "True"},
     )[0])
 
 

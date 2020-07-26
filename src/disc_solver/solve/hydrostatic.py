@@ -39,7 +39,7 @@ SONIC_POINT_TOLERANCE = float_type(0.01)
 log = logbook.Logger(__name__)
 
 
-def hydrostatic_define_conditions(inp, run):
+def hydrostatic_define_conditions(inp):
     """
     Compute initial conditions based on input
     """
@@ -77,7 +77,7 @@ def hydrostatic_define_conditions(inp, run):
     init_con[ODEIndex.η_A] = η_A
     init_con[ODEIndex.η_H] = η_H
 
-    if run.use_E_r:
+    if inp.use_E_r:
         E_r = E_r_boundary_func(
             v_r=v_r, v_φ=v_φ, η_P=η_P, η_H=η_H, η_perp_sq=η_perp_sq, a_0=a_0
         )
@@ -623,7 +623,7 @@ def hydrostatic_solution(
 def solution(
     soln_input, initial_conditions, *, onroot_func=None, tstop=None,
     ontstop_func=None, store_internal=True, root_func=None,
-    root_func_args=None, θ_scale=float_type(1), no_v_deriv=False, use_E_r=False
+    root_func_args=None, θ_scale=float_type(1), no_v_deriv=False,
 ):
     """
     Find solution
@@ -637,7 +637,7 @@ def solution(
     max_steps = soln_input.max_steps
     η_derivs = soln_input.η_derivs
 
-    if use_E_r:
+    if soln_input.use_E_r:
         raise SolverError("Using E_r not ready yet")
 
     if no_v_deriv:
@@ -676,8 +676,8 @@ def solver(inp, run, *, store_internal=True):
     hydrostatic solver
     """
     hydro_solution = solution(
-        inp, hydrostatic_define_conditions(inp, run),
-        store_internal=store_internal, use_E_r=run.use_E_r,
+        inp, hydrostatic_define_conditions(inp),
+        store_internal=store_internal,
     )
     run.solutions["0"] = hydro_solution
     run.final_solution = run.solutions["0"]

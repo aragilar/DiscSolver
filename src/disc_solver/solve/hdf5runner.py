@@ -29,13 +29,12 @@ class SolutionFinder:
     """
     def __init__(
         self, *, sonic_method, store_internal, output_file=None,
-        output_dir, use_E_r, overrides, **kwargs
+        output_dir, overrides, **kwargs
     ):
         self.sonic_method = sonic_method
         self.store_internal = store_internal
         self.output_file = output_file
         self.output_dir = output_dir
-        self.use_E_r = use_E_r
         self.overrides = overrides
         self.kwargs = kwargs
 
@@ -52,14 +51,14 @@ class SolutionFinder:
             config_input=ConfigInput(**input_dict), overrides=self.overrides
         )
         print(f"Config is {config_input}")
-
+        soln_input = config_input.to_soln_input()
         run = Run(
             config_input=config_input,
             config_filename=None,
             disc_solver_version=ds_version,
             float_type=str(float_type),
             sonic_method=self.sonic_method,
-            use_E_r=self.use_E_r,
+            use_E_r=soln_input.use_E_r,
         )
 
         if self.output_file is None:
@@ -77,7 +76,7 @@ class SolutionFinder:
             with h5open(output_file, registries, mode='x') as f:
                 f["run"] = run
                 succeeded = sonic_solver(
-                    config_input.to_soln_input(), run,
+                    soln_input, run,
                     store_internal=self.store_internal, **self.kwargs
                 )
                 run.finalise()
@@ -92,7 +91,7 @@ class SolutionFinder:
 
 
 def hdf5runner(
-    *, output_file=None, input_file, nworkers=None, use_E_r, output_dir,
+    *, output_file=None, input_file, nworkers=None, output_dir,
     store_internal, sonic_method, overrides, label='', **kwargs
 ):
     """
@@ -104,7 +103,7 @@ def hdf5runner(
         for result in pool.imap(SolutionFinder(
             output_file=output_file, output_dir=output_dir,
             sonic_method=sonic_method, store_internal=store_internal,
-            use_E_r=use_E_r, overrides=overrides, **kwargs
+            overrides=overrides, **kwargs
         ), inputs):
             if not result:
                 print("Solver failed for input")
@@ -128,5 +127,5 @@ def main(argv, parser):
         output_dir=args.output_dir, input_file=args.input_file,
         nworkers=args.nworkers, sonic_method=args.sonic_method,
         store_internal=args.store_internal, overrides=overrides,
-        use_E_r=args.use_E_r, label=args.label,
+        label=args.label,
     )

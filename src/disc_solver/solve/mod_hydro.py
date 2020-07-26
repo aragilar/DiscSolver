@@ -44,7 +44,7 @@ SONIC_POINT_TOLERANCE = float_type(0.01)
 log = logbook.Logger(__name__)
 
 
-def mod_hydro_define_conditions(inp, run):
+def mod_hydro_define_conditions(inp):
     """
     Compute initial conditions based on input
     """
@@ -82,7 +82,7 @@ def mod_hydro_define_conditions(inp, run):
     init_con[ODEIndex.η_A] = η_A
     init_con[ODEIndex.η_H] = η_H
 
-    if run.use_E_r:
+    if inp.use_E_r:
         E_r = E_r_boundary_func(
             v_r=v_r, v_φ=v_φ, η_P=η_P, η_H=η_H, η_perp_sq=η_perp_sq, a_0=a_0
         )
@@ -716,8 +716,8 @@ def solver(inp, run, *, store_internal=True):
     mod_hydro solver
     """
     hydro_solution = solution(
-        inp, mod_hydro_define_conditions(inp, run),
-        store_internal=store_internal, use_E_r=run.use_E_r,
+        inp, mod_hydro_define_conditions(inp),
+        store_internal=store_internal, use_E_r=inp.use_E_r,
     )
     run.solutions["0"] = hydro_solution
     run.final_solution = run.solutions["0"]

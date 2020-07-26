@@ -154,7 +154,6 @@ def add_solver_arguments(
         "--no-store-internal", action='store_false', dest="store_internal",
     )
     parser.add_argument("--override", action='append', nargs=2, default=[])
-    parser.add_argument("--use-E_r", action='store_true', default=False)
 
 
 def add_worker_arguments(parser):

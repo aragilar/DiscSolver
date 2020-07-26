@@ -41,7 +41,7 @@ SONIC_METHOD_MAP = {
 
 def solve(
     *, output_file, sonic_method, config_file, output_dir, store_internal,
-    overrides=None, use_E_r=False, **kwargs
+    overrides=None, **kwargs
 ):
     """
     Main function to generate solution
@@ -49,13 +49,14 @@ def solve(
     config_input = get_input_from_conffile(
         config_file=config_file, overrides=overrides
     )
+    soln_input = config_input.to_soln_input()
     run = Run(
         config_input=config_input,
         config_filename=str(config_file),
         disc_solver_version=ds_version,
         float_type=str(float_type),
         sonic_method=sonic_method,
-        use_E_r=use_E_r
+        use_E_r=soln_input.use_E_r
     )
 
     if output_file is None:
@@ -68,7 +69,7 @@ def solve(
         if sonic_solver is None:
             raise SolverError("No method chosen to cross sonic point")
         succeeded = sonic_solver(
-            config_input.to_soln_input(), run,
+            soln_input, run,
             store_internal=store_internal, **kwargs
         )
         run.finalise()
@@ -93,7 +94,6 @@ def main(argv, parser):
             output_file=args.output_file, sonic_method=args.sonic_method,
             config_file=args.config_file, output_dir=args.output_dir,
             store_internal=args.store_internal, overrides=overrides,
-            use_E_r=args.use_E_r,
         )
         print(filename)
         return int(not succeeded)

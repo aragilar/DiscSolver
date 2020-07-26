@@ -244,7 +244,7 @@ def create_soln_splitter(method):
     return method_dict.get(method)() or v_θ_deriv_splitter
 
 
-def solution_generator(*, store_internal=True, run):
+def solution_generator(*, store_internal=True):
     """
     Generate solution func
     """
@@ -257,8 +257,7 @@ def solution_generator(*, store_internal=True, run):
         """
         inp = SolutionInput(**vars(inp))
         soln = solution(
-            inp, define_conditions(inp, use_E_r=run.use_E_r),
-            store_internal=store_internal, use_E_r=run.use_E_r,
+            inp, define_conditions(inp), store_internal=store_internal,
         )
         return is_solution_best(soln)
 
@@ -310,7 +309,7 @@ def solver(
         run, writer, no_final_solution=no_final_solution,
     )
     best_solution = binary_searcher(
-        solution_generator(store_internal=store_internal, run=run), cleanup,
+        solution_generator(store_internal=store_internal), cleanup,
         stepper_creator(
             writer, step_func,
             create_soln_splitter(soln_input.split_method),

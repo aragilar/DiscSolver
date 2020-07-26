@@ -118,7 +118,7 @@ class LogProbGenerator:
             log.warning("MCMC input invalid")
             return - float("inf")
         try:
-            cons = define_conditions(new_soln_input, use_E_r=self._run.use_E_r)
+            cons = define_conditions(new_soln_input)
         except SolverError:
             log.warning(
                 "MCMC input could not be converted to initial conditions."

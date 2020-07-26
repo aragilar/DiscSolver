@@ -82,11 +82,12 @@ def compute_taylor_space(
     )
 
 
-def compute_taylor_values(inp, *, use_E_r=False):
+def compute_taylor_values(inp):
     """
     Compute values for taylor series given inputs
     """
-    cons = define_conditions(inp, use_E_r=use_E_r)
+    use_E_r = inp.use_E_r
+    cons = define_conditions(inp)
     init_con = cons.init_con
     γ = cons.γ
     a_0 = cons.a_0

@@ -25,12 +25,11 @@ class SolutionFinder:
     Generate best solution finder
     """
     def __init__(
-        self, *, sonic_method, store_internal, use_E_r, overrides, **kwargs
+        self, *, sonic_method, store_internal, overrides, **kwargs
     ):
         self.sonic_method = sonic_method
         self.store_internal = store_internal
         self.kwargs = kwargs
-        self.use_E_r = use_E_r
         self.overrides = overrides
 
     def __call__(self, input_dict):
@@ -47,17 +46,18 @@ class SolutionFinder:
         )
         print(f"Config is {config_input}")
 
+        soln_input = config_input.to_soln_input()
+
         run = Run(
             config_input=config_input,
             config_filename=None,
             disc_solver_version=ds_version,
             float_type=str(float_type),
             sonic_method=self.sonic_method,
-            use_E_r=self.use_E_r,
+            use_E_r=soln_input.use_E_r,
         )
 
         print(f"Run size in {process_name} is {asizeof(run)}")
-        soln_input = config_input.to_soln_input()
 
         try:
             succeeded = sonic_solver(
@@ -77,7 +77,7 @@ class SolutionFinder:
 
 
 def csvrunner(
-    *, output_file, input_file, nworkers=None, use_E_r, store_internal,
+    *, output_file, input_file, nworkers=None, store_internal,
     sonic_method, overrides, label='', **kwargs
 ):
     """
@@ -91,7 +91,7 @@ def csvrunner(
             helper, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
         )
         helper.add_metadata(dict(
-            nworkers=nworkers, use_E_r=use_E_r, store_internal=store_internal,
+            nworkers=nworkers, store_internal=store_internal,
             sonic_method=sonic_method,
         ))
         csvwriter.writeheader()
@@ -99,7 +99,7 @@ def csvrunner(
         with nicer_mp_pool(nworkers) as pool:
             for best_input in pool.imap(SolutionFinder(
                 sonic_method=sonic_method, store_internal=store_internal,
-                use_E_r=use_E_r, overrides=overrides, **kwargs
+                overrides=overrides, **kwargs
             ), inputs):
                 if best_input is None:
                     print("No final solution found for input")
@@ -126,6 +126,5 @@ def main(argv, parser):
     csvrunner(
         input_file=args.input_file, nworkers=args.nworkers,
         sonic_method=args.sonic_method, store_internal=args.store_internal,
-        overrides=overrides, use_E_r=args.use_E_r,
-        output_file=args.output_file,
+        overrides=overrides, output_file=args.output_file,
     )

@@ -56,11 +56,11 @@ def solver(inp, run, *, store_internal=True):
     """
     Minimisation solver
     """
-    cons = define_conditions(inp, use_E_r=run.use_E_r)
+    cons = define_conditions(inp)
     initial_solution = solution(
         inp, cons, store_internal=store_internal,
         root_func=velocity_stop_generator(inp.target_velocity),
-        root_func_args=1, use_E_r=run.use_E_r,
+        root_func_args=1,
     )
     run.solutions.add_solution(initial_solution)
 

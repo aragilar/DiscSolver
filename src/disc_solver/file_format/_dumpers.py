@@ -69,7 +69,7 @@ def _solution_dumper(solution):
     )
 
 
-@ds_registry.dumper(ConfigInput, "ConfigInput", version=13)
+@ds_registry.dumper(ConfigInput, "ConfigInput", version=14)
 def _config_dumper(config_input):
     return GroupContainer(
         attrs={
@@ -95,6 +95,7 @@ def _config_dumper(config_input):
             "η_A": config_input.η_A,
             "η_derivs": config_input.η_derivs,
             "use_taylor_jump": config_input.use_taylor_jump,
+            "use_E_r": config_input.use_E_r,
         },
         jump_before_sonic=config_input.jump_before_sonic,
         mcmc_vars=config_input.mcmc_vars,
@@ -106,7 +107,7 @@ def _config_dumper(config_input):
     )
 
 
-@ds_registry.dumper(SolutionInput, "SolutionInput", version=13)
+@ds_registry.dumper(SolutionInput, "SolutionInput", version=14)
 def _input_dumper(solution_input):
     return GroupContainer(
         attrs={
@@ -131,6 +132,7 @@ def _input_dumper(solution_input):
             "η_A": solution_input.η_A,
             "η_derivs": solution_input.η_derivs,
             "use_taylor_jump": solution_input.use_taylor_jump,
+            "use_E_r": solution_input.use_E_r,
         },
         jump_before_sonic=solution_input.jump_before_sonic,
         mcmc_vars=solution_input.mcmc_vars,

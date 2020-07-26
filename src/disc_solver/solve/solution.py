@@ -559,7 +559,6 @@ def solution(
     soln_input, initial_conditions, *, root_func=None, root_func_args=None,
     onroot_func=None, tstop=None, ontstop_func=None, store_internal=True,
     with_taylor=True, modified_initial_conditions=None, θ_scale=float_type(1),
-    use_E_r=False
 ):
     """
     Find solution
@@ -579,6 +578,7 @@ def solution(
     after_sonic = soln_input.after_sonic
     interp_slice = soln_input.interp_slice
     sonic_interp_size = soln_input.sonic_interp_size
+    use_E_r = soln_input.use_E_r
 
     if with_taylor:
         taylor_stop_angle = radians(soln_input.taylor_stop_angle)

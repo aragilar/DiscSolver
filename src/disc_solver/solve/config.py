@@ -47,7 +47,7 @@ def E_r_boundary_func(*, v_r, v_φ, η_P, η_H, η_perp_sq, a_0):
     return - v_φ - v_r / η_P * (η_H + η_perp_sq * v_φ / (2 * a_0))
 
 
-def define_conditions(inp, *, use_E_r=False):
+def define_conditions(inp):
     """
     Compute initial conditions based on input
     """
@@ -86,7 +86,7 @@ def define_conditions(inp, *, use_E_r=False):
     init_con[ODEIndex.η_A] = η_A
     init_con[ODEIndex.η_H] = η_H
 
-    if use_E_r:
+    if inp.use_E_r:
         E_r = E_r_boundary_func(
             v_r=v_r, v_φ=v_φ, η_P=η_P, η_H=η_H, η_perp_sq=η_perp_sq, a_0=a_0
         )
@@ -160,6 +160,9 @@ def get_input_from_conffile(*, config_file, overrides=None):
         ),
         use_taylor_jump=config.get(
             "config", "use_taylor_jump", fallback="True"
+        ),
+        use_E_r=config.get(
+            "config", "use_E_r", fallback="False"
         ),
         γ=config.get("initial", "γ", fallback="0.001"),
         v_rin_on_c_s=config.get("initial", "v_rin_on_c_s", fallback="1"),
