@@ -159,6 +159,8 @@ def sort_solutions(solutions):
     Sort solutions based on logprob of solution
     """
     return sorted(
-        solutions.items(),
-        key=lambda soln: get_logprob_of_soln(soln[1])
+        [
+            (name, get_logprob_of_soln(soln))
+            for name, soln in solutions.items()
+        ], key=lambda soln: soln[1]
     )
