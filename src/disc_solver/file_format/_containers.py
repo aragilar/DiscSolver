@@ -2,6 +2,7 @@
 Defines the common data structures
 """
 
+from os import environ
 from collections import defaultdict
 from collections.abc import MutableMapping
 
@@ -499,12 +500,25 @@ class Solutions(MutableMapping):
     def __init__(self, **solutions):
         self._solutions = {}
         self.update(solutions)
+        self._cache_values_ = None
+
+    @property
+    def _cache_values(self):
+        """
+        Whether to cache solutions, or simply read from HDF5 when needed
+        """
+        if self._cache_values_ is not None:
+            return self._cache_values_
+        cache_values = not environ.get("NO_CACHE", False)
+        self._cache_values_ = cache_values
+        return self._cache_values_
 
     def __getitem__(self, key):
         value = self._solutions[key]
         if isinstance(value, OnDemandWrapper):
             value = value()
-            self._solutions[key] = value
+            if self._cache_values:
+                self._solutions[key] = value
         return value
 
     def __setitem__(self, key, val):
@@ -555,15 +569,6 @@ class Solutions(MutableMapping):
         Get the last solution added
         """
         return self[sorted(list(self), key=int)[-1]]
-
-    def free(self, key):
-        """
-        Free the memory used to store the solution, allowing the solution to be
-        reloaded if need be
-        """
-        actual_val = self[key]
-        self[key] = actual_val
-        del actual_val
 
 
 @attr.s(eq=False, hash=False)

@@ -224,7 +224,6 @@ def get_all_solutions(files):
                     run = soln_file["run"]
                     for soln_name, soln in run.solutions.items():
                         yield file, soln_name, soln
-                        run.solutions.free(soln_name)
                     yield file, "final", run.final_solution
                 except KeyError as e:
                     log.notice(f"Failed to read stats from file {file}: {e}")
