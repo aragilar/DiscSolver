@@ -9,10 +9,12 @@ import logbook
 from numpy import max as np_max, sqrt
 
 from .single import solver as single_solver
+from .solution import get_known_broken_solution
 from .stepper import (
     solver as step_solver, writer_generator, cleanup_generator,
     binary_searcher, alternate_cleanup_generator, StepperStop, StepperError,
 )
+from .utils import SolverError
 
 from ..analyse.utils import get_mach_numbers
 from ..file_format import SolutionInput, Solution
@@ -178,9 +180,14 @@ def solution_generator(
         """
         solution func
         """
-        step_solver(
-            inp, run, store_internal=store_internal, no_final_solution=True
-        )
+        try:
+            step_solver(
+                inp, run, store_internal=store_internal, no_final_solution=True
+            )
+        except SolverError as e:
+            log.info(e)
+            invalid_soln = get_known_broken_solution(inp)
+            return invalid_soln, False
         final_solution_dict = get_last_solution().solution_input.asdict()
         final_solution_dict.update(
             stop=final_stop, num_angles=final_steps,
