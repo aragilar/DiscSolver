@@ -20,3 +20,5 @@ exclude .circleci
 recursive-exclude .circleci *
 exclude .builds
 recursive-exclude .builds *
+exclude azure-pipelines.yml
+recursive-exclude ci_support *.yml
