@@ -9,7 +9,7 @@ import logbook
 
 from numpy import (
     array, concatenate, copy, insert, errstate, sqrt, tan, degrees, radians,
-    zeros,
+    zeros, nan
 )
 
 from scikits.odes import ode
@@ -730,4 +730,25 @@ def solution(
             if soln.roots.t is not None else None
         ), y_roots=soln.roots.y, sonic_point=sonic_point,
         sonic_point_values=sonic_point_values,
+    )
+
+
+def get_known_broken_solution(inp):
+    """
+    Return a solution which can be seen to be invalid
+    """
+    # Flag being None and initial_conditions being None should be enough to
+    # signify that the solution is invalid
+    flag = None
+    initial_conditions = None
+    angles = array([0])
+    soln = array([nan] * len(ODEIndex))
+    soln.shape = (1, len(ODEIndex))
+
+    return Solution(
+        solution_input=inp, initial_conditions=initial_conditions,
+        flag=flag, coordinate_system=COORDS, internal_data=None,
+        angles=angles, solution=soln,
+        t_roots=None, y_roots=None, sonic_point=None,
+        sonic_point_values=None,
     )
