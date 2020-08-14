@@ -33,6 +33,10 @@ steps:
   displayName: 'tox'
   env: {"BASH_ENV": "./ci_support/ensure_sundials_installed.sh"}
 
+- script: |
+    df -h
+  displayName: 'check size'
+  condition: succeededOrFailed()
 
 - script: |
     codecov
