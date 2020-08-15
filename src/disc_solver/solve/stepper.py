@@ -144,7 +144,8 @@ def writer_generator(run):
         writer
         """
         log.debug(f"Writing attempt {attempt}")
-        run.solutions.add_solution(soln)
+        if soln.flag is not None:
+            run.solutions.add_solution(soln)
 
     return writer
 
