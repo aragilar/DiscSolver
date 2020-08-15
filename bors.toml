@@ -3,6 +3,7 @@ status = [
   "ci/circleci: py38",
   "ci/circleci: flake8",
   "ci/circleci: checkreadme",
-  "ci/circleci: check-manifest"
+  "ci/circleci: check-manifest",
+  "aragilar.DiscSolver",
 ]
 timeout_sec = 7200
