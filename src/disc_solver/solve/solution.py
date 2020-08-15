@@ -743,6 +743,7 @@ def get_known_broken_solution(inp):
     initial_conditions = None
     angles = array([0])
     soln = array([nan] * len(ODEIndex))
+    soln.shape = (1, len(ODEIndex))
 
     return Solution(
         solution_input=inp, initial_conditions=initial_conditions,
