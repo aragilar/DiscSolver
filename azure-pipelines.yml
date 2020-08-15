@@ -6,6 +6,7 @@ variables:
 jobs:
 
 - job: 'tests'
+  timeoutInMinutes: 0
   pool:
     vmImage: ubuntu-18.04
   strategy:

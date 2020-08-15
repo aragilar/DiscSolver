@@ -6,6 +6,13 @@ steps:
     path: $(HOME)/sundials/
   condition: and(succeeded(), ne(variables['SUNDIALS_VERSION'], ''))
 
+- task: CacheBeta@0
+  displayName: pip cache
+  inputs:
+    key: pip | "$(Agent.OS)" | "${{ parameters.vmImage }}" | "$(SUNDIALS_VERSION)"
+    path: $(PIP_CACHE_DIR)
+  condition: and(succeeded(), ne(variables['SUNDIALS_VERSION'], ''))
+
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '$(python.version)'
@@ -26,6 +33,10 @@ steps:
   displayName: 'tox'
   env: {"BASH_ENV": "./ci_support/ensure_sundials_installed.sh"}
 
+- script: |
+    df -h
+  displayName: 'check size'
+  condition: succeededOrFailed()
 
 - script: |
     codecov

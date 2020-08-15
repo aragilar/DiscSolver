@@ -60,6 +60,9 @@ orbs:
 
       tox_post:
         steps:
+          - run:
+              command: df -h
+              when: always
           - run: codecov
           - save_cache:
               key: sundials-{{ epoch}}
