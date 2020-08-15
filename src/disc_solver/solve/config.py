@@ -31,6 +31,9 @@ def v_φ_boundary_func(*, v_r, η_H, η_P, norm_kepler_sq, a_0, γ):
         )
     except ValueError:
         raise SolverError("Input implies complex v_φ")
+    except RuntimeWarning as w:
+        log.error(w)
+        raise SolverError("Cannot take sqrt")
 
 
 def B_φ_prime_boundary_func(*, v_r, v_φ, a_0):
