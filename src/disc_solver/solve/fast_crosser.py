@@ -5,24 +5,18 @@ fast-crosser: combines different solvers to cross fast speed
 from enum import Enum
 
 import logbook
-
-from numpy import max as np_max, sqrt
-
-from .single import solver as single_solver
-from .solution import get_known_broken_solution
-from .stepper import (
-    solver as step_solver,
-    writer_generator,
-    cleanup_generator,
-    binary_searcher,
-    alternate_cleanup_generator,
-    StepperStop,
-    StepperError,
-)
-from .utils import SolverError
+from numpy import max as np_max
+from numpy import sqrt
 
 from ..analyse.utils import get_mach_numbers
-from ..file_format import SolutionInput, Solution
+from ..file_format import Solution, SolutionInput
+from .single import solver as single_solver
+from .solution import get_known_broken_solution
+from .stepper import (StepperError, StepperStop, alternate_cleanup_generator,
+                      binary_searcher, cleanup_generator)
+from .stepper import solver as step_solver
+from .stepper import writer_generator
+from .utils import SolverError
 
 log = logbook.Logger(__name__)
 

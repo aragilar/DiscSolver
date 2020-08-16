@@ -2,7 +2,6 @@
 from pathlib import Path
 
 import pytest
-
 from disc_solver.analyse.acc_plot import acc_plot
 from disc_solver.analyse.combine_plot import combine_plot
 from disc_solver.analyse.compare_plot import compare_plot
@@ -10,8 +9,8 @@ from disc_solver.analyse.component_plot import plot as component_plot
 from disc_solver.analyse.conserve_plot import conserve_main
 from disc_solver.analyse.derivs_plot import derivs_plot
 from disc_solver.analyse.diverge_plot import diverge_main
-from disc_solver.analyse.dump_csv import dump_csv
 from disc_solver.analyse.dump_config import dump_cfg
+from disc_solver.analyse.dump_csv import dump_csv
 from disc_solver.analyse.hydro_check_plot import hydro_check_plot
 from disc_solver.analyse.info import info
 from disc_solver.analyse.j_e_plot import j_e_plot
@@ -23,12 +22,12 @@ from disc_solver.analyse.stats import stats_main
 from disc_solver.analyse.surface_density_plot import surface_density_plot
 from disc_solver.analyse.taylor_plot import taylor_plot
 from disc_solver.analyse.utils import AnalysisError
-from disc_solver.analyse.validate_plot import validate_plot
 from disc_solver.analyse.v_deriv_cmp import plot as v_θ_deriv_cmp
+from disc_solver.analyse.validate_plot import validate_plot
 from disc_solver.analyse.vert_plot import plot as vert_plot
+from disc_solver.solve import solve
 from disc_solver.solve.csvrunner import csvrunner
 from disc_solver.solve.hdf5runner import hdf5runner
-from disc_solver.solve import solve
 from disc_solver.solve.resolve import resolve
 from disc_solver.solve.taylor_space import main as taylor_space_main
 from disc_solver.solve.utils import SolverError
