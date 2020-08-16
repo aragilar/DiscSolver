@@ -2,15 +2,18 @@
 """
 Define input and environment for ode system
 """
-
 import logbook
 import numpy as np
 from numpy import sqrt
 
-from ..file_format import ConfigInput, InitialConditions
-from ..float_handling import FLOAT_TYPE, float_type
-from ..utils import CaseDependentConfigParser, ODEIndex
-from .utils import SolverError, add_overrides
+from ..file_format import ConfigInput
+from ..file_format import InitialConditions
+from ..float_handling import FLOAT_TYPE
+from ..float_handling import float_type
+from ..utils import CaseDependentConfigParser
+from ..utils import ODEIndex
+from .utils import add_overrides
+from .utils import SolverError
 
 log = logbook.Logger(__name__)
 

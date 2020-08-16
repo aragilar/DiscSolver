@@ -10,11 +10,13 @@ from numpy import any as np_any
 from numpy import diff
 from numpy import logical_and as np_and
 
-from ..file_format import Solution, SolutionInput
+from ..file_format import Solution
+from ..file_format import SolutionInput
 from ..utils import ODEIndex
 from .config import define_conditions
 from .solution import solution
-from .utils import SolverError, validate_solution
+from .utils import SolverError
+from .utils import validate_solution
 
 log = logbook.Logger(__name__)
 
