@@ -308,17 +308,26 @@ class TestReSolve:
 class TestAnalysis:
     def test_info_run(self, solution, tmp_text_stream):
         info(
-            solution, group="run", soln_range=None, output_file=tmp_text_stream,
+            solution,
+            group="run",
+            soln_range=None,
+            output_file=tmp_text_stream,
         )
 
     def test_info_status(self, solution, tmp_text_stream):
         info(
-            solution, group="status", soln_range=None, output_file=tmp_text_stream,
+            solution,
+            group="status",
+            soln_range=None,
+            output_file=tmp_text_stream,
         )
 
     def test_info_input(self, solution, tmp_text_stream):
         info(
-            solution, group="input", soln_range=None, output_file=tmp_text_stream,
+            solution,
+            group="input",
+            soln_range=None,
+            output_file=tmp_text_stream,
         )
 
     def test_info_initial_conditions(self, solution, tmp_text_stream):
@@ -345,7 +354,8 @@ class TestAnalysis:
             output_file=tmp_text_stream,
         )
 
-    def test_info_sonic_on_scale_single(self, single_solution_default, tmp_text_stream):
+    def test_info_sonic_on_scale_single(self, single_solution_default,
+                                        tmp_text_stream):
         info(
             single_solution_default,
             group="sonic-on-scale",
@@ -354,8 +364,7 @@ class TestAnalysis:
         )
 
     def test_info_sonic_on_scale_single_no_internal(
-        self, single_solution_no_internal, tmp_text_stream
-    ):
+            self, single_solution_no_internal, tmp_text_stream):
         info(
             single_solution_no_internal,
             group="sonic-on-scale",
@@ -363,7 +372,8 @@ class TestAnalysis:
             output_file=tmp_text_stream,
         )
 
-    def test_info_sonic_on_scale_step(self, step_solution_default, tmp_text_stream):
+    def test_info_sonic_on_scale_step(self, step_solution_default,
+                                      tmp_text_stream):
         info(
             step_solution_default,
             group="sonic-on-scale",
@@ -373,22 +383,33 @@ class TestAnalysis:
 
     def test_info_solutions(self, solution, tmp_text_stream):
         info(
-            solution, group="solutions", soln_range=None, output_file=tmp_text_stream,
+            solution,
+            group="solutions",
+            soln_range=None,
+            output_file=tmp_text_stream,
         )
 
     def test_dump(self, solution, tmp_text_stream):
         dump_csv(
-            solution, with_header=False, soln_range=None, output_file=tmp_text_stream,
+            solution,
+            with_header=False,
+            soln_range=None,
+            output_file=tmp_text_stream,
         )
 
     def test_dump_with_header(self, solution, tmp_text_stream):
         dump_csv(
-            solution, with_header=True, soln_range=None, output_file=tmp_text_stream,
+            solution,
+            with_header=True,
+            soln_range=None,
+            output_file=tmp_text_stream,
         )
 
     def test_dump_cfg(self, solution, tmp_text_stream):
         dump_cfg(
-            solution, soln_range=None, output_file=tmp_text_stream,
+            solution,
+            soln_range=None,
+            output_file=tmp_text_stream,
         )
 
     def test_plot_show(self, solution, mpl_interactive):
@@ -452,11 +473,13 @@ class TestAnalysis:
     def test_derivs_file(self, solution_deriv, plot_file):
         return derivs_plot(solution_deriv, plot_filename=plot_file)
 
-    def test_derivs_show_no_internal(self, solution_deriv_no_internal, mpl_interactive):
+    def test_derivs_show_no_internal(self, solution_deriv_no_internal,
+                                     mpl_interactive):
         with pytest.raises(AnalysisError):
             derivs_plot(solution_deriv_no_internal, show=True)
 
-    def test_derivs_file_no_internal(self, solution_deriv_no_internal, plot_file):
+    def test_derivs_file_no_internal(self, solution_deriv_no_internal,
+                                     plot_file):
         with pytest.raises(AnalysisError):
             derivs_plot(solution_deriv_no_internal, plot_filename=plot_file)
 
@@ -466,7 +489,8 @@ class TestAnalysis:
     def test_params_file(self, solution_default, plot_file):
         return params_plot(solution_default, plot_filename=plot_file)
 
-    def test_params_show_no_internal(self, solution_no_internal, mpl_interactive):
+    def test_params_show_no_internal(self, solution_no_internal,
+                                     mpl_interactive):
         with pytest.raises(AnalysisError):
             params_plot(solution_no_internal, show=True)
 
@@ -484,9 +508,12 @@ class TestAnalysis:
         taylor_plot(solution_taylor, show=True, show_values=True)
 
     def test_taylor_file_values(self, solution_taylor, plot_file):
-        return taylor_plot(solution_taylor, plot_filename=plot_file, show_values=True)
+        return taylor_plot(solution_taylor,
+                           plot_filename=plot_file,
+                           show_values=True)
 
-    def test_taylor_show_no_internal(self, solution_no_internal, mpl_interactive):
+    def test_taylor_show_no_internal(self, solution_no_internal,
+                                     mpl_interactive):
         with pytest.raises(AnalysisError):
             taylor_plot(solution_no_internal, show=True)
 
@@ -531,7 +558,8 @@ class TestAnalysis:
     def test_validate_file(self, solution_default, plot_file):
         return validate_plot(solution_default, plot_filename=plot_file)
 
-    def test_validate_show_no_internal(self, solution_no_internal, mpl_interactive):
+    def test_validate_show_no_internal(self, solution_no_internal,
+                                       mpl_interactive):
         with pytest.raises(AnalysisError):
             validate_plot(solution_no_internal, show=True)
 
@@ -545,11 +573,13 @@ class TestAnalysis:
     def test_hydro_check_file(self, solution_default, plot_file):
         return hydro_check_plot(solution_default, plot_filename=plot_file)
 
-    def test_hydro_check_show_no_internal(self, solution_no_internal, mpl_interactive):
+    def test_hydro_check_show_no_internal(self, solution_no_internal,
+                                          mpl_interactive):
         with pytest.raises(AnalysisError):
             hydro_check_plot(solution_no_internal, show=True)
 
-    def test_hydro_check_file_no_internal(self, solution_no_internal, plot_file):
+    def test_hydro_check_file_no_internal(self, solution_no_internal,
+                                          plot_file):
         with pytest.raises(AnalysisError):
             hydro_check_plot(solution_no_internal, plot_filename=plot_file)
 

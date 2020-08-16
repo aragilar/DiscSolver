@@ -93,8 +93,8 @@ def stepper_creator(soln_writer, *, step_size, solution_input):
             phase = Phase.FINDING_MAX
             log.notice("starting search for max limit")
             return SolutionInput(
-                **get_next_input(inp_dict, inp_dict["v_rin_on_c_s"] + step_size)
-            )
+                **get_next_input(inp_dict, inp_dict["v_rin_on_c_s"] +
+                                 step_size))
 
         if phase == Phase.FINDING_MAX:
             if current_quality > limits["max_val"]:
@@ -102,11 +102,12 @@ def stepper_creator(soln_writer, *, step_size, solution_input):
                 limits["max_val"] = current_quality
                 log.notice("searching for max limit on attempt {}", attempt)
                 return SolutionInput(
-                    **get_next_input(inp_dict, inp_dict["v_rin_on_c_s"] + step_size)
-                )
+                    **get_next_input(inp_dict, inp_dict["v_rin_on_c_s"] +
+                                     step_size))
             phase = Phase.FINDING_MIN
             log.notice("starting search for min limit")
-            return SolutionInput(**get_next_input(inp_dict, limits["min"] - step_size))
+            return SolutionInput(**get_next_input(inp_dict, limits["min"] -
+                                                  step_size))
 
         if phase == Phase.FINDING_MIN:
             if current_quality > limits["min_val"]:
@@ -114,31 +115,27 @@ def stepper_creator(soln_writer, *, step_size, solution_input):
                 limits["min_val"] = current_quality
                 log.notice("searching for min limit on attempt {}", attempt)
                 return SolutionInput(
-                    **get_next_input(inp_dict, inp_dict["v_rin_on_c_s"] - step_size)
-                )
+                    **get_next_input(inp_dict, inp_dict["v_rin_on_c_s"] -
+                                     step_size))
             phase = Phase.BISECTING
-            log.notice("found limits {} {}, bisecting", limits["min"], limits["max"])
+            log.notice("found limits {} {}, bisecting", limits["min"],
+                       limits["max"])
             if limits["min"] == limits["max"]:
                 raise StepperError("Unable to step off value")
             # This sets up the golden-section search by starting with the
             # golden ratio
-            return SolutionInput(
-                **get_next_input(
-                    inp_dict,
-                    limits["min"]
-                    + ((limits["min"] - limits["max"]) / (GOLDEN_RATIO - 1)),
-                )
-            )
+            return SolutionInput(**get_next_input(
+                inp_dict,
+                limits["min"] + ((limits["min"] - limits["max"]) /
+                                 (GOLDEN_RATIO - 1)),
+            ))
         if phase == Phase.BISECTING:
             log.notice("bisecting on attempt {}", attempt)
             if limits["mid"] is None:
                 limits["mid"] = current_v_r
                 limits["mid_val"] = current_quality
-                return SolutionInput(
-                    **get_next_input(
-                        inp_dict, limits["min"] + (limits["max"] - limits["mid"])
-                    )
-                )
+                return SolutionInput(**get_next_input(
+                    inp_dict, limits["min"] + (limits["max"] - limits["mid"])))
             if limits["mid"] > current_v_r:
                 lmid_lim = current_v_r
                 hmid_lim = limits["mid"]
@@ -170,11 +167,11 @@ def stepper_creator(soln_writer, *, step_size, solution_input):
 
 
 def solution_generator(
-    *,
-    store_internal=True,
-    run,
-    final_stop=DEFAULT_FINAL_STOP,
-    final_steps=DEFAULT_FINAL_STEPS,
+        *,
+        store_internal=True,
+        run,
+        final_stop=DEFAULT_FINAL_STOP,
+        final_steps=DEFAULT_FINAL_STEPS,
 ):
     """
     Generate solution func
@@ -188,14 +185,18 @@ def solution_generator(
         solution func
         """
         try:
-            step_solver(inp, run, store_internal=store_internal, no_final_solution=True)
+            step_solver(inp,
+                        run,
+                        store_internal=store_internal,
+                        no_final_solution=True)
         except SolverError as e:
             log.info(e)
             invalid_soln = get_known_broken_solution(inp)
             return invalid_soln, False
         final_solution_dict = get_last_solution().solution_input.asdict()
         final_solution_dict.update(
-            stop=final_stop, num_angles=final_steps,
+            stop=final_stop,
+            num_angles=final_steps,
         )
         single_solver(
             SolutionInput(**final_solution_dict),
@@ -209,13 +210,13 @@ def solution_generator(
 
 
 def solver(
-    soln_input,
-    run,
-    *,
-    store_internal=True,
-    final_stop=DEFAULT_FINAL_STOP,
-    final_steps=DEFAULT_FINAL_STEPS,
-    num_attempts=DEFAULT_NUM_ATTEMPTS,
+        soln_input,
+        run,
+        *,
+        store_internal=True,
+        final_stop=DEFAULT_FINAL_STOP,
+        final_steps=DEFAULT_FINAL_STEPS,
+        num_attempts=DEFAULT_NUM_ATTEMPTS,
 ):
     """
     fast-crosser solver
@@ -223,7 +224,11 @@ def solver(
     uses step solver and single solver to cross fast speed
     """
     writer = writer_generator(run)
-    cleanup = cleanup_generator(run, writer, no_final_solution=True,)
+    cleanup = cleanup_generator(
+        run,
+        writer,
+        no_final_solution=True,
+    )
     best_solution = binary_searcher(
         solution_generator(
             store_internal=store_internal,
@@ -232,9 +237,9 @@ def solver(
             final_steps=final_steps,
         ),
         cleanup,
-        stepper_creator(
-            writer, step_size=0.01 * soln_input.v_rin_on_c_s, solution_input=soln_input
-        ),
+        stepper_creator(writer,
+                        step_size=0.01 * soln_input.v_rin_on_c_s,
+                        solution_input=soln_input),
         alternate_cleanup_generator(run, no_final_solution=True),
         soln_input,
         num_attempts=num_attempts,
