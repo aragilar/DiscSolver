@@ -371,7 +371,7 @@ def taylor_solution(
                 degrees(scaled_to_rad(soln.errors.t, θ_scale)),
                 soln.flag, soln.message
             )
-        )
+        ) from e
     except CVODESolveReachedTSTOP as e:
         soln = e.soln
     else:
