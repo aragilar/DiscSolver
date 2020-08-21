@@ -18,38 +18,40 @@ jobs:
     steps:
     - name: Setup APT
       run: |
-        echo 'deb http://deb.debian.org/debian/ experimental main'
+        echo "\n\ndeb http://deb.debian.org/debian/ experimental main" >> /etc/apt/sources.list
         apt update
-        apt dist-upgrade
+        apt dist-upgrade -y
 
     - name: Install Dependencies via APT
       run: |
         # python
-        apt install python3-dev
-        apt install python3-tk
-        apt install python3-pip
+        apt install -y python3-dev
+        apt install -y python3-tk
+        apt install -y python3-pip
         #
-        apt install libsundials-dev/experimental # scikits.odes
-        apt install libhdf5-dev # h5py
-        apt install libgirepository1.0-dev # matplotlib/pygobject
-        apt install libgtk-3-dev # matplotlib/pygobject
+        apt install -y libsundials-dev/experimental # scikits.odes
+        apt install -y libhdf5-dev # h5py
+        apt install -y libgirepository1.0-dev # matplotlib/pygobject
+        apt install -y libgtk-3-dev # matplotlib/pygobject
         #
-        apt install xvfb # headless testing
+        apt install -y xvfb # headless testing
 
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
-    - name: Disable Manylinux:
+    - name: Disable Manylinux
       run: |
-        sudo cp .builds/_manylinux.py /usr/lib/python3.8/_manylinux.py
-    - name: Install Python Dependencies:
+        cp ci_support/_manylinux.py /usr/lib/python3.8/_manylinux.py
+    - name: Install Python Dependencies
       run: |
-        python -m pip install -U pip setuptools wheel
-        python -m pip install -U -c known_broken_constraints.txt --pre coverage # coverage major versions need to match
-        python -m pip install -U  tox codecov
-    - name: test:
+        python3 -m pip install -U pip setuptools wheel
+        python3 -m pip install -U -c known_broken_constraints.txt --pre coverage # coverage major versions need to match
+        python3 -m pip install -U tox codecov
+    - name: test
       run: |
-        tox
-    - name: upload coverage:
+        python3 -m tox
+    - name: upload coverage
       run: |
-        codecov
+        python3 -m codecov
