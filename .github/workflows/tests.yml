@@ -35,6 +35,8 @@ jobs:
         apt install -y libgtk-3-dev # matplotlib/pygobject
         #
         apt install -y xvfb # headless testing
+        #
+        apt install -y git # apparently not installed...
 
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
