@@ -9,6 +9,7 @@ jobs:
   timeoutInMinutes: 0
   pool:
     vmImage: ubuntu-18.04
+  container: debian:unstable
   strategy:
     matrix:
       static-checks:
