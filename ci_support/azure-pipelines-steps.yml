@@ -1,61 +1,60 @@
 steps:
-#- task: CacheBeta@0
-#  displayName: SUNDIALS cache
-#  inputs:
-#    key: SUNDIALS | "$(Agent.OS)" | "${{ parameters.vmImage }}" | "$(SUNDIALS_VERSION)"
-#    path: $(HOME)/sundials/
-#  condition: and(succeeded(), ne(variables['SUNDIALS_VERSION'], ''))
-#
-#- task: CacheBeta@0
-#  displayName: pip cache
-#  inputs:
-#    key: pip | "$(Agent.OS)" | "${{ parameters.vmImage }}" | "$(SUNDIALS_VERSION)"
-#    path: $(PIP_CACHE_DIR)
-#  condition: and(succeeded(), ne(variables['SUNDIALS_VERSION'], ''))
-#
-#- task: UsePythonVersion@0
-#  inputs:
-#    versionSpec: '$(python.version)'
-#    architecture: 'x64'
-#  displayName: 'Use Python $(python.version)'
-#  condition: and(succeeded(), ne(variables['python.version'], 'Pre'))
+  #- task: CacheBeta@0
+  #  displayName: SUNDIALS cache
+  #  inputs:
+  #    key: SUNDIALS | "$(Agent.OS)" | "${{ parameters.vmImage }}" | "$(SUNDIALS_VERSION)"
+  #    path: $(HOME)/sundials/
+  #  condition: and(succeeded(), ne(variables['SUNDIALS_VERSION'], ''))
+  #
+  #- task: CacheBeta@0
+  #  displayName: pip cache
+  #  inputs:
+  #    key: pip | "$(Agent.OS)" | "${{ parameters.vmImage }}" | "$(SUNDIALS_VERSION)"
+  #    path: $(PIP_CACHE_DIR)
+  #  condition: and(succeeded(), ne(variables['SUNDIALS_VERSION'], ''))
+  #
+  #- task: UsePythonVersion@0
+  #  inputs:
+  #    versionSpec: '$(python.version)'
+  #    architecture: 'x64'
+  #  displayName: 'Use Python $(python.version)'
+  #  condition: and(succeeded(), ne(variables['python.version'], 'Pre'))
 
-- script: |
-    # python
-    sudo apt install python3-dev
-    sudo apt install python3-tk
-    sudo apt install python3-pip
-    #
-    sudo apt install libsundials-dev/experimental # scikits.odes
-    sudo apt install libhdf5-dev # h5py
-    sudo apt install libgirepository1.0-dev # matplotlib/pygobject
-    sudo apt install libgtk-3-dev # matplotlib/pygobject
-    #
-    sudo apt install xvfb # headless testing
-  displayName: 'APT'
+  - script: |
+      # python
+      sudo apt install python3-dev
+      sudo apt install python3-tk
+      sudo apt install python3-pip
+      #
+      sudo apt install libsundials-dev/experimental # scikits.odes
+      sudo apt install libhdf5-dev # h5py
+      sudo apt install libgirepository1.0-dev # matplotlib/pygobject
+      sudo apt install libgtk-3-dev # matplotlib/pygobject
+      #
+      sudo apt install xvfb # headless testing
+    displayName: "APT"
 
-- script:
-    sudo cp .builds/_manylinux.py /usr/lib/python3.8/_manylinux.py
-  displayName: 'manylinux'
+  - script: sudo cp .builds/_manylinux.py /usr/lib/python3.8/_manylinux.py
+    displayName: "manylinux"
 
-- script: |
-    python3 -m pip install --user --upgrade pip setuptools wheel
-    python3 -m pip install --user tox codecov
-  displayName: 'Install dependencies with pip'
+  - script: |
+      python3 -m pip install --user --upgrade pip setuptools wheel
+      python3 -m pip install --user tox codecov
+    displayName: "Install dependencies with pip"
 
-- script: env
-  displayName: 'print env'
+  - script: env
+    displayName: "print env"
 
-- script: |
-    python3 -m tox
-  displayName: 'tox'
-#  env: {"BASH_ENV": "./ci_support/ensure_sundials_installed.sh"}
+  - script: |
+      python3 -m tox
+    displayName: "tox"
+  #  env: {"BASH_ENV": "./ci_support/ensure_sundials_installed.sh"}
 
-- script: |
-    df -h
-  displayName: 'check size'
-  condition: succeededOrFailed()
+  - script: |
+      df -h
+    displayName: "check size"
+    condition: succeededOrFailed()
 
-- script: |
-    python3 -m codecov
-  displayName: 'codecov'
+  - script: |
+      python3 -m codecov
+    displayName: "codecov"
