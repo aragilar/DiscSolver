@@ -6,52 +6,23 @@ The system of odes
 from collections import namedtuple
 
 import logbook
-
-from numpy import (
-    array,
-    concatenate,
-    copy,
-    insert,
-    errstate,
-    sqrt,
-    tan,
-    degrees,
-    radians,
-    zeros,
-)
-
+from numpy import (array, concatenate, copy, degrees, errstate, insert,
+                   radians, sqrt, tan, zeros)
 from scikits.odes import ode
-from scikits.odes.sundials import (
-    CVODESolveFailed,
-    CVODESolveFoundRoot,
-    CVODESolveReachedTSTOP,
-)
+from scikits.odes.sundials import (CVODESolveFailed, CVODESolveFoundRoot,
+                                   CVODESolveReachedTSTOP)
 from scikits.odes.sundials.cvode import StatusEnum
 
-from .deriv_funcs import (
-    dderiv_B_φ_soln,
-    taylor_series,
-    get_taylor_first_order,
-    get_taylor_second_order,
-    get_taylor_third_order,
-    deriv_B_r_func,
-    deriv_η_skw_func,
-    deriv_B_φ_func,
-    deriv_E_r_func,
-)
-from .sonic_point import deriv_v_θ_sonic
-from .utils import (
-    velocity_stop_generator,
-    error_handler,
-    rad_to_scaled,
-    scaled_to_rad,
-    SolverError,
-    deduplicate_and_interpolate,
-)
-
-from ..float_handling import float_type
 from ..file_format import InternalData, Solution
+from ..float_handling import float_type
 from ..utils import ODEIndex
+from .deriv_funcs import (dderiv_B_φ_soln, deriv_B_r_func, deriv_B_φ_func,
+                          deriv_E_r_func, deriv_η_skw_func,
+                          get_taylor_first_order, get_taylor_second_order,
+                          get_taylor_third_order, taylor_series)
+from .sonic_point import deriv_v_θ_sonic
+from .utils import (SolverError, deduplicate_and_interpolate, error_handler,
+                    rad_to_scaled, scaled_to_rad, velocity_stop_generator)
 
 INTEGRATOR = "cvode"
 LINSOLVER = "dense"
