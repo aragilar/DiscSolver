@@ -4,22 +4,21 @@ variables:
   PIP_CACHE_DIR: $(Pipeline.Workspace)/cache/pip
 
 jobs:
+  - job: "tests"
+    timeoutInMinutes: 0
+    pool:
+      vmImage: ubuntu-18.04
+    container: debian:unstable
+    strategy:
+      matrix:
+        static-checks:
+          python.version: "3.8"
+          TOXENV: flake8,pylint,check-manifest,checkreadme
+          SUNDIALS_VERSION: "4.1.0"
+        main:
+          python.version: "3.8"
+          TOXENV: py38
+          SUNDIALS_VERSION: "4.1.0"
 
-- job: 'tests'
-  timeoutInMinutes: 0
-  pool:
-    vmImage: ubuntu-18.04
-  container: debian:unstable
-  strategy:
-    matrix:
-      static-checks:
-        python.version: '3.8'
-        TOXENV: flake8,pylint,check-manifest,checkreadme
-        SUNDIALS_VERSION: '4.1.0'
-      main:
-        python.version: '3.8'
-        TOXENV: py38
-        SUNDIALS_VERSION: '4.1.0'
-
-  steps:
-    - template: ci_support/azure-pipelines-steps.yml
+    steps:
+      - template: ci_support/azure-pipelines-steps.yml
