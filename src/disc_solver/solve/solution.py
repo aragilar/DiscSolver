@@ -2,27 +2,45 @@
 """
 The system of odes
 """
-
 from collections import namedtuple
 
 import logbook
-from numpy import (array, concatenate, copy, degrees, errstate, insert,
-                   radians, sqrt, tan, zeros)
+from numpy import array
+from numpy import concatenate
+from numpy import copy
+from numpy import degrees
+from numpy import errstate
+from numpy import insert
+from numpy import radians
+from numpy import sqrt
+from numpy import tan
+from numpy import zeros
 from scikits.odes import ode
-from scikits.odes.sundials import (CVODESolveFailed, CVODESolveFoundRoot,
-                                   CVODESolveReachedTSTOP)
+from scikits.odes.sundials import CVODESolveFailed
+from scikits.odes.sundials import CVODESolveFoundRoot
+from scikits.odes.sundials import CVODESolveReachedTSTOP
 from scikits.odes.sundials.cvode import StatusEnum
 
-from ..file_format import InternalData, Solution
+from ..file_format import InternalData
+from ..file_format import Solution
 from ..float_handling import float_type
 from ..utils import ODEIndex
-from .deriv_funcs import (dderiv_B_φ_soln, deriv_B_r_func, deriv_B_φ_func,
-                          deriv_E_r_func, deriv_η_skw_func,
-                          get_taylor_first_order, get_taylor_second_order,
-                          get_taylor_third_order, taylor_series)
+from .deriv_funcs import dderiv_B_φ_soln
+from .deriv_funcs import deriv_B_r_func
+from .deriv_funcs import deriv_B_φ_func
+from .deriv_funcs import deriv_E_r_func
+from .deriv_funcs import deriv_η_skw_func
+from .deriv_funcs import get_taylor_first_order
+from .deriv_funcs import get_taylor_second_order
+from .deriv_funcs import get_taylor_third_order
+from .deriv_funcs import taylor_series
 from .sonic_point import deriv_v_θ_sonic
-from .utils import (SolverError, deduplicate_and_interpolate, error_handler,
-                    rad_to_scaled, scaled_to_rad, velocity_stop_generator)
+from .utils import deduplicate_and_interpolate
+from .utils import error_handler
+from .utils import rad_to_scaled
+from .utils import scaled_to_rad
+from .utils import SolverError
+from .utils import velocity_stop_generator
 
 INTEGRATOR = "cvode"
 LINSOLVER = "dense"
