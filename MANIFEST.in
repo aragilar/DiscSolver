@@ -1,20 +1,21 @@
 include versioneer.py src/disc_solver/_version_.py
-include DESCRIPTION.rst
+include DESCRIPTION.rst README.md LICENSE.txt COPYING
+
+# Testing
+include pytest.ini
+include .coveragerc
 include pylintrc
 include tox.ini
-include README.md
-include LICENSE.txt
-include .coveragerc
-include COPYING
-include pytest.ini
 include known_broken_constraints.txt
-recursive-include ci_support *.sh
+include pylint-requirements.txt
 recursive-include dev_hooks *.sh
 recursive-include tests *.out
 recursive-include tests *.png
 recursive-include tests *.py
 recursive-include tests/data *
-exclude pylint-requirements.txt
+
+# CI
+recursive-exclude ci_support *
 exclude bors.toml
 exclude .circleci
 recursive-exclude .circleci *
