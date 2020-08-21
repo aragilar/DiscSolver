@@ -43,6 +43,7 @@ jobs:
     
     - name: test git
       run: |
+        git fetch --prune --unshallow
         ls -al
         ls .git
         git log
