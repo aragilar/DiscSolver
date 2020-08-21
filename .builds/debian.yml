@@ -27,7 +27,7 @@ tasks:
     - disable_manylinux: |
         /bin/echo $PATH
         cd DiscSolver
-        sudo cp .builds/_manylinux.py /usr/lib/python3.8/_manylinux.py
+        sudo cp ci_support/_manylinux.py /usr/lib/python3.8/_manylinux.py
     - deps_install: |
         cd DiscSolver
         $PIPI pip setuptools wheel
