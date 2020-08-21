@@ -40,6 +40,12 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
+    
+    - name: test git
+      run: |
+        ls -al
+        ls .git
+        git log
 
     - name: Disable Manylinux
       run: |
