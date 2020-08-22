@@ -28,20 +28,11 @@ orbs:
       tox_pre:
         steps:
           - checkout
-          #- restore_cache:
-          #    keys:
-          #    - sundials-
-          - restore_cache:
-              keys:
-              - pip-
-          - run: pwd
-          - run: env
-      tox_install:
-        steps:
           - run: echo 'deb http://deb.debian.org/debian/ experimental main' >> /etc/apt/sources.list
           - run: apt-get update
           - run: apt-get dist-upgrade -y
           - run: apt-get install -y git
+          - run: apt-get install -y ca-certificates
           #
           - run: apt-get install -y python3-dev
           - run: apt-get install -y python3-tk
@@ -53,10 +44,15 @@ orbs:
           - run: apt-get install -y libgtk-3-dev # matplotlib/pygobject
           #
           - run: apt-get install -y xvfb # headless testing
-          #- run: apt-get install -y cmake gfortran liblapack-dev libgirepository1.0-dev libgtk-3-dev
-
+          - restore_cache:
+              keys:
+              - pip-
+          - run: pwd
+          - run: env
+      tox_install:
+        steps:
           - run: cp ci_support/_manylinux.py /usr/lib/python3.8/_manylinux.py
-
+          #
           - run: python3 -m pip install -U pip setuptools wheel
           - run: python3 -m pip install -c known_broken_constraints.txt --pre -U coverage # coverage major versions need to match
           - run: python3 -m pip install -U tox codecov
@@ -71,8 +67,6 @@ orbs:
         steps:
           - run:
               no_output_timeout: 1.5h
-              #environment:
-              #  BASH_ENV: ./ci_support/ensure_sundials_installed.sh
               command: tox -e <<parameters.tox_name>> <<parameters.tox_args>>
 
       tox_post:
@@ -81,12 +75,8 @@ orbs:
               command: df -h
               when: always
           - run: codecov
-          #- save_cache:
-          #    key: sundials-{{ epoch}}
-          #    paths:
-          #      - /home/circleci/sundials
           - save_cache:
-              key: pip-{{ epoch}}
+              key: pip-{{ epoch }}
               paths:
                 - /home/circleci/.cache/pip
 
