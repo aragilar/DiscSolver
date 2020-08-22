@@ -5,15 +5,16 @@ Stepper related logic
 from enum import Enum
 
 import logbook
+from numpy import all as np_all
+from numpy import any as np_any
+from numpy import diff
+from numpy import logical_and as np_and
 
-from numpy import diff, any as np_any, all as np_all, logical_and as np_and
-
+from ..file_format import Solution, SolutionInput
+from ..utils import ODEIndex
 from .config import define_conditions
 from .solution import solution
-from .utils import validate_solution, SolverError
-
-from ..file_format import SolutionInput, Solution
-from ..utils import ODEIndex
+from .utils import SolverError, validate_solution
 
 log = logbook.Logger(__name__)
 
