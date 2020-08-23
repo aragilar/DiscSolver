@@ -20,9 +20,9 @@ cache:
   #- TOXENV=docs
 matrix:
   include:
-    - python: 3.8
-      env:
-      - TOXENV=py38 SUNDIALS_VERSION='4.1.0'
+    #- python: 3.8
+    #  env:
+    #  - TOXENV=py38 SUNDIALS_VERSION='4.1.0'
     - python: 3.8
       env:
       - TOXENV=flake8 SUNDIALS_VERSION='4.1.0'
