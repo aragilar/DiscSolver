@@ -8,14 +8,11 @@ orbs:
           tox_name:
             type: string
             default: py38
-          sundials_version:
-            type: string
-            default: 4.1.0
           tox_args:
             type: string
             default: --
-        environment:
-          SUNDIALS_VERSION: <<parameters.sundials_version>>
+        #environment:
+        #  PIP_VERBOSE: true
         executor: tox_exec
         steps:
           - tox_pre
@@ -67,7 +64,7 @@ orbs:
         steps:
           - run:
               no_output_timeout: 1.5h
-              command: tox -e <<parameters.tox_name>> <<parameters.tox_args>>
+              command: tox -vv -e <<parameters.tox_name>> <<parameters.tox_args>>
 
       tox_post:
         steps:
