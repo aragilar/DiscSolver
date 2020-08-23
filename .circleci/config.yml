@@ -15,7 +15,7 @@ orbs:
             type: string
             default: --
         environment:
-          SUNDIALS_VERSION: <<parameters.sundials_version>>
+          #SUNDIALS_VERSION: <<parameters.sundials_version>>
         executor: tox_exec
         steps:
           - tox_pre
@@ -79,6 +79,7 @@ orbs:
               key: pip-{{ epoch }}
               paths:
                 - /home/circleci/.cache/pip
+                - /root/.cache/pip
 
     executors:
       tox_exec:
