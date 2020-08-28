@@ -9,9 +9,7 @@ from disc_solver.float_handling import float_type as FLOAT_TYPE
 
 PLOT_FILE = "plot.png"
 
-NON_INTERACTIVE_BACKENDS = [
-    "agg", "cairo", "pdf", "pgf", "ps", "svg", "template"
-]
+NON_INTERACTIVE_BACKENDS = ["agg", "cairo", "pdf", "pgf", "ps", "svg", "template"]
 
 
 DEFAULT_SOLUTIONS = [
@@ -55,122 +53,183 @@ USE_E_R_SOLUTIONS = [
 def single_solution_default(tmpdir_factory):
     method = "single"
     tmpdir = tmpdir_factory.mktemp(method)
-    return str(solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=True,
-    )[0])
+    return str(
+        solve(
+            sonic_method=method,
+            output_dir=Path(str(tmpdir)),
+            output_file=None,
+            config_file=None,
+            store_internal=True,
+        )[0]
+    )
 
 
 @pytest.fixture(scope="session")
 def mcmc_solution_default(tmpdir_factory):
     method = "mcmc"
     tmpdir = tmpdir_factory.mktemp(method)
-    return str(solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=True,
-    )[0])
+    return str(
+        solve(
+            sonic_method=method,
+            output_dir=Path(str(tmpdir)),
+            output_file=None,
+            config_file=None,
+            store_internal=True,
+        )[0]
+    )
 
 
 @pytest.fixture(scope="session")
 def step_solution_default(tmpdir_factory):
     method = "step"
     tmpdir = tmpdir_factory.mktemp(method)
-    return str(solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=True,
-        max_search_steps=3, num_attempts=5,
-    )[0])
+    return str(
+        solve(
+            sonic_method=method,
+            output_dir=Path(str(tmpdir)),
+            output_file=None,
+            config_file=None,
+            store_internal=True,
+            max_search_steps=3,
+            num_attempts=5,
+        )[0]
+    )
 
 
 @pytest.fixture(scope="session")
 def sonic_root_solution_default(tmpdir_factory):
     method = "sonic_root"
     tmpdir = tmpdir_factory.mktemp(method)
-    return str(solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=True,
-    )[0])
+    return str(
+        solve(
+            sonic_method=method,
+            output_dir=Path(str(tmpdir)),
+            output_file=None,
+            config_file=None,
+            store_internal=True,
+        )[0]
+    )
 
 
 @pytest.fixture(scope="session")
 def hydrostatic_solution_default(tmpdir_factory):
     method = "hydrostatic"
     tmpdir = tmpdir_factory.mktemp(method)
-    return str(solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=True,
-    )[0])
+    return str(
+        solve(
+            sonic_method=method,
+            output_dir=Path(str(tmpdir)),
+            output_file=None,
+            config_file=None,
+            store_internal=True,
+        )[0]
+    )
 
 
 @pytest.fixture(scope="session")
 def mod_hydro_solution_default(tmpdir_factory):
     method = "mod_hydro"
     tmpdir = tmpdir_factory.mktemp(method)
-    return str(solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=True,
-    )[0])
+    return str(
+        solve(
+            sonic_method=method,
+            output_dir=Path(str(tmpdir)),
+            output_file=None,
+            config_file=None,
+            store_internal=True,
+        )[0]
+    )
 
 
 @pytest.fixture(scope="session")
 def single_solution_no_internal(tmpdir_factory):
     method = "single"
     tmpdir = tmpdir_factory.mktemp(method)
-    return str(solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=False,
-    )[0])
+    return str(
+        solve(
+            sonic_method=method,
+            output_dir=Path(str(tmpdir)),
+            output_file=None,
+            config_file=None,
+            store_internal=False,
+        )[0]
+    )
 
 
 @pytest.fixture(scope="session")
 def mcmc_solution_no_internal(tmpdir_factory):
     method = "mcmc"
     tmpdir = tmpdir_factory.mktemp(method)
-    return str(solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=False,
-    )[0])
+    return str(
+        solve(
+            sonic_method=method,
+            output_dir=Path(str(tmpdir)),
+            output_file=None,
+            config_file=None,
+            store_internal=False,
+        )[0]
+    )
 
 
 @pytest.fixture(scope="session")
 def sonic_root_solution_no_internal(tmpdir_factory):
     method = "sonic_root"
     tmpdir = tmpdir_factory.mktemp(method)
-    return str(solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=False,
-    )[0])
+    return str(
+        solve(
+            sonic_method=method,
+            output_dir=Path(str(tmpdir)),
+            output_file=None,
+            config_file=None,
+            store_internal=False,
+        )[0]
+    )
 
 
 @pytest.fixture(scope="session")
 def hydrostatic_solution_no_internal(tmpdir_factory):
     method = "hydrostatic"
     tmpdir = tmpdir_factory.mktemp(method)
-    return str(solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=False,
-    )[0])
+    return str(
+        solve(
+            sonic_method=method,
+            output_dir=Path(str(tmpdir)),
+            output_file=None,
+            config_file=None,
+            store_internal=False,
+        )[0]
+    )
 
 
 @pytest.fixture(scope="session")
 def mod_hydro_solution_no_internal(tmpdir_factory):
     method = "mod_hydro"
     tmpdir = tmpdir_factory.mktemp(method)
-    return str(solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=False,
-    )[0])
+    return str(
+        solve(
+            sonic_method=method,
+            output_dir=Path(str(tmpdir)),
+            output_file=None,
+            config_file=None,
+            store_internal=False,
+        )[0]
+    )
 
 
 @pytest.fixture(scope="session")
 def mod_hydro_solution_use_E_r(tmpdir_factory):
     method = "mod_hydro"
     tmpdir = tmpdir_factory.mktemp(method)
-    return str(solve(
-        sonic_method=method, output_dir=Path(str(tmpdir)),
-        output_file=None, config_file=None, store_internal=True,
-        overrides={"use_E_r": "True"},
-    )[0])
+    return str(
+        solve(
+            sonic_method=method,
+            output_dir=Path(str(tmpdir)),
+            output_file=None,
+            config_file=None,
+            store_internal=True,
+            overrides={"use_E_r": "True"},
+        )[0]
+    )
 
 
 @pytest.fixture(scope="session", params=ALL_SOLUTIONS)
@@ -219,9 +278,7 @@ def mpl_interactive(request):
     import matplotlib.pyplot as plt
 
     if mpl.get_backend() in NON_INTERACTIVE_BACKENDS:
-        pytest.skip(
-            "Skip interactive plots when using non-interactive backend used"
-        )
+        pytest.skip("Skip interactive plots when using non-interactive backend used")
     is_interactive = mpl.is_interactive()
 
     def fin():
@@ -235,6 +292,7 @@ def mpl_interactive(request):
 @pytest.fixture
 def tmp_text_stream(request):
     from io import StringIO
+
     stream = StringIO()
 
     def fin():
@@ -266,5 +324,5 @@ def ds_csv_file_no_header(shared_datadir):
 
 @pytest.fixture
 def log_with_logbook():
-    with StderrHandler(level='NOTICE'):
+    with StderrHandler(level="NOTICE"):
         yield

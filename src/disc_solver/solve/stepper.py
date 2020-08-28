@@ -26,6 +26,7 @@ class SplitterStatus(Enum):
     """
     Status Enum for which way to the best solution
     """
+
     STOP = "STOP"
     SIGN_FLIP = "sign flip"
     DIVERGE = "diverge"
@@ -35,6 +36,7 @@ class StepperError(SolverError):
     """
     Base class for exceptions related to the stepper
     """
+
     pass
 
 
@@ -42,6 +44,7 @@ class StepperStop(SolverError):
     """
     Class to signal stepper has stopped
     """
+
     pass
 
 
@@ -66,8 +69,13 @@ def is_solution_best(soln):
 
 
 def binary_searcher(
-    func, pass_func, fail_func, final_fail_func, initial_input, *,
-    num_attempts=DEFAULT_NUM_ATTEMPTS
+    func,
+    pass_func,
+    fail_func,
+    final_fail_func,
+    initial_input,
+    *,
+    num_attempts=DEFAULT_NUM_ATTEMPTS,
 ):
     """
     Search for correct solution via a binary search
@@ -92,7 +100,11 @@ def binary_searcher(
 
 
 def stepper_creator(
-    soln_writer, step_func, get_soln_type, *, initial_step_size,
+    soln_writer,
+    step_func,
+    get_soln_type,
+    *,
+    initial_step_size,
     max_search_steps=DEFAULT_NUM_ATTEMPTS,
 ):
     """
@@ -139,6 +151,7 @@ def writer_generator(run):
     """
     adds soln to file
     """
+
     def writer(soln, attempt):
         """
         writer
@@ -154,6 +167,7 @@ def cleanup_generator(run, writer, no_final_solution):
     """
     creates symlink to correct solution
     """
+
     def cleanup(soln, attempt):
         """
         cleanup
@@ -171,6 +185,7 @@ def alternate_cleanup_generator(run, no_final_solution):
     """
     creates symlink for final solution if no perfect solution
     """
+
     def cleanup(attempt):
         """
         alternate cleanup
@@ -203,6 +218,7 @@ def human_view_splitter_generator():
             print("Solution type must be either 'sign flip' or 'diverge'")
             soln_type = input("What type: ").strip()
         return SplitterStatus(soln_type)
+
     return human_view_splitter
 
 
@@ -257,9 +273,7 @@ def solution_generator(*, store_internal=True):
         solution func
         """
         inp = SolutionInput(**vars(inp))
-        soln = solution(
-            inp, define_conditions(inp), store_internal=store_internal,
-        )
+        soln = solution(inp, define_conditions(inp), store_internal=store_internal,)
         return is_solution_best(soln)
 
     return solution_func
@@ -269,6 +283,7 @@ def step_input():
     """
     Create new input for next step
     """
+
     def step_func(soln, soln_type, step_size):
         """
         Return new input
@@ -294,31 +309,37 @@ def step_input():
                 bigger_step += step_size
                 inp_dict["γ"] += bigger_step
         return SolutionInput(**inp_dict)
+
     return step_func
 
 
 def solver(
-    soln_input, run, store_internal=True, num_attempts=DEFAULT_NUM_ATTEMPTS,
-    max_search_steps=DEFAULT_MAX_SEARCH_STEPS, no_final_solution=False
+    soln_input,
+    run,
+    store_internal=True,
+    num_attempts=DEFAULT_NUM_ATTEMPTS,
+    max_search_steps=DEFAULT_MAX_SEARCH_STEPS,
+    no_final_solution=False,
 ):
     """
     Stepping solver
     """
     step_func = step_input()
     writer = writer_generator(run)
-    cleanup = cleanup_generator(
-        run, writer, no_final_solution=no_final_solution,
-    )
+    cleanup = cleanup_generator(run, writer, no_final_solution=no_final_solution,)
     best_solution = binary_searcher(
-        solution_generator(store_internal=store_internal), cleanup,
+        solution_generator(store_internal=store_internal),
+        cleanup,
         stepper_creator(
-            writer, step_func,
+            writer,
+            step_func,
             create_soln_splitter(soln_input.split_method),
             max_search_steps=max_search_steps,
-            initial_step_size=0.1 * soln_input.γ
+            initial_step_size=0.1 * soln_input.γ,
         ),
         alternate_cleanup_generator(run, no_final_solution=no_final_solution),
-        soln_input, num_attempts=num_attempts,
+        soln_input,
+        num_attempts=num_attempts,
     )
     if not isinstance(run.final_solution, Solution) and not no_final_solution:
         run.final_solution = None
