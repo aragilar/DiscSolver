@@ -141,7 +141,7 @@ class TestSolve:
             overrides={"use_E_r": "True"},
         )
 
-    def test_fast_crosser_use_E_r(self, tmpdir):
+    def test_fast_crosser_use_E_r(self, tmpdir, log_with_logbook):
         solve(
             output_dir=Path(str(tmpdir)), sonic_method="fast_crosser",
             config_file=None, output_file=None, store_internal=False,
