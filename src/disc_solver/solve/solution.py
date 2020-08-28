@@ -63,19 +63,19 @@ TaylorSolution = namedtuple(
 
 
 def ode_system(
-    *,
-    γ,
-    a_0,
-    norm_kepler_sq,
-    init_con,
-    θ_scale=float_type(1),
-    with_taylor=False,
-    η_derivs=True,
-    store_internal=True,
-    use_E_r=False,
-    v_θ_sonic_crit=None,
-    after_sonic=None,
-    deriv_v_θ_func=None,
+        *,
+        γ,
+        a_0,
+        norm_kepler_sq,
+        init_con,
+        θ_scale=float_type(1),
+        with_taylor=False,
+        η_derivs=True,
+        store_internal=True,
+        use_E_r=False,
+        v_θ_sonic_crit=None,
+        after_sonic=None,
+        deriv_v_θ_func=None,
 ):
     """
     Set up the system we are solving for.
@@ -85,7 +85,11 @@ def ode_system(
         after_sonic = v_θ_sonic_crit
 
     taylor_derivs = taylor_series(
-        γ=γ, a_0=a_0, init_con=init_con, η_derivs=η_derivs, use_E_r=use_E_r,
+        γ=γ,
+        a_0=a_0,
+        init_con=init_con,
+        η_derivs=η_derivs,
+        use_E_r=use_E_r,
     )
     dderiv_v_rM = taylor_derivs[ODEIndex.v_r]
     dderiv_v_φM = taylor_derivs[ODEIndex.v_φ]
@@ -182,33 +186,26 @@ def ode_system(
 
         deriv_v_r_taylor = θ * dderiv_v_rM
         with errstate(invalid="ignore", divide="ignore"):
-            deriv_v_r_normal = (
-                v_r ** 2 / 2
-                + v_θ ** 2
-                + 5 / 2
-                - 2 * γ
-                + (v_φ - norm_kepler) * (v_φ + norm_kepler)
-                + a_0 / ρ * (B_θ * deriv_B_r + (1 / 4 - γ) * (B_θ ** 2 + B_φ ** 2))
-            ) / v_θ
+            deriv_v_r_normal = (v_r**2 / 2 + v_θ**2 + 5 / 2 - 2 * γ +
+                                (v_φ - norm_kepler) *
+                                (v_φ + norm_kepler) + a_0 / ρ *
+                                (B_θ * deriv_B_r + (1 / 4 - γ) *
+                                 (B_θ**2 + B_φ**2))) / v_θ
 
         deriv_v_r = deriv_v_r_taylor if with_taylor else deriv_v_r_normal
 
         deriv_v_φ_taylor = θ * dderiv_v_φM
         with errstate(invalid="ignore", divide="ignore"):
             deriv_v_φ_normal = (
-                v_φ * v_θ * tan(θ)
-                - v_φ * v_r / 2
-                + a_0
-                / ρ
-                * (B_θ * deriv_B_φ - (1 / 4 - γ) * B_r * B_φ - B_θ * B_φ * tan(θ))
-            ) / v_θ
+                v_φ * v_θ * tan(θ) - v_φ * v_r / 2 + a_0 / ρ *
+                (B_θ * deriv_B_φ -
+                 (1 / 4 - γ) * B_r * B_φ - B_θ * B_φ * tan(θ))) / v_θ
         deriv_v_φ = deriv_v_φ_taylor if with_taylor else deriv_v_φ_normal
 
         if deriv_v_θ_func is not None:
             deriv_v_θ = deriv_v_θ_func(θ)
-        elif v_θ_sonic_crit is not None and (
-            (-after_sonic) < (1 - v_θ) < v_θ_sonic_crit
-        ):
+        elif v_θ_sonic_crit is not None and ((-after_sonic) <
+                                             (1 - v_θ) < v_θ_sonic_crit):
             try:
                 deriv_v_θ = deriv_v_θ_sonic(
                     a_0=a_0,
@@ -239,21 +236,11 @@ def ode_system(
                 log.warning(e)
                 return 1
         else:
-            deriv_v_θ = (
-                v_r / 2 * (v_θ ** 2 - 4 * γ)
-                + v_θ
-                * (
-                    tan(θ) * (v_φ ** 2 + 1)
-                    + a_0
-                    / ρ
-                    * (
-                        (1 / 4 - γ) * B_θ * B_r
-                        + B_r * deriv_B_r
-                        + B_φ * deriv_B_φ
-                        - B_φ ** 2 * tan(θ)
-                    )
-                )
-            ) / ((1 - v_θ) * (1 + v_θ))
+            deriv_v_θ = (v_r / 2 * (v_θ**2 - 4 * γ) + v_θ *
+                         (tan(θ) * (v_φ**2 + 1) + a_0 / ρ *
+                          ((1 / 4 - γ) * B_θ * B_r + B_r * deriv_B_r +
+                           B_φ * deriv_B_φ - B_φ**2 * tan(θ)))) / ((1 - v_θ) *
+                                                                   (1 + v_θ))
 
         deriv_ρ_taylor = θ * dderiv_ρ_M
         with errstate(invalid="ignore", divide="ignore"):
@@ -280,7 +267,7 @@ def ode_system(
             deriv_η_H = 0
 
         if use_E_r:
-            B_mag = sqrt(B_r ** 2 + B_φ ** 2 + B_θ ** 2)
+            B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
             b_r, b_φ, b_θ = B_r / B_mag, B_φ / B_mag, B_θ / B_mag
 
             deriv_E_r = deriv_E_r_func(
@@ -355,12 +342,9 @@ def ode_system(
             ρ_taylist.append(deriv_ρ_taylor)
 
             if len(params_list) != len(angles_list):
-                log.error(
-                    "Internal data not consistent, "
-                    "params is {}, angles is {}".format(
-                        len(params_list), len(angles_list)
-                    )
-                )
+                log.error("Internal data not consistent, "
+                          "params is {}, angles is {}".format(
+                              len(params_list), len(angles_list)))
 
         return 0
 
@@ -377,7 +361,8 @@ def jacobian_viewer_generator(internal_data):
         paramlist = internal_data.jacobian_data.params
         derivlist = internal_data.jacobian_data.derivs
 
-        def jacobian_viewer(method, jac_flag, θ, params, derivs, jac_tmp, aux_data):
+        def jacobian_viewer(method, jac_flag, θ, params, derivs, jac_tmp,
+                            aux_data):
             """
             Get jacobian generated by solver
             """
@@ -395,18 +380,18 @@ def jacobian_viewer_generator(internal_data):
 
 
 def jump_across_sonic(
-    *,
-    base_solution,
-    angles,
-    system_initial_conditions,
-    γ,
-    a_0,
-    norm_kepler_sq,
-    η_derivs=True,
-    θ_scale=float_type(1),
-    use_E_r=False,
-    jump_before_sonic,
-    jump_after_sonic,
+        *,
+        base_solution,
+        angles,
+        system_initial_conditions,
+        γ,
+        a_0,
+        norm_kepler_sq,
+        η_derivs=True,
+        θ_scale=float_type(1),
+        use_E_r=False,
+        jump_before_sonic,
+        jump_after_sonic,
 ):
     """
     Cross sonic point via a jump
@@ -434,8 +419,7 @@ def jump_across_sonic(
     final_angle = initial_angle + dθ
 
     post_sonic_angles = concatenate(
-        ([final_angle], angles[angles > rad_to_scaled(final_angle, θ_scale)])
-    )
+        ([final_angle], angles[angles > rad_to_scaled(final_angle, θ_scale)]))
 
     post_sonic_initial_conditions = initial_values + derivs * dθ
 
@@ -443,20 +427,20 @@ def jump_across_sonic(
 
 
 def taylor_solution(
-    *,
-    angles,
-    init_con,
-    γ,
-    a_0,
-    norm_kepler_sq,
-    taylor_stop_angle,
-    relative_tolerance=float_type(1e-6),
-    absolute_tolerance=float_type(1e-10),
-    max_steps=500,
-    η_derivs=True,
-    store_internal=True,
-    θ_scale=float_type(1),
-    use_E_r=False,
+        *,
+        angles,
+        init_con,
+        γ,
+        a_0,
+        norm_kepler_sq,
+        taylor_stop_angle,
+        relative_tolerance=float_type(1e-6),
+        absolute_tolerance=float_type(1e-10),
+        max_steps=500,
+        η_derivs=True,
+        store_internal=True,
+        θ_scale=float_type(1),
+        use_E_r=False,
 ):
     """
     Compute solution using taylor series
@@ -494,9 +478,8 @@ def taylor_solution(
         soln = e.soln
         raise SolverError(
             "Taylor solver stopped in at {} with flag {!s}.\n{}".format(
-                degrees(scaled_to_rad(soln.errors.t, θ_scale)), soln.flag, soln.message
-            )
-        ) from e
+                degrees(scaled_to_rad(soln.errors.t, θ_scale)), soln.flag,
+                soln.message)) from e
     except CVODESolveReachedTSTOP as e:
         soln = e.soln
     else:
@@ -516,15 +499,15 @@ def taylor_solution(
 
 
 def taylor_jump(
-    *,
-    angles,
-    init_con,
-    γ,
-    a_0,
-    taylor_stop_angle,
-    η_derivs=True,
-    θ_scale=float_type(1),
-    use_E_r=False,
+        *,
+        angles,
+        init_con,
+        γ,
+        a_0,
+        taylor_stop_angle,
+        η_derivs=True,
+        θ_scale=float_type(1),
+        use_E_r=False,
 ):
     """
     Perform a single large step off the midplane using a taylor series
@@ -534,23 +517,30 @@ def taylor_jump(
     new_angles = angles[angles > taylor_stop_angle]
     insert(new_angles, 0, taylor_stop_angle)
 
-    first_order_taylor_values = get_taylor_first_order(init_con=init_con, γ=γ, a_0=a_0,)
+    first_order_taylor_values = get_taylor_first_order(
+        init_con=init_con,
+        γ=γ,
+        a_0=a_0,
+    )
     second_order_taylor_values = get_taylor_second_order(
-        init_con=init_con, γ=γ, a_0=a_0, η_derivs=η_derivs, use_E_r=use_E_r,
+        init_con=init_con,
+        γ=γ,
+        a_0=a_0,
+        η_derivs=η_derivs,
+        use_E_r=use_E_r,
     )
     third_order_taylor_values = get_taylor_third_order(
-        init_con=init_con, γ=γ, a_0=a_0, η_derivs=η_derivs, use_E_r=use_E_r,
+        init_con=init_con,
+        γ=γ,
+        a_0=a_0,
+        η_derivs=η_derivs,
+        use_E_r=use_E_r,
     )
 
     taylor_values = init_con + taylor_stop_angle * (
-        first_order_taylor_values
-        + taylor_stop_angle
-        / 2
-        * (
-            second_order_taylor_values
-            + taylor_stop_angle / 3 * (third_order_taylor_values)
-        )
-    )
+        first_order_taylor_values + taylor_stop_angle / 2 *
+        (second_order_taylor_values + taylor_stop_angle / 3 *
+         (third_order_taylor_values)))
 
     return TaylorSolution(
         angles=scaled_to_rad(array([0, taylor_stop_angle]), θ_scale),
@@ -563,23 +553,23 @@ def taylor_jump(
 
 
 def interp_cross_sonic(
-    *,
-    base_solution,
-    angles,
-    system_initial_conditions,
-    after_sonic,
-    γ,
-    a_0,
-    norm_kepler_sq,
-    base_internal_data,
-    relative_tolerance=float_type(1e-6),
-    absolute_tolerance=float_type(1e-10),
-    max_steps=500,
-    η_derivs=True,
-    store_internal=True,
-    θ_scale=float_type(1),
-    use_E_r=False,
-    interp_slice=slice(-1000, -100),
+        *,
+        base_solution,
+        angles,
+        system_initial_conditions,
+        after_sonic,
+        γ,
+        a_0,
+        norm_kepler_sq,
+        base_internal_data,
+        relative_tolerance=float_type(1e-6),
+        absolute_tolerance=float_type(1e-10),
+        max_steps=500,
+        η_derivs=True,
+        store_internal=True,
+        θ_scale=float_type(1),
+        use_E_r=False,
+        interp_slice=slice(-1000, -100),
 ):
     """
     Cross sonic point interpolating deriv_v_θ
@@ -612,37 +602,38 @@ def interp_cross_sonic(
         use_E_r=use_E_r,
         deriv_v_θ_func=deriv_v_θ_func,
     )
-    new_angles = concatenate(([soln.values.t[-1]], angles[angles > soln.values.t[-1]]))
+    new_angles = concatenate(
+        ([soln.values.t[-1]], angles[angles > soln.values.t[-1]]))
     new_init_con = soln.values.y[-1]
 
     return soln, internal_data, new_angles, new_init_con
 
 
 def main_solution(
-    *,
-    angles,
-    system_initial_conditions,
-    ode_initial_conditions,
-    γ,
-    a_0,
-    norm_kepler_sq,
-    relative_tolerance=float_type(1e-6),
-    absolute_tolerance=float_type(1e-10),
-    max_steps=500,
-    onroot_func=None,
-    jump_before_sonic=None,
-    tstop=None,
-    ontstop_func=None,
-    η_derivs=True,
-    store_internal=True,
-    root_func=None,
-    root_func_args=None,
-    θ_scale=float_type(1),
-    use_E_r=False,
-    v_θ_sonic_crit=None,
-    after_sonic=None,
-    deriv_v_θ_func=None,
-    sonic_interp_size=None,
+        *,
+        angles,
+        system_initial_conditions,
+        ode_initial_conditions,
+        γ,
+        a_0,
+        norm_kepler_sq,
+        relative_tolerance=float_type(1e-6),
+        absolute_tolerance=float_type(1e-10),
+        max_steps=500,
+        onroot_func=None,
+        jump_before_sonic=None,
+        tstop=None,
+        ontstop_func=None,
+        η_derivs=True,
+        store_internal=True,
+        root_func=None,
+        root_func_args=None,
+        θ_scale=float_type(1),
+        use_E_r=False,
+        v_θ_sonic_crit=None,
+        after_sonic=None,
+        deriv_v_θ_func=None,
+        sonic_interp_size=None,
 ):
     """
     Find solution
@@ -670,7 +661,8 @@ def main_solution(
             raise SolverError("Need to specify size of root array")
 
     if len(angles) < 2:
-        raise SolverError(f"Insufficient angles to solve at - angles: {angles}")
+        raise SolverError(
+            f"Insufficient angles to solve at - angles: {angles}")
 
     system, internal_data = ode_system(
         γ=γ,
@@ -708,24 +700,20 @@ def main_solution(
         soln = solver.solve(angles, ode_initial_conditions)
     except CVODESolveFailed as e:
         soln = e.soln
-        log.warn(
-            "Solver stopped at {} with flag {!s}.\n{}".format(
-                degrees(scaled_to_rad(soln.errors.t, θ_scale)), soln.flag, soln.message
-            )
-        )
+        log.warn("Solver stopped at {} with flag {!s}.\n{}".format(
+            degrees(scaled_to_rad(soln.errors.t, θ_scale)), soln.flag,
+            soln.message))
         if soln.flag == StatusEnum.TOO_CLOSE:
             raise e
     except CVODESolveFoundRoot as e:
         soln = e.soln
-        log.notice(
-            "Found root at {}".format(degrees(scaled_to_rad(soln.roots.t, θ_scale)))
-        )
+        log.notice("Found root at {}".format(
+            degrees(scaled_to_rad(soln.roots.t, θ_scale))))
     except CVODESolveReachedTSTOP as e:
         soln = e.soln
         for tstop_scaled in soln.tstop.t:
-            log.notice(
-                "Stopped at {}".format(degrees(scaled_to_rad(tstop_scaled, θ_scale)))
-            )
+            log.notice("Stopped at {}".format(
+                degrees(scaled_to_rad(tstop_scaled, θ_scale))))
 
     if internal_data is not None:
         internal_data._finalise()  # pylint: disable=protected-access
@@ -734,18 +722,18 @@ def main_solution(
 
 
 def solution(
-    soln_input,
-    initial_conditions,
-    *,
-    root_func=None,
-    root_func_args=None,
-    onroot_func=None,
-    tstop=None,
-    ontstop_func=None,
-    store_internal=True,
-    with_taylor=True,
-    modified_initial_conditions=None,
-    θ_scale=float_type(1),
+        soln_input,
+        initial_conditions,
+        *,
+        root_func=None,
+        root_func_args=None,
+        onroot_func=None,
+        tstop=None,
+        ontstop_func=None,
+        store_internal=True,
+        with_taylor=True,
+        modified_initial_conditions=None,
+        θ_scale=float_type(1),
 ):
     """
     Find solution
@@ -845,8 +833,7 @@ def solution(
         joined_solution = soln.values.y
     else:
         joined_angles = concatenate(
-            (taylor_soln.angles, scaled_to_rad(soln.values.t, θ_scale))
-        )
+            (taylor_soln.angles, scaled_to_rad(soln.values.t, θ_scale)))
         joined_solution = concatenate((taylor_soln.params, soln.values.y))
 
     if sonic_interp_size is not None:
@@ -865,7 +852,8 @@ def solution(
             use_E_r=use_E_r,
             store_internal=store_internal,
             interp_slice=interp_slice,
-            after_sonic=(sonic_interp_size if after_sonic is None else after_sonic),
+            after_sonic=(sonic_interp_size
+                         if after_sonic is None else after_sonic),
             base_internal_data=internal_data,
         )
 
@@ -873,8 +861,7 @@ def solution(
             internal_data = internal_data + int_internal
 
         joined_angles = concatenate(
-            (joined_angles, scaled_to_rad(int_soln.values.t, θ_scale))
-        )
+            (joined_angles, scaled_to_rad(int_soln.values.t, θ_scale)))
         joined_solution = concatenate((joined_solution, int_soln.values.y))
 
         post_interp_soln, post_interp_internal_data = main_solution(
@@ -902,12 +889,13 @@ def solution(
             internal_data = internal_data + post_interp_internal_data
 
         joined_angles = concatenate(
-            (joined_angles, scaled_to_rad(post_interp_soln.values.t, θ_scale))
-        )
-        joined_solution = concatenate((joined_solution, post_interp_soln.values.y))
+            (joined_angles, scaled_to_rad(post_interp_soln.values.t, θ_scale)))
+        joined_solution = concatenate(
+            (joined_solution, post_interp_soln.values.y))
 
     elif jump_before_sonic is not None:
-        log.info("jumping over sonic point with jump size {}".format(jump_before_sonic))
+        log.info("jumping over sonic point with jump size {}".format(
+            jump_before_sonic))
         post_jump_angles, post_jump_initial_conditions = jump_across_sonic(
             base_solution=soln,
             angles=post_taylor_angles,
@@ -948,9 +936,9 @@ def solution(
             internal_data = internal_data + post_jump_internal_data
 
         joined_angles = concatenate(
-            (joined_angles, scaled_to_rad(post_jump_soln.values.t, θ_scale))
-        )
-        joined_solution = concatenate((joined_solution, post_jump_soln.values.y))
+            (joined_angles, scaled_to_rad(post_jump_soln.values.t, θ_scale)))
+        joined_solution = concatenate(
+            (joined_solution, post_jump_soln.values.y))
 
     sonic_point = None
     sonic_point_values = None
@@ -963,9 +951,8 @@ def solution(
         internal_data=internal_data,
         angles=joined_angles,
         solution=joined_solution,
-        t_roots=(
-            scaled_to_rad(soln.roots.t, θ_scale) if soln.roots.t is not None else None
-        ),
+        t_roots=(scaled_to_rad(soln.roots.t, θ_scale)
+                 if soln.roots.t is not None else None),
         y_roots=soln.roots.y,
         sonic_point=sonic_point,
         sonic_point_values=sonic_point_values,

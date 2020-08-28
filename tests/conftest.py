@@ -7,8 +7,9 @@ from logbook import StderrHandler
 
 PLOT_FILE = "plot.png"
 
-NON_INTERACTIVE_BACKENDS = ["agg", "cairo", "pdf", "pgf", "ps", "svg", "template"]
-
+NON_INTERACTIVE_BACKENDS = [
+    "agg", "cairo", "pdf", "pgf", "ps", "svg", "template"
+]
 
 DEFAULT_SOLUTIONS = [
     "single_solution_default",
@@ -58,8 +59,7 @@ def single_solution_default(tmpdir_factory):
             output_file=None,
             config_file=None,
             store_internal=True,
-        )[0]
-    )
+        )[0])
 
 
 @pytest.fixture(scope="session")
@@ -73,8 +73,7 @@ def mcmc_solution_default(tmpdir_factory):
             output_file=None,
             config_file=None,
             store_internal=True,
-        )[0]
-    )
+        )[0])
 
 
 @pytest.fixture(scope="session")
@@ -90,8 +89,7 @@ def step_solution_default(tmpdir_factory):
             store_internal=True,
             max_search_steps=3,
             num_attempts=5,
-        )[0]
-    )
+        )[0])
 
 
 @pytest.fixture(scope="session")
@@ -105,8 +103,7 @@ def sonic_root_solution_default(tmpdir_factory):
             output_file=None,
             config_file=None,
             store_internal=True,
-        )[0]
-    )
+        )[0])
 
 
 @pytest.fixture(scope="session")
@@ -120,8 +117,7 @@ def hydrostatic_solution_default(tmpdir_factory):
             output_file=None,
             config_file=None,
             store_internal=True,
-        )[0]
-    )
+        )[0])
 
 
 @pytest.fixture(scope="session")
@@ -135,8 +131,7 @@ def mod_hydro_solution_default(tmpdir_factory):
             output_file=None,
             config_file=None,
             store_internal=True,
-        )[0]
-    )
+        )[0])
 
 
 @pytest.fixture(scope="session")
@@ -150,8 +145,7 @@ def single_solution_no_internal(tmpdir_factory):
             output_file=None,
             config_file=None,
             store_internal=False,
-        )[0]
-    )
+        )[0])
 
 
 @pytest.fixture(scope="session")
@@ -165,8 +159,7 @@ def mcmc_solution_no_internal(tmpdir_factory):
             output_file=None,
             config_file=None,
             store_internal=False,
-        )[0]
-    )
+        )[0])
 
 
 @pytest.fixture(scope="session")
@@ -180,8 +173,7 @@ def sonic_root_solution_no_internal(tmpdir_factory):
             output_file=None,
             config_file=None,
             store_internal=False,
-        )[0]
-    )
+        )[0])
 
 
 @pytest.fixture(scope="session")
@@ -195,8 +187,7 @@ def hydrostatic_solution_no_internal(tmpdir_factory):
             output_file=None,
             config_file=None,
             store_internal=False,
-        )[0]
-    )
+        )[0])
 
 
 @pytest.fixture(scope="session")
@@ -210,8 +201,7 @@ def mod_hydro_solution_no_internal(tmpdir_factory):
             output_file=None,
             config_file=None,
             store_internal=False,
-        )[0]
-    )
+        )[0])
 
 
 @pytest.fixture(scope="session")
@@ -226,8 +216,7 @@ def mod_hydro_solution_use_E_r(tmpdir_factory):
             config_file=None,
             store_internal=True,
             overrides={"use_E_r": "True"},
-        )[0]
-    )
+        )[0])
 
 
 @pytest.fixture(scope="session", params=ALL_SOLUTIONS)
@@ -276,7 +265,8 @@ def mpl_interactive(request):
     import matplotlib.pyplot as plt
 
     if mpl.get_backend() in NON_INTERACTIVE_BACKENDS:
-        pytest.skip("Skip interactive plots when using non-interactive backend used")
+        pytest.skip(
+            "Skip interactive plots when using non-interactive backend used")
     is_interactive = mpl.is_interactive()
 
     def fin():

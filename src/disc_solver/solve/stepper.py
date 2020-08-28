@@ -72,13 +72,13 @@ def is_solution_best(soln):
 
 
 def binary_searcher(
-    func,
-    pass_func,
-    fail_func,
-    final_fail_func,
-    initial_input,
-    *,
-    num_attempts=DEFAULT_NUM_ATTEMPTS,
+        func,
+        pass_func,
+        fail_func,
+        final_fail_func,
+        initial_input,
+        *,
+        num_attempts=DEFAULT_NUM_ATTEMPTS,
 ):
     """
     Search for correct solution via a binary search
@@ -103,12 +103,12 @@ def binary_searcher(
 
 
 def stepper_creator(
-    soln_writer,
-    step_func,
-    get_soln_type,
-    *,
-    initial_step_size,
-    max_search_steps=DEFAULT_NUM_ATTEMPTS,
+        soln_writer,
+        step_func,
+        get_soln_type,
+        *,
+        initial_step_size,
+        max_search_steps=DEFAULT_NUM_ATTEMPTS,
 ):
     """
     Create stepper
@@ -131,9 +131,7 @@ def stepper_creator(
             if search_steps > max_search_steps:
                 raise StepperError(
                     "Failed to start binary search after {} attempts.".format(
-                        search_steps
-                    )
-                )
+                        search_steps))
 
             if prev_soln_type is not None:
                 if prev_soln_type != soln_type:
@@ -276,7 +274,11 @@ def solution_generator(*, store_internal=True):
         solution func
         """
         inp = SolutionInput(**vars(inp))
-        soln = solution(inp, define_conditions(inp), store_internal=store_internal,)
+        soln = solution(
+            inp,
+            define_conditions(inp),
+            store_internal=store_internal,
+        )
         return is_solution_best(soln)
 
     return solution_func
@@ -317,19 +319,23 @@ def step_input():
 
 
 def solver(
-    soln_input,
-    run,
-    store_internal=True,
-    num_attempts=DEFAULT_NUM_ATTEMPTS,
-    max_search_steps=DEFAULT_MAX_SEARCH_STEPS,
-    no_final_solution=False,
+        soln_input,
+        run,
+        store_internal=True,
+        num_attempts=DEFAULT_NUM_ATTEMPTS,
+        max_search_steps=DEFAULT_MAX_SEARCH_STEPS,
+        no_final_solution=False,
 ):
     """
     Stepping solver
     """
     step_func = step_input()
     writer = writer_generator(run)
-    cleanup = cleanup_generator(run, writer, no_final_solution=no_final_solution,)
+    cleanup = cleanup_generator(
+        run,
+        writer,
+        no_final_solution=no_final_solution,
+    )
     best_solution = binary_searcher(
         solution_generator(store_internal=store_internal),
         cleanup,
