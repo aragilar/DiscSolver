@@ -9,12 +9,16 @@ from numpy import max as np_max
 from numpy import sqrt
 
 from ..analyse.utils import get_mach_numbers
-from ..file_format import Solution, SolutionInput
+from ..file_format import Solution
+from ..file_format import SolutionInput
 from .single import solver as single_solver
 from .solution import get_known_broken_solution
-from .stepper import (StepperError, StepperStop, alternate_cleanup_generator,
-                      binary_searcher, cleanup_generator)
+from .stepper import alternate_cleanup_generator
+from .stepper import binary_searcher
+from .stepper import cleanup_generator
 from .stepper import solver as step_solver
+from .stepper import StepperError
+from .stepper import StepperStop
 from .stepper import writer_generator
 from .utils import SolverError
 

@@ -1,10 +1,9 @@
 from pathlib import Path
 
 import pytest
-from logbook import StderrHandler
-
 from disc_solver.float_handling import float_type as FLOAT_TYPE
 from disc_solver.solve import solve
+from logbook import StderrHandler
 
 PLOT_FILE = "plot.png"
 

@@ -2,7 +2,6 @@
 from pathlib import Path
 
 import pytest
-
 from disc_solver.analyse.acc_plot import acc_plot
 from disc_solver.analyse.combine_plot import combine_plot
 from disc_solver.analyse.compare_plot import compare_plot
