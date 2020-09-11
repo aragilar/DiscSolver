@@ -97,7 +97,10 @@ def define_conditions(inp):
 
     angles = np.radians(np.linspace(inp.start, inp.stop, inp.num_angles))
     if np.any(np.isnan(init_con)):
-        raise SolverError("Input implies NaN")
+        nan_names = []
+        for i in np.isnan(init_con).nonzero()[0]:
+            nan_names.append(ODEIndex(i).name)
+        raise SolverError("Input implies NaN: {}".format(nan_names))
 
     return InitialConditions(
         norm_kepler_sq=norm_kepler_sq, a_0=a_0, init_con=init_con,
