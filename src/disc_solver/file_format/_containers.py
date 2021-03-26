@@ -5,6 +5,7 @@ Defines the common data structures
 from os import environ
 from collections import defaultdict
 from collections.abc import MutableMapping
+import gc
 
 import attr
 from numpy import asarray, concatenate, zeros
@@ -569,6 +570,20 @@ class Solutions(MutableMapping):
         Get the last solution added
         """
         return self[sorted(list(self), key=int)[-1]]
+
+    def free(self, key):
+        """
+        Free the memory used to store the solution, allowing the solution to be
+        reloaded if need be
+        """
+        # pylint: disable=unused-argument,no-self-use
+        # actual_val = self[key]
+        # self[key] = actual_val
+        # ref = gc.get_referrers(actual_val)
+        # print(len(ref))
+        # print(ref)
+        # del actual_val
+        gc.collect()
 
 
 @attr.s(eq=False, hash=False)
