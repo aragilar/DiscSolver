@@ -387,6 +387,7 @@ def open_or_stream(filename, *args, **kwargs):
         file = None
         yield filename
     else:
+        # pylint: disable=consider-using-with
         file = open(filename, *args, **kwargs)
         yield file
 
@@ -431,7 +432,7 @@ def nicer_mp_pool(*args, **kwargs):
     Wrapper around multiprocessing.Pool - maybe look at forks or alternatives?
     """
     try:
-        pool = Pool(*args, **kwargs)
+        pool = Pool(*args, **kwargs)  # pylint: disable=consider-using-with
         yield pool
     finally:
         # terminate is usually called, which can break stuff if there's a
