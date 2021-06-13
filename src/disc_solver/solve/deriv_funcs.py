@@ -8,7 +8,7 @@ Computing derivatives
 from numpy import errstate, zeros, sqrt, tan
 import logbook
 
-from ..utils import ODEIndex
+from ..utils import ODEIndex, sec
 
 from .config import B_φ_prime_boundary_func
 from .j_e_funcs import E_θ_func, J_func
@@ -222,16 +222,17 @@ def dderiv_B_φ_soln(
             2 * η_A * b_r * deriv_b_r + A * (
                 η_H * b_θ + η_A * b_r * b_φ
             ) + C * (
-                η_H * b_θ + η_A * b_r * b_φ
-            ) + η_O + η_A * (
-                1 - b_r ** 2 + b_r * b_θ * (1 / 4 - γ)
+                deriv_η_H * b_θ + η_H * deriv_b_θ + deriv_η_A * b_r * b_φ +
+                η_A * deriv_b_r * b_φ + η_A * b_r * deriv_b_φ
+            ) + η_O * tan(θ) + η_A * (
+                (1 - b_r ** 2) * tan(θ) + b_r * b_θ * (1 / 4 - γ)
             ) + (1 / 4 - γ) * η_H * b_φ
         ) - B_φ * (
-            deriv_η_O + deriv_η_A * (
-                1 - b_r ** 2 + b_r * b_θ * (1 / 4 - γ)
+            deriv_η_O * tan(θ) + η_O * sec(θ) ** 2 + deriv_η_A * (
+                (1 - b_r ** 2) * tan(θ) + b_r * b_θ * (1 / 4 - γ)
             ) + (1 / 4 - γ) * deriv_η_H * b_φ - η_A * (
-                2 * b_r * deriv_b_r - deriv_b_r * b_θ * (1 / 4 - γ) -
-                b_r * deriv_b_θ * (1 / 4 - γ)
+                2 * b_r * deriv_b_r * tan(θ) - (1 - b_r ** 2) * sec(θ) ** 2 -
+                deriv_b_r * b_θ * (1 / 4 - γ) - b_r * deriv_b_θ * (1 / 4 - γ)
             ) + (1 / 4 - γ) * η_H * deriv_b_φ
         ) - (3 / 4 - γ) * (
             (
@@ -244,7 +245,7 @@ def dderiv_B_φ_soln(
                 η_O * (1 / 4 - γ) + η_A * (
                     (1 / 4 - γ) * (1 - b_θ ** 2) + tan(θ) * b_r * b_θ
                 ) - η_H * b_φ * tan(θ)
-            )
+            ) + v_r * B_φ - v_φ * B_r
         )
     ) / (
         η_O + η_A * (1 - b_r ** 2) + C * (η_H * b_θ + η_A * b_r * b_φ)
