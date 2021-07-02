@@ -143,11 +143,11 @@ def compute_components(soln, indexes, angles):
     norm_kepler = sqrt(norm_kepler_sq)
 
     B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
-    norm_B_r, norm_B_φ, norm_B_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
+    b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
 
     deriv_B_r = deriv_B_r_func(
         B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=angles,
-        v_r=v_r, v_θ=v_θ, deriv_B_φ=deriv_B_φ, γ=γ,
+        v_r=v_r, v_θ=v_θ, deriv_B_φ=deriv_B_φ, γ=γ, b_r=b_r, b_θ=b_θ, b_φ=b_φ,
     )
 
     deriv_v_θ = (
@@ -216,39 +216,39 @@ def compute_components(soln, indexes, angles):
         },
         "polar induction": {
             "v terms": (v_θ * B_r - v_r * B_θ) / (
-                η_O + η_A * (1 - norm_B_φ) * (1 + norm_B_φ)
+                η_O + η_A * (1 - b_φ) * (1 + b_φ)
             ),
             "no-η terms": - B_θ * (1/4 - γ),
             "$B_φ'$ terms": - deriv_B_φ * (
-                η_H * norm_B_θ + η_A * norm_B_r * norm_B_φ
+                η_H * b_θ + η_A * b_r * b_φ
             ) / (
-                η_O + η_A * (1 - norm_B_φ) * (1 + norm_B_φ)
+                η_O + η_A * (1 - b_φ) * (1 + b_φ)
             ),
             "$B_φ$ terms": B_φ * (
-                η_A * norm_B_φ * (
-                    norm_B_r * tan(angles) - norm_B_θ * (1/4 - γ)
+                η_A * b_φ * (
+                    b_r * tan(angles) - b_θ * (1/4 - γ)
                 ) + η_H * (
-                    norm_B_r * (1/4 - γ) + norm_B_θ * tan(angles)
+                    b_r * (1/4 - γ) + b_θ * tan(angles)
                 )
             ) / (
-                η_O + η_A * (1 - norm_B_φ) * (1 + norm_B_φ)
+                η_O + η_A * (1 - b_φ) * (1 + b_φ)
             ),
             "all terms": (
                 (
                     v_θ * B_r - v_r * B_θ - deriv_B_φ * (
-                        η_H * norm_B_θ +
-                        η_A * norm_B_r * norm_B_φ
+                        η_H * b_θ +
+                        η_A * b_r * b_φ
                     ) + B_φ * (
-                        η_A * norm_B_φ * (
-                            norm_B_r * tan(angles) -
-                            norm_B_θ * (1/4 - γ)
+                        η_A * b_φ * (
+                            b_r * tan(angles) -
+                            b_θ * (1/4 - γ)
                         ) + η_H * (
-                            norm_B_r * (1/4 - γ) +
-                            norm_B_θ * tan(angles)
+                            b_r * (1/4 - γ) +
+                            b_θ * tan(angles)
                         )
                     )
                 ) / (
-                    η_O + η_A * (1 - norm_B_φ) * (1 + norm_B_φ)
+                    η_O + η_A * (1 - b_φ) * (1 + b_φ)
                 ) - B_θ * (1/4 - γ)
             ),
         },

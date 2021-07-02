@@ -459,7 +459,8 @@ def ode_system(
 
         deriv_b_r, deriv_b_φ, deriv_b_θ = B_unit_derivs(
             B_r=B_r, B_φ=B_φ, B_θ=B_θ, deriv_B_r=deriv_B_r,
-            deriv_B_φ=deriv_B_φ, deriv_B_θ=deriv_B_θ
+            deriv_B_φ=deriv_B_φ, deriv_B_θ=deriv_B_θ, b_r=b_r, b_θ=b_θ,
+            b_φ=b_φ,
         )
 
         C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)

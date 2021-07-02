@@ -5,13 +5,13 @@ Computing derivatives
 
 # DO NOT IMPORT MATH, BREAKS FLOAT SUPPORT
 
-from numpy import errstate, zeros, sqrt, tan
+from numpy import zeros, tan as np_tan, sqrt as np_sqrt
 import logbook
 
 from ..utils import ODEIndex, sec
 
 from .config import B_φ_prime_boundary_func
-from .j_e_funcs import E_θ_func, J_func
+from .j_e_funcs import E_θ_func
 
 log = logbook.Logger(__name__)
 
@@ -23,17 +23,13 @@ def Z_5_func(*, η_O, η_A, η_H, b_r, b_θ, b_φ, C):
     return η_O + η_A * (1 - b_r ** 2) + C * (η_H * b_θ - η_A * b_r * b_φ)
 
 
-def deriv_B_φ_func(*, θ, γ, B_r, B_θ, B_φ, v_r, v_φ, v_θ, η_O, η_A, η_H, E_r):
+def deriv_B_φ_func(
+    *, θ, γ, B_r, B_θ, B_φ, v_r, v_φ, v_θ, η_O, η_A, η_H, E_r, b_r, b_φ, b_θ,
+    C, Z_5, tan=np_tan,
+):
     """
     Compute the derivative of B_φ, assuming E_r is being used
     """
-    B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
-    b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
-
-    C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
-
-    Z_5 = Z_5_func(η_O=η_O, η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ, C=C)
-
     return (
         C * (v_θ * B_r - v_r * B_θ) - E_r - v_φ * B_θ + B_φ * (
             v_θ + tan(θ) * (η_O + η_A * (1 - b_r ** 2)) + (1 / 4 - γ) * (
@@ -51,44 +47,39 @@ def deriv_B_φ_func(*, θ, γ, B_r, B_θ, B_φ, v_r, v_φ, v_θ, η_O, η_A, η_
     ) / Z_5
 
 
-def deriv_B_r_func(*, θ, γ, B_r, B_θ, B_φ, v_r, v_θ, deriv_B_φ, η_O, η_A, η_H):
+def deriv_B_r_func(
+    *, θ, γ, B_r, B_θ, B_φ, v_r, v_θ, deriv_B_φ, η_O, η_A, η_H, b_r, b_φ, b_θ,
+    tan=np_tan,
+):
     """
     Compute the derivative of B_r
     """
-    B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
-    norm_B_r, norm_B_φ, norm_B_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
-
     return (
         (
             v_θ * B_r - v_r * B_θ - deriv_B_φ * (
-                η_H * norm_B_θ +
-                η_A * norm_B_r * norm_B_φ
+                η_H * b_θ +
+                η_A * b_r * b_φ
             ) + B_φ * (
-                η_A * norm_B_φ * (
-                    norm_B_r * tan(θ) -
-                    norm_B_θ * (1/4 - γ)
+                η_A * b_φ * (
+                    b_r * tan(θ) -
+                    b_θ * (1/4 - γ)
                 ) + η_H * (
-                    norm_B_r * (1/4 - γ) +
-                    norm_B_θ * tan(θ)
+                    b_r * (1/4 - γ) +
+                    b_θ * tan(θ)
                 )
             )
         ) / (
-            η_O + η_A * (1 - norm_B_φ) * (1 + norm_B_φ)
+            η_O + η_A * (1 - b_φ) * (1 + b_φ)
         ) - B_θ * (1/4 - γ)
     )
 
 
 def deriv_E_r_func(
-    *, γ, θ, v_r, v_φ, B_r, B_θ, B_φ, η_O, η_A, η_H, b_r, b_θ, b_φ, deriv_B_r,
-    deriv_B_φ
+    *, γ, v_r, v_φ, B_r, B_φ, η_O, η_A, η_H, b_r, b_θ, b_φ, J_r, J_θ, J_φ,
 ):
     """
     Compute the derivative of E_r
     """
-    J_r, J_θ, J_φ = J_func(
-        γ=γ, θ=θ, B_θ=B_θ, B_φ=B_φ, deriv_B_φ=deriv_B_φ, deriv_B_r=deriv_B_r,
-    )
-
     return (γ - 3 / 4) * E_θ_func(
         v_r=v_r, v_φ=v_φ, B_r=B_r, B_φ=B_φ, J_r=J_r, J_θ=J_θ, J_φ=J_φ, η_O=η_O,
         η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ
@@ -109,12 +100,14 @@ def deriv_η_skw_func(
     ) / ρ
 
 
-def B_unit_derivs(*, B_r, B_φ, B_θ, deriv_B_r, deriv_B_φ, deriv_B_θ):
+def B_unit_derivs(
+    *, B_r, B_φ, B_θ, deriv_B_r, deriv_B_φ, deriv_B_θ, b_r, b_φ, b_θ,
+    sqrt=np_sqrt,
+):
     """
     Compute the derivatives of the unit vector of B.
     """
     B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
-    norm_B_r, norm_B_φ, norm_B_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
     return [
         1/B_mag * (
             B_deriv + B_unit/B_mag * (
@@ -124,8 +117,8 @@ def B_unit_derivs(*, B_r, B_φ, B_θ, deriv_B_r, deriv_B_φ, deriv_B_θ):
         )
 
         for B_unit, B_deriv in (
-            (norm_B_r, deriv_B_r), (norm_B_φ, deriv_B_φ),
-            (norm_B_θ, deriv_B_θ)
+            (b_r, deriv_B_r), (b_φ, deriv_B_φ),
+            (b_θ, deriv_B_θ)
         )
     ]
 
@@ -161,29 +154,12 @@ def C_func(*, η_O, η_A, η_H, b_θ, b_r, b_φ):
 def dderiv_B_φ_soln(
     *, B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r, v_θ,
     v_φ, deriv_v_r, deriv_v_θ, deriv_v_φ, deriv_B_r, deriv_B_θ,
-    deriv_B_φ, γ, deriv_η_O, deriv_η_A, deriv_η_H
+    deriv_B_φ, γ, deriv_η_O, deriv_η_A, deriv_η_H, b_r, b_φ, b_θ, deriv_b_r,
+    deriv_b_φ, deriv_b_θ, C, A, tan=np_tan,
 ):
     """
     Compute the derivative of B_φ
     """
-    B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
-
-    with errstate(invalid="ignore"):
-        b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
-
-    deriv_b_r, deriv_b_φ, deriv_b_θ = B_unit_derivs(
-        B_r=B_r, B_φ=B_φ, B_θ=B_θ, deriv_B_r=deriv_B_r, deriv_B_φ=deriv_B_φ,
-        deriv_B_θ=deriv_B_θ
-    )
-
-    C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
-
-    A = A_func(
-        η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ,
-        deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H,
-        deriv_b_θ=deriv_b_θ, deriv_b_r=deriv_b_r, deriv_b_φ=deriv_b_φ
-    )
-
     return (
         deriv_v_θ * B_φ + v_θ * deriv_B_φ - deriv_v_φ * B_θ - v_φ * deriv_B_θ +
         A * (
