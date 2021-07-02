@@ -26,6 +26,7 @@ from .deriv_funcs import (
 from .hydrostatic import (
     X_dash_func, X_func, Z_1_func, Z_4_func, Z_5_func, dderiv_B_φ_func
 )
+from .j_e_funcs import J_r_func, J_θ_func, J_φ_func
 from .utils import (
     error_handler, rad_to_scaled, scaled_to_rad,
     SolverError,
@@ -495,15 +496,19 @@ def ode_system(
             deriv_η_H = 0
 
         if use_E_r:
+            J_r = J_r_func(θ=θ, B_φ=B_φ, deriv_B_φ=deriv_B_φ)
+            J_θ = J_θ_func(γ=0, B_φ=B_φ)
+            J_φ = J_φ_func(γ=0, B_θ=B_θ, deriv_B_r=deriv_B_r)
+
             deriv_E_r = deriv_E_r_func(
-                γ=0, θ=θ, v_r=v_r, v_φ=v_φ, B_r=B_r, B_θ=B_θ, B_φ=B_φ, η_O=η_O,
-                η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ,
-                deriv_B_r=deriv_B_r, deriv_B_φ=deriv_B_φ
+                γ=0, v_r=v_r, v_φ=v_φ, B_r=B_r, B_φ=B_φ, η_O=η_O, η_A=η_A,
+                η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ, J_r=J_r, J_φ=J_φ, J_θ=J_θ,
             )
         else:
             deriv_b_r, deriv_b_φ, deriv_b_θ = B_unit_derivs(
                 B_r=B_r, B_φ=B_φ, B_θ=B_θ, deriv_B_r=deriv_B_r,
-                deriv_B_φ=deriv_B_φ, deriv_B_θ=deriv_B_θ
+                deriv_B_φ=deriv_B_φ, deriv_B_θ=deriv_B_θ, b_r=b_r, b_θ=b_θ,
+                b_φ=b_φ,
             )
 
             A = A_func(

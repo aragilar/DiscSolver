@@ -3,7 +3,7 @@
 Calculating v_θ near the sonic point
 """
 # DO NOT IMPORT MATH, BREAKS FLOAT SUPPORT
-from numpy import errstate, sqrt, tan, degrees
+from numpy import tan, degrees
 import logbook
 
 from root_solver import solve_quadratic
@@ -18,16 +18,11 @@ log = logbook.Logger(__name__)
 def deriv_v_θ_sonic(
     *, a_0, ρ, B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r, v_φ, v_θ=1, deriv_v_r,
     deriv_v_φ, deriv_B_r, deriv_B_θ, deriv_B_φ, γ, η_O_0, η_A_0, η_H_0,
-    η_derivs, E_r
+    η_derivs, E_r, b_r, b_θ, b_φ
 ):
     """
     Compute v_θ' across the sonic point
     """
-    B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
-
-    with errstate(invalid="ignore"):
-        b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
-
     if E_r is None:
         E_r = E_r_func(
             v_θ=v_θ, v_φ=v_φ, B_θ=B_θ, B_φ=B_φ, η_O=η_O,
@@ -40,12 +35,16 @@ def deriv_v_θ_sonic(
 
     deriv_b_r, deriv_b_φ, deriv_b_θ = B_unit_derivs(
         B_r=B_r, B_φ=B_φ, B_θ=B_θ, deriv_B_r=deriv_B_r, deriv_B_φ=deriv_B_φ,
-        deriv_B_θ=deriv_B_θ
+        deriv_B_θ=deriv_B_θ, b_r=b_r, b_θ=b_θ, b_φ=b_φ
     )
+
+    J_r = J_r_func(θ=θ, B_φ=B_φ, deriv_B_φ=deriv_B_φ)
+    J_θ = J_θ_func(γ=γ, B_φ=B_φ)
+    J_φ = J_φ_func(γ=γ, B_θ=B_θ, deriv_B_r=deriv_B_r)
+
     deriv_E_r = deriv_E_r_func(
-        γ=γ, θ=θ, v_r=v_r, v_φ=v_φ, B_r=B_r, B_θ=B_θ, B_φ=B_φ, η_O=η_O,
-        η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ, deriv_B_r=deriv_B_r,
-        deriv_B_φ=deriv_B_φ
+        γ=γ, v_r=v_r, v_φ=v_φ, B_r=B_r, B_φ=B_φ, η_O=η_O, η_A=η_A,
+        η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ, J_r=J_r, J_φ=J_φ, J_θ=J_θ,
     )
 
     C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)

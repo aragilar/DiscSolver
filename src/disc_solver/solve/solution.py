@@ -21,8 +21,10 @@ from scikits.odes.sundials.cvode import StatusEnum
 from .deriv_funcs import (
     dderiv_B_φ_soln, taylor_series, get_taylor_first_order,
     get_taylor_second_order, get_taylor_third_order, deriv_B_r_func,
-    deriv_η_skw_func, deriv_B_φ_func, deriv_E_r_func,
+    deriv_η_skw_func, deriv_B_φ_func, deriv_E_r_func, C_func, A_func, Z_5_func,
+    B_unit_derivs,
 )
+from .j_e_funcs import J_r_func, J_θ_func, J_φ_func
 from .sonic_point import deriv_v_θ_sonic
 from .utils import (
     velocity_stop_generator, error_handler, rad_to_scaled, scaled_to_rad,
@@ -121,17 +123,26 @@ def ode_system(
                 problems[θ].append("negative velocity")
             return -1
 
+        B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
+        b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
+
+        C = C_func(η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ)
+        Z_5 = Z_5_func(
+            η_O=η_O, η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ, C=C,
+        )
+
         if use_E_r:
             deriv_B_φ = deriv_B_φ_func(
                 θ=θ, γ=γ, B_r=B_r, B_θ=B_θ, B_φ=B_φ, v_r=v_r, v_φ=v_φ, v_θ=v_θ,
-                η_O=η_O, η_A=η_A, η_H=η_H, E_r=E_r
+                η_O=η_O, η_A=η_A, η_H=η_H, E_r=E_r, b_θ=b_θ, b_r=b_r, b_φ=b_φ,
+                C=C, Z_5=Z_5,
             )
         else:
             deriv_B_φ = B_φ_prime
 
         deriv_B_r = deriv_B_r_func(
             B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ, v_r=v_r,
-            v_θ=v_θ, deriv_B_φ=deriv_B_φ, γ=γ,
+            v_θ=v_θ, deriv_B_φ=deriv_B_φ, γ=γ, b_θ=b_θ, b_r=b_r, b_φ=b_φ,
         )
 
         deriv_B_θ = B_θ * tan(θ) - (γ + 3/4) * B_r
@@ -173,7 +184,7 @@ def ode_system(
                     deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r,
                     deriv_B_θ=deriv_B_θ, deriv_B_φ=deriv_B_φ, γ=γ, η_O_0=η_O_0,
                     η_A_0=η_A_0, η_H_0=η_H_0, η_derivs=η_derivs, E_r=E_r,
-                    v_θ=v_θ,
+                    v_θ=v_θ, b_r=b_r, b_θ=b_θ, b_φ=b_φ,
                 )
             except SolverError as e:
                 log.warning(e)
@@ -211,21 +222,35 @@ def ode_system(
             deriv_η_H = 0
 
         if use_E_r:
-            B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
-            b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
+            J_r = J_r_func(θ=θ, B_φ=B_φ, deriv_B_φ=deriv_B_φ)
+            J_θ = J_θ_func(γ=γ, B_φ=B_φ)
+            J_φ = J_φ_func(γ=γ, B_θ=B_θ, deriv_B_r=deriv_B_r)
 
             deriv_E_r = deriv_E_r_func(
-                γ=γ, θ=θ, v_r=v_r, v_φ=v_φ, B_r=B_r, B_θ=B_θ, B_φ=B_φ, η_O=η_O,
-                η_A=η_A, η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ,
-                deriv_B_r=deriv_B_r, deriv_B_φ=deriv_B_φ
+                γ=γ, v_r=v_r, v_φ=v_φ, B_r=B_r, B_φ=B_φ, η_O=η_O, η_A=η_A,
+                η_H=η_H, b_r=b_r, b_θ=b_θ, b_φ=b_φ, J_r=J_r, J_φ=J_φ, J_θ=J_θ,
             )
         else:
+            deriv_b_r, deriv_b_φ, deriv_b_θ = B_unit_derivs(
+                B_r=B_r, B_φ=B_φ, B_θ=B_θ, deriv_B_r=deriv_B_r,
+                deriv_B_φ=deriv_B_φ, deriv_B_θ=deriv_B_θ, b_r=b_r, b_θ=b_θ,
+                b_φ=b_φ,
+            )
+
+            A = A_func(
+                η_O=η_O, η_A=η_A, η_H=η_H, b_θ=b_θ, b_r=b_r, b_φ=b_φ,
+                deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H,
+                deriv_b_θ=deriv_b_θ, deriv_b_r=deriv_b_r, deriv_b_φ=deriv_b_φ,
+            )
+
             dderiv_B_φ = dderiv_B_φ_soln(
                 B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H, η_A=η_A, θ=θ,
                 v_r=v_r, v_θ=v_θ, v_φ=v_φ, deriv_v_r=deriv_v_r,
                 deriv_v_θ=deriv_v_θ, deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r,
                 deriv_B_θ=deriv_B_θ, deriv_B_φ=deriv_B_φ, γ=γ,
-                deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H
+                deriv_η_O=deriv_η_O, deriv_η_A=deriv_η_A, deriv_η_H=deriv_η_H,
+                b_r=b_r, b_θ=b_θ, b_φ=b_φ, deriv_b_r=deriv_b_r,
+                deriv_b_θ=deriv_b_θ, deriv_b_φ=deriv_b_φ, C=C, A=A,
             )
 
         derivs[ODEIndex.B_r] = deriv_B_r
