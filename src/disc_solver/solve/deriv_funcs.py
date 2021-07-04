@@ -8,7 +8,7 @@ Computing derivatives
 from numpy import zeros, tan as np_tan, sqrt as np_sqrt
 import logbook
 
-from ..utils import ODEIndex, sec
+from ..utils import ODEIndex, sec as np_sec
 
 from .config import B_φ_prime_boundary_func
 from .j_e_funcs import E_θ_func
@@ -155,7 +155,7 @@ def dderiv_B_φ_soln(
     *, B_r, B_φ, B_θ, η_O, η_H, η_A, θ, v_r, v_θ,
     v_φ, deriv_v_r, deriv_v_θ, deriv_v_φ, deriv_B_r, deriv_B_θ,
     deriv_B_φ, γ, deriv_η_O, deriv_η_A, deriv_η_H, b_r, b_φ, b_θ, deriv_b_r,
-    deriv_b_φ, deriv_b_θ, C, A, tan=np_tan,
+    deriv_b_φ, deriv_b_θ, C, A, tan=np_tan, sec=np_sec,
 ):
     """
     Compute the derivative of B_φ
