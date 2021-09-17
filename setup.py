@@ -14,7 +14,7 @@ setuptools.setup(
     install_requires = [
         "numpy",
         "matplotlib>=2.2,<3.4a0",
-        "scikits.odes>=2.3.0dev0,<2.6",
+        "scikits.odes>=2.3.0dev0,<2.7",
         "scipy",
         "logbook",
         "arrow",
