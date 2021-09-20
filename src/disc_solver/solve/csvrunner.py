@@ -71,6 +71,9 @@ class SolutionFinder:
         print(f"Run size in {process_name} is {asizeof(run)}")
 
         if succeeded:
+            if run.final_solution is None:
+                print(run)
+                return None
             return run.final_solution.solution_input.asdict()
         return None
 # pylint: enable=too-few-public-methods
