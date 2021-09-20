@@ -232,4 +232,7 @@ def solver(
         else:
             run.final_solution = run.solutions.get_last_solution()
 
+    if run.final_solution is None:
+        # This implies there were no solutions found
+        return False
     return True
