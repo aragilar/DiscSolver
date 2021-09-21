@@ -19,10 +19,12 @@ from scikits.odes.sundials import (
 from scikits.odes.sundials.cvode import StatusEnum
 
 from .deriv_funcs import (
-    dderiv_B_φ_soln, taylor_series, get_taylor_first_order,
-    get_taylor_second_order, get_taylor_third_order, deriv_B_r_func,
-    deriv_η_skw_func, deriv_B_φ_func, deriv_E_r_func, C_func, A_func, Z_5_func,
-    B_unit_derivs,
+    dderiv_B_φ_soln, deriv_B_r_func, deriv_η_skw_func, deriv_B_φ_func,
+    deriv_E_r_func, C_func, A_func, Z_5_func, B_unit_derivs,
+)
+from .deriv_midplane import (
+    taylor_series, get_taylor_first_order, get_taylor_second_order,
+    get_taylor_third_order,
 )
 from .j_e_funcs import J_r_func, J_θ_func, J_φ_func
 from .sonic_point import deriv_v_θ_sonic

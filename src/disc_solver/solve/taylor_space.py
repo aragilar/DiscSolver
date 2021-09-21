@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 from spaceplot import spaceplots
 
 from .config import define_conditions
-from .deriv_funcs import (
+from .deriv_midplane import (
     get_taylor_first_order, get_taylor_second_order, get_taylor_third_order,
 )
 
