@@ -27,7 +27,6 @@ from .deriv_midplane import (
     get_taylor_third_order,
 )
 from .j_e_funcs import J_r_func, J_θ_func, J_φ_func
-from .sonic_point import deriv_v_θ_sonic
 from .utils import (
     velocity_stop_generator, error_handler, rad_to_scaled, scaled_to_rad,
     SolverError, deduplicate_and_interpolate,
@@ -176,21 +175,9 @@ def ode_system(
 
         if deriv_v_θ_func is not None:
             deriv_v_θ = deriv_v_θ_func(θ)
-        elif v_θ_sonic_crit is not None and (
-            (- after_sonic) < (1 - v_θ) < v_θ_sonic_crit
-        ):
-            try:
-                deriv_v_θ = deriv_v_θ_sonic(
-                    a_0=a_0, ρ=ρ, B_r=B_r, B_φ=B_φ, B_θ=B_θ, η_O=η_O, η_H=η_H,
-                    η_A=η_A, θ=θ, v_r=v_r, v_φ=v_φ, deriv_v_r=deriv_v_r,
-                    deriv_v_φ=deriv_v_φ, deriv_B_r=deriv_B_r,
-                    deriv_B_θ=deriv_B_θ, deriv_B_φ=deriv_B_φ, γ=γ, η_O_0=η_O_0,
-                    η_A_0=η_A_0, η_H_0=η_H_0, η_derivs=η_derivs, E_r=E_r,
-                    v_θ=v_θ, b_r=b_r, b_θ=b_θ, b_φ=b_φ,
-                )
-            except SolverError as e:
-                log.warning(e)
-                return 1
+        # There was code which used sonic_point.py, but the equations and logic
+        # are likely wrong, using either jumping or interpolation are likely
+        # wiser
         else:
             deriv_v_θ = (
                 v_r / 2 * (v_θ ** 2 - 4 * γ) + v_θ * (
