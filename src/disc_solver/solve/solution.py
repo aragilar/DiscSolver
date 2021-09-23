@@ -493,6 +493,8 @@ def main_solution(
         raise SolverError("Cannot use both sonic point interp and root_func")
     if sonic_interp_size is not None and jump_before_sonic is not None:
         raise SolverError("Cannot use two sonic point methods")
+    if sonic_interp_size is not None and not store_internal:
+        raise SolverError("Interpolation requires internal storage")
     if jump_before_sonic is not None and root_func is not None:
         raise SolverError("Cannot use both sonic point jumper and root_func")
     elif jump_before_sonic is not None and onroot_func is not None:
