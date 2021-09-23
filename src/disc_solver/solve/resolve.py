@@ -84,8 +84,8 @@ def main(argv, parser):
         filename, succeeded = resolve(
             soln_filename=args.soln_filename, soln_range=args.soln_range,
             output_file=args.output_file, sonic_method=args.sonic_method,
-            config_file=args.config_file, output_dir=args.output_dir,
-            store_internal=args.store_internal, overrides=overrides,
+            output_dir=args.output_dir, store_internal=args.store_internal,
+            overrides=overrides,
         )
         print(filename)
         return int(not succeeded)
