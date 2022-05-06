@@ -7,15 +7,10 @@ orbs:
         parameters:
           tox_name:
             type: string
-            default: py39
-          sundials_version:
-            type: string
-            default: 4.1.0
+            default: py310
           tox_args:
             type: string
             default: --
-        environment:
-          #SUNDIALS_VERSION: <<parameters.sundials_version>>
         executor: tox_exec
         steps:
           - tox_pre
@@ -60,7 +55,7 @@ orbs:
         parameters:
           tox_name:
             type: string
-            default: py39
+            default: py310
           tox_args:
             type: string
             default: --
@@ -95,8 +90,8 @@ workflows:
   commit:
     jobs:
       - tox_orb/tox_job:
-          name: py39
-          tox_name: py39
+          name: py310
+          tox_name: py310
           tox_args: -- -n 2
       - tox_orb/tox_job:
           name: flake8
@@ -121,8 +116,8 @@ workflows:
                 - master
     jobs:
       - tox_orb/tox_job:
-          name: py39
-          tox_name: py39
+          name: py310
+          tox_name: py310
           tox_args: -- -n 2
       - tox_orb/tox_job:
           name: flake8
