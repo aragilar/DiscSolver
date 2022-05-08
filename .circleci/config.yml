@@ -44,6 +44,8 @@ orbs:
               - pip-
           - run: pwd
           - run: env
+          - run: which python
+          - run: which python3
       tox_install:
         steps:
           - run: cp ci_support/_manylinux.py /usr/lib/python3/dist-packages/_manylinux.py
