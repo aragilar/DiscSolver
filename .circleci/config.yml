@@ -32,6 +32,7 @@ orbs:
           - run: apt-get install -y python3-dev
           - run: apt-get install -y python3-tk
           - run: apt-get install -y python3-pip
+          - run: apt-get install -y python-is-python3
           #
           - run: apt-get install -y libsundials-dev # scikits.odes
           - run: apt-get install -y libhdf5-dev # h5py
