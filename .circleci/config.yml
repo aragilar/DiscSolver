@@ -33,6 +33,7 @@ orbs:
           - run: apt-get install -y python3-tk
           - run: apt-get install -y python3-pip
           - run: apt-get install -y python-is-python3
+          - run: apt-get install -y tox
           #
           - run: apt-get install -y libsundials-dev # scikits.odes
           - run: apt-get install -y libhdf5-dev # h5py
@@ -51,9 +52,8 @@ orbs:
         steps:
           - run: cp ci_support/_manylinux.py /usr/lib/python3/dist-packages/_manylinux.py
           #
-          - run: python3 -m pip install -U pip setuptools wheel
           - run: python3 -m pip install -c known_broken_constraints.txt --pre -U coverage # coverage major versions need to match
-          - run: python3 -m pip install -U tox codecov
+          - run: python3 -m pip install -U codecov
       tox_run:
         parameters:
           tox_name:
