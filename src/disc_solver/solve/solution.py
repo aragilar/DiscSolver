@@ -53,7 +53,8 @@ TaylorSolution = namedtuple(
 def ode_system(
     *, γ, a_0, norm_kepler_sq, init_con, θ_scale=float_type(1),
     with_taylor=False, η_derivs=True, store_internal=True, use_E_r=False,
-    v_θ_sonic_crit=None, after_sonic=None, deriv_v_θ_func=None
+    v_θ_sonic_crit=None, after_sonic=None, deriv_v_θ_func=None,
+    check_params=True,
 ):
     """
     Set up the system we are solving for.
@@ -95,30 +96,30 @@ def ode_system(
         """
         # pylint: disable=too-many-statements
         θ = scaled_to_rad(x, θ_scale)
-        B_r = params[ODEIndex.B_r]
-        B_φ = params[ODEIndex.B_φ]
-        B_θ = params[ODEIndex.B_θ]
-        v_r = params[ODEIndex.v_r]
-        v_φ = params[ODEIndex.v_φ]
-        v_θ = params[ODEIndex.v_θ]
-        ρ = params[ODEIndex.ρ]
-        η_O = params[ODEIndex.η_O]
-        η_A = params[ODEIndex.η_A]
-        η_H = params[ODEIndex.η_H]
+        B_r = params[..., ODEIndex.B_r]
+        B_φ = params[..., ODEIndex.B_φ]
+        B_θ = params[..., ODEIndex.B_θ]
+        v_r = params[..., ODEIndex.v_r]
+        v_φ = params[..., ODEIndex.v_φ]
+        v_θ = params[..., ODEIndex.v_θ]
+        ρ = params[..., ODEIndex.ρ]
+        η_O = params[..., ODEIndex.η_O]
+        η_A = params[..., ODEIndex.η_A]
+        η_H = params[..., ODEIndex.η_H]
         if use_E_r:
-            E_r = params[ODEIndex.E_r]
+            E_r = params[..., ODEIndex.E_r]
             B_φ_prime = None
         else:
-            B_φ_prime = params[ODEIndex.B_φ_prime]
+            B_φ_prime = params[..., ODEIndex.B_φ_prime]
             E_r = None
 
         # check sanity of input values
-        if ρ < 0:
+        if check_params and ρ < 0:
             if store_internal:
                 # pylint: disable=unsubscriptable-object
                 problems[θ].append("negative density")
             return 1
-        if v_θ < 0:
+        if check_params and v_θ < 0:
             if store_internal:
                 # pylint: disable=unsubscriptable-object
                 problems[θ].append("negative velocity")
@@ -242,21 +243,21 @@ def ode_system(
                 deriv_b_θ=deriv_b_θ, deriv_b_φ=deriv_b_φ, C=C, A=A,
             )
 
-        derivs[ODEIndex.B_r] = deriv_B_r
-        derivs[ODEIndex.B_φ] = deriv_B_φ
-        derivs[ODEIndex.B_θ] = deriv_B_θ
-        derivs[ODEIndex.v_r] = deriv_v_r
-        derivs[ODEIndex.v_φ] = deriv_v_φ
-        derivs[ODEIndex.v_θ] = deriv_v_θ
-        derivs[ODEIndex.ρ] = deriv_ρ
-        derivs[ODEIndex.η_O] = deriv_η_O
-        derivs[ODEIndex.η_A] = deriv_η_A
-        derivs[ODEIndex.η_H] = deriv_η_H
+        derivs[..., ODEIndex.B_r] = deriv_B_r
+        derivs[..., ODEIndex.B_φ] = deriv_B_φ
+        derivs[..., ODEIndex.B_θ] = deriv_B_θ
+        derivs[..., ODEIndex.v_r] = deriv_v_r
+        derivs[..., ODEIndex.v_φ] = deriv_v_φ
+        derivs[..., ODEIndex.v_θ] = deriv_v_θ
+        derivs[..., ODEIndex.ρ] = deriv_ρ
+        derivs[..., ODEIndex.η_O] = deriv_η_O
+        derivs[..., ODEIndex.η_A] = deriv_η_A
+        derivs[..., ODEIndex.η_H] = deriv_η_H
 
         if use_E_r:
-            derivs[ODEIndex.E_r] = deriv_E_r
+            derivs[..., ODEIndex.E_r] = deriv_E_r
         else:
-            derivs[ODEIndex.B_φ_prime] = dderiv_B_φ
+            derivs[..., ODEIndex.B_φ_prime] = dderiv_B_φ
 
         if __debug__:
             log.debug("θ: {}, {}", θ, degrees(θ))
@@ -332,7 +333,7 @@ def jump_across_sonic(
         store_internal=False, with_taylor=False, θ_scale=θ_scale,
         use_E_r=use_E_r,
     )
-    derivs = zeros(len(ODEIndex))
+    derivs = zeros(len(ODEIndex), dtype=float_type)
     system(initial_angle, initial_values, derivs)
 
     dθ = (jump_before_sonic + jump_after_sonic) / derivs[ODEIndex.v_θ]
