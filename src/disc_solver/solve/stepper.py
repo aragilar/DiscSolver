@@ -219,6 +219,13 @@ def v_θ_deriv_splitter(soln, cutoff=DEFAULT_SPLITTER_CUTOFF, **kwargs):
     else:
         log.notice("Skipping checking problems due to no internal data")
 
+    if soln.internal_data is not None:
+        deriv_v_θ = soln.internal_data.derivs[ODEIndex.v_θ]
+        if any(diff(deriv_v_θ, 2) > 0):
+            return SplitterStatus.DIVERGE
+        if any(diff(deriv_v_θ) < 0):
+            return SplitterStatus.SIGN_FLIP
+
     v_θ_near_sonic = np_and(v_θ > cutoff, v_θ < 1)
     if not np_any(v_θ_near_sonic):
         return SplitterStatus.SIGN_FLIP
