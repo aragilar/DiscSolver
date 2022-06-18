@@ -18,7 +18,7 @@ setuptools.setup(
         "scipy",
         "logbook",
         "arrow",
-        "h5py>2.5",
+        "h5py>2.5,!=3.7",
         "h5preserve>=0.17.2",
         "stringtopy>=0.2.1",
         "corner",
