@@ -11,7 +11,23 @@ orbs:
           tox_args:
             type: string
             default: --
-        executor: tox_exec
+        executor: tox_small_exec
+        steps:
+          - tox_pre
+          - tox_install
+          - tox_run:
+              tox_name: <<parameters.tox_name>>
+              tox_args: <<parameters.tox_args>>
+          - tox_post
+      tox_large_job:
+        parameters:
+          tox_name:
+            type: string
+            default: py310
+          tox_args:
+            type: string
+            default: --
+        executor: tox_large_exec
         steps:
           - tox_pre
           - tox_install
@@ -80,22 +96,31 @@ orbs:
                 - /root/.cache/pip
 
     executors:
-      tox_exec:
+      tox_small_exec:
         parameters:
           version:
             type: string
             default: "3.8"
         docker:
           - image: debian:unstable
+        resource_class: small
+      tox_large_exec:
+        parameters:
+          version:
+            type: string
+            default: "3.8"
+        docker:
+          - image: debian:unstable
+        resource_class: large
 
 workflows:
   version: 2
   commit:
     jobs:
-      - tox_orb/tox_job:
+      - tox_orb/tox_large_job:
           name: py310
           tox_name: py310
-          tox_args: -- -n 2
+          tox_args: -- -n 4
       - tox_orb/tox_job:
           name: flake8
           tox_name: flake8
@@ -118,10 +143,10 @@ workflows:
               only:
                 - master
     jobs:
-      - tox_orb/tox_job:
+      - tox_orb/tox_large_job:
           name: py310
           tox_name: py310
-          tox_args: -- -n 2
+          tox_args: -- -n 4
       - tox_orb/tox_job:
           name: flake8
           tox_name: flake8
