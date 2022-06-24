@@ -12,7 +12,7 @@ setuptools.setup(
     packages = setuptools.find_packages('src'),
     package_dir = {'': 'src'},
     install_requires = [
-        "numpy",
+        "numpy<1.23",
         "matplotlib>=2.2,<3.4a0",
         "scikits.odes>=2.3.0dev0",
         "scipy",

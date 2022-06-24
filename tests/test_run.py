@@ -15,6 +15,7 @@ from disc_solver.analyse.dump_csv import dump_csv
 from disc_solver.analyse.dump_config import dump_cfg
 from disc_solver.analyse.hydro_check_plot import hydro_check_plot
 from disc_solver.analyse.info import info
+from disc_solver.analyse.jacobian_plot import jacobian_plot
 from disc_solver.analyse.j_e_plot import j_e_plot
 from disc_solver.analyse.params_plot import params_plot
 from disc_solver.analyse.phys_ratio_plot import plot as phys_ratio_plot
@@ -485,10 +486,10 @@ class TestAnalysis:
             hydro_check_plot(solution_no_internal, plot_filename=plot_file)
 
     def test_jacobian_show(self, solution, mpl_interactive):
-        plot(solution, show=True)
+        jacobian_plot(solution, show=True)
 
     def test_jacobian_file(self, solution, plot_file):
-        return plot(solution, plot_filename=plot_file)
+        return jacobian_plot(solution, plot_filename=plot_file)
 
     def test_diverge_show(self, solution, mpl_interactive):
         diverge_main([solution, '--show'])
