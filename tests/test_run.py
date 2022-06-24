@@ -7,7 +7,9 @@ from disc_solver.analyse.acc_plot import acc_plot
 from disc_solver.analyse.combine_plot import combine_plot
 from disc_solver.analyse.compare_plot import compare_plot
 from disc_solver.analyse.component_plot import plot as component_plot
-from disc_solver.analyse.compute_jacobian import compute_jacobian_from_file
+from disc_solver.analyse.compute_jacobian import (
+    compute_jacobian_from_file, jacobian_eigenvalues_plot
+)
 from disc_solver.analyse.conserve_plot import conserve_main
 from disc_solver.analyse.derivs_plot import derivs_plot
 from disc_solver.analyse.diverge_plot import diverge_main
@@ -523,6 +525,14 @@ class TestAnalysis:
 
     def test_compute_jacobian_from_solution(self, solution):
         compute_jacobian_from_file(solution, eps=1e-10)
+
+    def test_jacobian_eigenvalues_show(self, solution, mpl_interactive):
+        jacobian_eigenvalues_plot(solution, show=True, eps=1e-10)
+
+    def test_jacobian_eigenvalues_file(self, solution, plot_file):
+        return jacobian_eigenvalues_plot(
+            solution, plot_filename=plot_file, eps=1e-10
+        )
 
 
 def test_taylor_space(mpl_interactive):
