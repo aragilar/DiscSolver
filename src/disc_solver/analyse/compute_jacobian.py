@@ -182,20 +182,17 @@ def plot_jacobian_eigenvalues(
 
     data = np.array([compute_eigenvalues(j) for j in jacobians]).real
 
-    axes = fig.subplots(nrows=2, ncols=6, sharex=True, **figargs)
-    axes.shape = 12
-    for param in ODEIndex:
-        ax = axes[param]
-        pos_data = data[:, param] >= 0
+    ax = fig.subplots(**figargs)
+    ax.set_xlabel("angle from plane (°)")
+    ax.set_yscale("log")
+    for i in range(data.shape[1]):
+        pos_data = data[:, i] >= 0
         ax.plot(
             degrees(angles[npand(pos_data, indexes)]),
-            data[npand(pos_data, indexes), param], linestyle + "b",
+            data[npand(pos_data, indexes), i], linestyle + "b",
         )
         ax.plot(
             degrees(angles[npand(npnot(pos_data), indexes)]),
-            - data[npand(npnot(pos_data), indexes), param], linestyle + "g",
+            - data[npand(npnot(pos_data), indexes), i], linestyle + "g",
         )
-        ax.set_xlabel("angle from plane (°)")
-        ax.set_yscale("log")
-        ax.set_title(param.name)
     return fig
