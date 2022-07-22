@@ -3,10 +3,12 @@
 """
 from functools import wraps
 
-import numpy as np
-from numpy import degrees
-from numpy import zeros
+from numpy import (
+    degrees, zeros, logical_not as npnot, logical_and as npand, isfinite, nan,
+    full, array as nparray
+)
 from scipy.linalg import eigvals
+import matplotlib.pyplot as plt
 
 from ..float_handling import float_type
 from ..solve.solution import ode_system
@@ -159,9 +161,38 @@ def jacobian_eigenvalues_plot(
 
 
 def compute_eigenvalues(jacobian):
-    if not np.isfinite(jacobian).all():
-        return np.full(jacobian.shape[0], np.nan)
+    if not isfinite(jacobian).all():
+        return full(jacobian.shape[0], nan)
     return eigvals(jacobian)
+
+
+def plot_log_complex_data(ax, *, x_data, y_data, **kwargs):
+    pos_real_data_slice = y_data.real >= 0
+    pos_imag_data_slice = y_data.imag >= 0
+    ax.plot(
+        x_data[pos_real_data_slice],
+        y_data[pos_real_data_slice].real,
+        marker="triangle_up",
+        **kwargs
+    )
+    ax.plot(
+        x_data[npnot(pos_real_data_slice)],
+        y_data[npnot(pos_real_data_slice)].real,
+        marker="triangle_up",
+        **kwargs
+    )
+    ax.plot(
+        x_data[pos_imag_data_slice],
+        y_data[pos_imag_data_slice].imag,
+        marker="tri_up",
+        **kwargs
+    )
+    ax.plot(
+        x_data[npnot(pos_imag_data_slice)],
+        y_data[npnot(pos_imag_data_slice)].imag,
+        marker="tri_up",
+        **kwargs
+    )
 
 
 @single_solution_plotter
@@ -176,23 +207,20 @@ def plot_jacobian_eigenvalues(
     if figargs is None:
         figargs = {}
 
-    npnot = np.logical_not
-    npand = np.logical_and
     indexes = degrees(angles) <= stop
 
-    data = np.array([compute_eigenvalues(j) for j in jacobians]).real
+    data = nparray([compute_eigenvalues(j) for j in jacobians])
 
     ax = fig.subplots(**figargs)
     ax.set_xlabel("angle from plane (°)")
     ax.set_yscale("log")
-    for i in range(data.shape[1]):
-        pos_data = data[:, i] >= 0
-        ax.plot(
-            degrees(angles[npand(pos_data, indexes)]),
-            data[npand(pos_data, indexes), i], linestyle + "b",
-        )
-        ax.plot(
-            degrees(angles[npand(npnot(pos_data), indexes)]),
-            - data[npand(npnot(pos_data), indexes), i], linestyle + "g",
-        )
+    with plt.style.context({
+        "axes.prop_cycle": cycler.cycler(color=plt.get_cmap("tab20").colors)
+    }):
+        for i in range(data.shape[1]):
+            plot_log_complex_data(
+                ax, x_data=degrees(angles[indexes]),
+                y_data=data[indexes, i],
+                color="C" + str(i),
+            )
     return fig
