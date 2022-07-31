@@ -576,7 +576,7 @@ class Solutions(MutableMapping):
         Free the memory used to store the solution, allowing the solution to be
         reloaded if need be
         """
-        # pylint: disable=unused-argument,no-self-use
+        # pylint: disable=unused-argument
         # actual_val = self[key]
         # self[key] = actual_val
         # ref = gc.get_referrers(actual_val)
