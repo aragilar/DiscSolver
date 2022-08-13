@@ -9,6 +9,7 @@ from disc_solver.analyse.compare_plot import compare_plot
 from disc_solver.analyse.component_plot import plot as component_plot
 from disc_solver.analyse.compute_jacobian import (
     jacobian_eigenvalues_plot, jacobian_eigenvectors_plot,
+    compute_jacobian_from_file,
 )
 from disc_solver.analyse.conserve_plot import conserve_main
 from disc_solver.analyse.derivs_plot import derivs_plot
@@ -535,6 +536,9 @@ class TestAnalysis:
         return jacobian_eigenvectors_plot(
             solution_not_approx, plot_filename=plot_file, eps=1e-10
         )
+
+    def test_compute_jacobian_from_solution(self, solution):
+        compute_jacobian_from_file(solution, eps=1e-10)
 
 
 def test_taylor_space(mpl_interactive):

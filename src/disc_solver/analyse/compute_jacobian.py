@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 
 from ..float_handling import float_type
 from ..solve.solution import ode_system
+from ..utils import get_solutions
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
     get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
@@ -336,3 +337,12 @@ def plot_jacobian_eigenvectors(
             )
         ax.legend()
     return fig
+
+
+@analysis_func_wrapper
+def compute_jacobian_from_file(
+    soln_file, *, soln_range=None, eps, θ_scale=float_type(1), **kwargs
+):
+
+    soln = get_solutions(soln_file, soln_range)
+    return compute_jacobian_from_solution(soln, eps=eps, θ_scale=θ_scale)
