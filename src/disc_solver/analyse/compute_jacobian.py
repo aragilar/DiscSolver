@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
+Analysis functions related to the jacobians of existing solutions
 """
 from functools import wraps
 
-import cycler
 from numpy import (
     degrees, zeros, logical_not as npnot, isfinite, nan, full,
     array as nparray,
@@ -14,7 +14,6 @@ import matplotlib.pyplot as plt
 
 from ..float_handling import float_type
 from ..solve.solution import ode_system
-from ..utils import get_solutions
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
     get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
@@ -87,11 +86,14 @@ def compute_jacobian(
     *, γ, a_0, norm_kepler_sq, init_con, θ_scale, η_derivs, use_E_r, θ, params,
     eps,
 ):
+    """
+    Compute jacobian from solution
+    """
     rhs_eq, _ = ode_system(
         γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq, init_con=init_con,
         θ_scale=θ_scale, with_taylor=False, η_derivs=η_derivs,
         store_internal=False, use_E_r=use_E_r, v_θ_sonic_crit=None,
-        after_sonic=None, deriv_v_θ_func=None, check_params=False
+        after_sonic=None, deriv_v_θ_func=None, derivs_post_solution=True,
     )
 
     solution_length = params.shape[0]
@@ -120,6 +122,9 @@ def compute_jacobian(
 
 
 def compute_jacobian_from_solution(soln, *, eps, θ_scale=float_type(1)):
+    """
+    Compute jacobian from solution
+    """
     solution = soln.solution
     angles = soln.angles
     cons = soln.initial_conditions
@@ -140,20 +145,15 @@ def compute_jacobian_from_solution(soln, *, eps, θ_scale=float_type(1)):
     )
 
 
-@analysis_func_wrapper
-def compute_jacobian_from_file(
-    soln_file, *, soln_range=None, eps, θ_scale=float_type(1), **kwargs
-):
-
-    soln = get_solutions(soln_file, soln_range)
-    return compute_jacobian_from_solution(soln, eps=eps, θ_scale=θ_scale)
-
-
 def jacobian_single_solution_plot_wrapper(func):
+    """
+    Helper wrapper for solutions working with jacobians
+    """
     @wraps(func)
     def jacobian_wrapper(
-        fig, soln, *args, eps, θ_scale=float_type(1), **kwargs
+        fig, soln, *args, eps, use_E_r, θ_scale=float_type(1), **kwargs
     ):
+        # pylint: disable=unused-argument
         jacobians = compute_jacobian_from_solution(
             soln, eps=eps, θ_scale=θ_scale
         )
@@ -171,9 +171,10 @@ def jacobian_eigenvalues_plot(
     mpl_style=DEFAULT_MPL_STYLE, with_version=True, eps
 ):
     """
-    Show derivatives
+    Plot eigenvalues of jacobians of a solution
     """
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
+    # pylint: disable=missing-kwoa
     fig = plot_jacobian_eigenvalues(
         soln, soln_range, linestyle=linestyle, start=start, stop=stop,
         figargs=figargs, title=title, filename=filename,
@@ -195,6 +196,7 @@ def jacobian_eigenvectors_plot(
     Show derivatives
     """
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
+    # pylint: disable=missing-kwoa
     fig = plot_jacobian_eigenvectors(
         soln, soln_range, linestyle=linestyle, start=start, stop=stop,
         figargs=figargs, title=title, filename=filename,
@@ -207,12 +209,18 @@ def jacobian_eigenvectors_plot(
 
 
 def compute_eigenvalues(jacobian):
+    """
+    Compute eigenvalues of a jacobian matrix
+    """
     if not isfinite(jacobian).all():
         return full(jacobian.shape[0], nan)
     return eigvals(jacobian)
 
 
 def compute_eigenvalues_and_eigenvectors(jacobian):
+    """
+    Compute eigenvalues and eigenvectors of a jacobian matrix
+    """
     if not isfinite(jacobian).all():
         M = jacobian.shape[0]
         return full(M, nan), full([M, M], nan)
@@ -220,6 +228,9 @@ def compute_eigenvalues_and_eigenvectors(jacobian):
 
 
 def plot_log_complex_data(ax, *, x_data, y_data, **kwargs):
+    """
+    Plot complex data logarithmically
+    """
     pos_real_data_slice = y_data.real >= 0
     pos_imag_data_slice = y_data.imag >= 0
     ax.plot(
@@ -255,20 +266,17 @@ def plot_log_complex_data(ax, *, x_data, y_data, **kwargs):
 @single_solution_plotter
 @jacobian_single_solution_plot_wrapper
 def plot_jacobian_eigenvalues(
-    fig, *, jacobians, angles, use_E_r, linestyle='.', figargs=None, start=0,
-    stop=90
+    fig, *, jacobians, angles, start=0, stop=90, linestyle=',',
 ):
     """
     Generate plot of jacobians
     """
-    if figargs is None:
-        figargs = {}
-
+    # pylint: disable=unused-argument
     indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
 
     data = nparray([compute_eigenvalues(j) for j in jacobians])
 
-    ax = fig.subplots(**figargs)
+    ax = fig.subplots()
     ax.set_xlabel("angle from plane (°)")
     ax.set_yscale("log")
     for i in range(data.shape[1]):
@@ -286,12 +294,12 @@ def plot_jacobian_eigenvalues(
 @single_solution_plotter
 @jacobian_single_solution_plot_wrapper
 def plot_jacobian_eigenvectors(
-    fig, *, jacobians, angles, use_E_r, linestyle='.', start=0,
-    stop=90
+    fig, *, jacobians, angles, start=0, stop=90, linestyle=',',
 ):
     """
     Generate plot of jacobians
     """
+    # pylint: disable=unused-argument
     indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
 
     eigvalues, eigvecs = zip(*[

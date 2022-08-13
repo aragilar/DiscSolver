@@ -7,9 +7,7 @@ from disc_solver.analyse.acc_plot import acc_plot
 from disc_solver.analyse.combine_plot import combine_plot
 from disc_solver.analyse.compare_plot import compare_plot
 from disc_solver.analyse.component_plot import plot as component_plot
-from disc_solver.analyse.compute_jacobian import (
-    compute_jacobian_from_file, jacobian_eigenvalues_plot
-)
+from disc_solver.analyse.compute_jacobian import jacobian_eigenvalues_plot
 from disc_solver.analyse.conserve_plot import conserve_main
 from disc_solver.analyse.derivs_plot import derivs_plot
 from disc_solver.analyse.diverge_plot import diverge_main
@@ -17,7 +15,6 @@ from disc_solver.analyse.dump_csv import dump_csv
 from disc_solver.analyse.dump_config import dump_cfg
 from disc_solver.analyse.hydro_check_plot import hydro_check_plot
 from disc_solver.analyse.info import info
-from disc_solver.analyse.jacobian_plot import jacobian_plot
 from disc_solver.analyse.j_e_plot import j_e_plot
 from disc_solver.analyse.params_plot import params_plot
 from disc_solver.analyse.phys_ratio_plot import plot as phys_ratio_plot
@@ -487,12 +484,6 @@ class TestAnalysis:
         with pytest.raises(AnalysisError):
             hydro_check_plot(solution_no_internal, plot_filename=plot_file)
 
-    def test_jacobian_show(self, solution, mpl_interactive):
-        jacobian_plot(solution, show=True)
-
-    def test_jacobian_file(self, solution, plot_file):
-        return jacobian_plot(solution, plot_filename=plot_file)
-
     def test_diverge_show(self, solution, mpl_interactive):
         diverge_main([solution, '--show'])
 
@@ -523,15 +514,14 @@ class TestAnalysis:
     def test_stats(self, solution, tmpdir):
         return stats_main([solution, '--file', str(tmpdir / 'stats.csv')])
 
-    def test_compute_jacobian_from_solution(self, solution):
-        compute_jacobian_from_file(solution, eps=1e-10)
+    def test_jacobian_eigenvalues_show(
+        self, solution_not_approx, mpl_interactive
+    ):
+        jacobian_eigenvalues_plot(solution_not_approx, show=True, eps=1e-10)
 
-    def test_jacobian_eigenvalues_show(self, solution, mpl_interactive):
-        jacobian_eigenvalues_plot(solution, show=True, eps=1e-10)
-
-    def test_jacobian_eigenvalues_file(self, solution, plot_file):
+    def test_jacobian_eigenvalues_file(self, solution_not_approx, plot_file):
         return jacobian_eigenvalues_plot(
-            solution, plot_filename=plot_file, eps=1e-10
+            solution_not_approx, plot_filename=plot_file, eps=1e-10
         )
 
 
