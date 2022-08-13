@@ -83,7 +83,7 @@ orbs:
         steps:
           - run:
               no_output_timeout: 1.5h
-              command: tox -e <<parameters.tox_name>> <<parameters.tox_args>>
+              command: DS_RUN_SLOW_TESTS=true tox -e <<parameters.tox_name>> <<parameters.tox_args>>
 
       tox_post:
         steps:
