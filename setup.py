@@ -12,7 +12,7 @@ setuptools.setup(
     packages = setuptools.find_packages('src'),
     package_dir = {'': 'src'},
     install_requires = [
-        "numpy",
+        "numpy<1.23",
         "matplotlib>=2.2,<3.4a0",
         "scikits.odes>=2.3.0dev0",
         "scipy",
@@ -57,6 +57,9 @@ setuptools.setup(
             "ds-params-plot = disc_solver.analyse.params_plot:params_main",
             "ds-taylor-plot = disc_solver.analyse.taylor_plot:taylor_main",
             "ds-combine-plot = disc_solver.analyse.combine_plot:combine_main",
+            "ds-jacobian-plot = disc_solver.analyse.jacobian_plot:jacobian_main",
+            "ds-jacobian-eigenvalue-plot = disc_solver.analyse.compute_jacobian:jacobian_eigenvalues_main",
+            "ds-jacobian-eigenvector-plot = disc_solver.analyse.compute_jacobian:jacobian_eigenvectors_main",
             "ds-validate-plot = disc_solver.analyse.validate_plot:validate_plot_main",
             "ds-hydro-check-plot = disc_solver.analyse.hydro_check_plot:hydro_check_plot_main",
             "ds-acc-plot = disc_solver.analyse.acc_plot:acc_main",
