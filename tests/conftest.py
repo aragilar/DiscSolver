@@ -49,6 +49,13 @@ DERIV_NO_INTERNAL_SOLUTIONS = [
 USE_E_R_SOLUTIONS = [
     "mod_hydro_solution_use_E_r",
 ]
+NON_APPROX_SOLUTIONS = [
+    "single_solution_default",
+    "sonic_root_solution_default",
+    "step_solution_default",
+    "single_solution_no_internal",
+    "sonic_root_solution_no_internal",
+]
 
 
 @pytest.fixture(scope="session")
@@ -210,6 +217,11 @@ def solution_deriv_no_internal(request):
 
 @pytest.fixture(scope="session", params=USE_E_R_SOLUTIONS)
 def solution_use_E_r(request):
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture(scope="session", params=NON_APPROX_SOLUTIONS)
+def solution_not_approx(request):
     return request.getfixturevalue(request.param)
 
 

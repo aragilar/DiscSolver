@@ -7,6 +7,9 @@ from disc_solver.analyse.acc_plot import acc_plot
 from disc_solver.analyse.combine_plot import combine_plot
 from disc_solver.analyse.compare_plot import compare_plot
 from disc_solver.analyse.component_plot import plot as component_plot
+from disc_solver.analyse.compute_jacobian import (
+    jacobian_eigenvalues_plot, jacobian_eigenvectors_plot,
+)
 from disc_solver.analyse.conserve_plot import conserve_main
 from disc_solver.analyse.derivs_plot import derivs_plot
 from disc_solver.analyse.diverge_plot import diverge_main
@@ -483,12 +486,6 @@ class TestAnalysis:
         with pytest.raises(AnalysisError):
             hydro_check_plot(solution_no_internal, plot_filename=plot_file)
 
-    def test_jacobian_show(self, solution, mpl_interactive):
-        plot(solution, show=True)
-
-    def test_jacobian_file(self, solution, plot_file):
-        return plot(solution, plot_filename=plot_file)
-
     def test_diverge_show(self, solution, mpl_interactive):
         diverge_main([solution, '--show'])
 
@@ -518,6 +515,26 @@ class TestAnalysis:
 
     def test_stats(self, solution, tmpdir):
         return stats_main([solution, '--file', str(tmpdir / 'stats.csv')])
+
+    def test_jacobian_eigenvalues_show(
+        self, solution_not_approx, mpl_interactive
+    ):
+        jacobian_eigenvalues_plot(solution_not_approx, show=True, eps=1e-10)
+
+    def test_jacobian_eigenvalues_file(self, solution_not_approx, plot_file):
+        return jacobian_eigenvalues_plot(
+            solution_not_approx, plot_filename=plot_file, eps=1e-10
+        )
+
+    def test_jacobian_eigenvectors_show(
+        self, solution_not_approx, mpl_interactive
+    ):
+        jacobian_eigenvectors_plot(solution_not_approx, show=True, eps=1e-10)
+
+    def test_jacobian_eigenvectors_file(self, solution_not_approx, plot_file):
+        return jacobian_eigenvectors_plot(
+            solution_not_approx, plot_filename=plot_file, eps=1e-10
+        )
 
 
 def test_taylor_space(mpl_interactive):
