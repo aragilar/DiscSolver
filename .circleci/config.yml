@@ -88,6 +88,9 @@ orbs:
           - run:
               command: df -h
               when: always
+          - run:
+              command: cat /tmp/xvfb.error
+              when: always
           - run: codecov
           - save_cache:
               key: pip-{{ epoch }}
