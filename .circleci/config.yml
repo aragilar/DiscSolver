@@ -89,7 +89,7 @@ orbs:
               command: df -h
               when: always
           - run:
-              command: cat /tmp/xvfb.error
+              command: bash -c "cat /tmp/xvfb.error || true"
               when: always
           - run: codecov
           - save_cache:
