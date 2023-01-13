@@ -1,6 +1,6 @@
 status = [
   "ci/circleci: pylint",
-  "ci/circleci: py310",
+  "ci/circleci: py311",
   "ci/circleci: flake8",
   "ci/circleci: checkreadme",
   "ci/circleci: check-manifest",
