@@ -7,7 +7,7 @@ orbs:
         parameters:
           tox_name:
             type: string
-            default: py310
+            default: py311
           tox_args:
             type: string
             default: --
@@ -23,7 +23,7 @@ orbs:
         parameters:
           tox_name:
             type: string
-            default: py310
+            default: py311
           tox_args:
             type: string
             default: --
@@ -74,7 +74,7 @@ orbs:
         parameters:
           tox_name:
             type: string
-            default: py310
+            default: py311
           tox_args:
             type: string
             default: --
@@ -87,6 +87,9 @@ orbs:
         steps:
           - run:
               command: df -h
+              when: always
+          - run:
+              command: bash -c "cat /tmp/xvfb.error || true"
               when: always
           - run: codecov
           - save_cache:
@@ -118,8 +121,8 @@ workflows:
   commit:
     jobs:
       - tox_orb/tox_large_job:
-          name: py310
-          tox_name: py310
+          name: py311
+          tox_name: py311
           tox_args: -- -n 4
       - tox_orb/tox_job:
           name: flake8
@@ -144,8 +147,8 @@ workflows:
                 - master
     jobs:
       - tox_orb/tox_large_job:
-          name: py310
-          tox_name: py310
+          name: py311
+          tox_name: py311
           tox_args: -- -n 4
       - tox_orb/tox_job:
           name: flake8
