@@ -67,6 +67,9 @@ orbs:
       tox_install:
         steps:
           - run: cp ci_support/_manylinux.py /usr/lib/python3/dist-packages/_manylinux.py
+          # Delete EXTERNALLY-MANAGED so we can use pip outside a venv (
+          # TODO: need a better plan here)
+          - run: find /usr/lib/python* -name EXTERNALLY-MANAGED -delete
           #
           - run: python3 -m pip install -c known_broken_constraints.txt --pre -U coverage # coverage major versions need to match
           - run: python3 -m pip install -U codecov
