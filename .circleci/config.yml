@@ -43,7 +43,7 @@ orbs:
           - run: apt-get update
           - run: apt-get dist-upgrade -y
           - run: apt-get install -y git
-          - run: apt-get install -y ca-certificates
+          - run: apt-get install -y ca-certificates curl
           #
           - run: apt-get install -y python3-dev
           - run: apt-get install -y python3-tk
@@ -72,7 +72,6 @@ orbs:
           - run: find /usr/lib/python* -name EXTERNALLY-MANAGED -delete
           #
           - run: python3 -m pip install -c known_broken_constraints.txt --pre -U coverage # coverage major versions need to match
-          - run: python3 -m pip install -U codecov
       tox_run:
         parameters:
           tox_name:
@@ -94,7 +93,9 @@ orbs:
           - run:
               command: bash -c "cat /tmp/xvfb.error || true"
               when: always
-          - run: codecov
+          - run: curl -Os https://uploader.codecov.io/latest/linux/codecov
+          - run: chmod +x codecov
+          - run: ./codecov
           - save_cache:
               key: pip-{{ epoch }}
               paths:
