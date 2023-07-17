@@ -24,6 +24,7 @@ def info_parser(parser):
         "run", "status", "input", "initial-conditions", "sonic-points",
         "crosses-points", "sonic-on-scale", "solutions",
     ])
+    parser.add_argument("--format", choices["json"])
     return parser
 
 
@@ -32,20 +33,24 @@ def info_parser(parser):
     info_parser,
     cmd_parser_splitters={
         "group": lambda args: args["group"]
+        "output_format": lambda args: args["format"]
     }
 )
-def info_main(soln_file, *, group, soln_range):
+def info_main(soln_file, *, group, soln_range, output_format):
     """
     Entry point for ds-info
     """
     # pylint: disable=missing-kwoa
     return info(
         soln_file, group=group, soln_range=soln_range, output_file=stdout,
+        output_format=output_format,
     )
 
 
 @analysis_func_wrapper
-def info(soln_file, *, group, soln_range, output_file, filename):
+def info(
+    soln_file, *, group, soln_range, output_file, filename, output_format
+):
     """
     Output info about the solution
     """
