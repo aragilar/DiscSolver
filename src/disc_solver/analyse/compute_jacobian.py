@@ -6,14 +6,18 @@ from functools import wraps
 
 from numpy import (
     degrees, zeros, logical_not as npnot, isfinite, nan, full,
-    array as nparray,
+    array as nparray, argmin, abs as npabs, dot, sum as npsum,
 )
+from numpy.linalg import inv
 from scipy.linalg import eigvals, eig
+from scipy.optimize import least_squares
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from ..float_handling import float_type
 from ..solve.solution import ode_system
+from ..utils import ODEIndex
+
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
     get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
@@ -78,6 +82,44 @@ def jacobian_eigenvectors_main(
     Entry point for ds-derivs-plot
     """
     return jacobian_eigenvectors_plot(
+        soln, soln_range=soln_range, **common_plot_args, **plot_args
+    )
+
+
+@analyse_main_wrapper(
+    "Plot eigenvectors of jacobians for DiscSolver",
+    plot_parser,
+    cmd_parser_splitters={
+        "common_plot_args": get_common_plot_args,
+        "plot_args": get_plot_args,
+    }
+)
+def jacobian_eigenvector_coef_main(
+    soln, *, soln_range, common_plot_args, plot_args
+):
+    """
+    Entry point for ds-derivs-plot
+    """
+    return jacobian_eigenvector_coef_plot(
+        soln, soln_range=soln_range, **common_plot_args, **plot_args
+    )
+
+
+@analyse_main_wrapper(
+    "Plot eigenvectors of jacobians for DiscSolver",
+    plot_parser,
+    cmd_parser_splitters={
+        "common_plot_args": get_common_plot_args,
+        "plot_args": get_plot_args,
+    }
+)
+def jacobian_eigenvector_norm_main(
+    soln, *, soln_range, common_plot_args, plot_args
+):
+    """
+    Entry point for ds-derivs-plot
+    """
+    return jacobian_eigenvector_norm_plot(
         soln, soln_range=soln_range, **common_plot_args, **plot_args
     )
 
@@ -208,6 +250,50 @@ def jacobian_eigenvectors_plot(
     )
 
 
+@analysis_func_wrapper
+def jacobian_eigenvector_coef_plot(
+    soln, *, soln_range=None, plot_filename=None, show=False, start=0, stop=90,
+    figargs=None, linestyle='.', title=None, close=True, filename,
+    mpl_style=DEFAULT_MPL_STYLE, with_version=True, eps
+):
+    """
+    Show derivatives
+    """
+    # pylint: disable=too-many-function-args,unexpected-keyword-arg
+    # pylint: disable=missing-kwoa
+    fig = plot_eigenvector_coef_around_sonic_point(
+        soln, soln_range, linestyle=linestyle, start=start, stop=stop,
+        figargs=figargs, title=title, filename=filename,
+        mpl_style=mpl_style, with_version=with_version, eps=eps
+    )
+
+    return plot_output_wrapper(
+        fig, file=plot_filename, show=show, close=close
+    )
+
+
+@analysis_func_wrapper
+def jacobian_eigenvector_norm_plot(
+    soln, *, soln_range=None, plot_filename=None, show=False, start=0, stop=90,
+    figargs=None, linestyle='.', title=None, close=True, filename,
+    mpl_style=DEFAULT_MPL_STYLE, with_version=True, eps
+):
+    """
+    Show derivatives
+    """
+    # pylint: disable=too-many-function-args,unexpected-keyword-arg
+    # pylint: disable=missing-kwoa
+    fig = plot_jacobian_eigenvector_norm(
+        soln, soln_range, linestyle=linestyle, start=start, stop=stop,
+        figargs=figargs, title=title, filename=filename,
+        mpl_style=mpl_style, with_version=with_version, eps=eps
+    )
+
+    return plot_output_wrapper(
+        fig, file=plot_filename, show=show, close=close
+    )
+
+
 def compute_eigenvalues(jacobian):
     """
     Compute eigenvalues of a jacobian matrix
@@ -287,7 +373,7 @@ def plot_jacobian_eigenvalues(
             alpha=.5,
             label=str(i)
         )
-    ax.legend()
+    ax.legend(ncol=11)
     return fig
 
 
@@ -335,4 +421,162 @@ def plot_jacobian_eigenvectors(
                 label=str(i)
             )
         ax.legend()
+    return fig
+
+
+def compute_norm(v, *, axis):
+    """
+    Compute norms
+    """
+    return npsum(v * v.conj(), axis=axis)
+
+
+@single_solution_plotter
+@jacobian_single_solution_plot_wrapper
+def plot_jacobian_eigenvector_norm(
+    fig, *, jacobians, angles, start=0, stop=90, linestyle=',',
+):
+    """
+    Generate plot of jacobians
+    """
+    # pylint: disable=unused-argument
+    indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
+
+    eigvecs = nparray([
+        compute_eigenvalues_and_eigenvectors(j)[1] for j in jacobians
+    ])
+
+    norms = compute_norm(eigvecs, axis=1)
+
+    ax = fig.subplots()
+
+    ax.set_xlabel("angle from plane (°)")
+
+    ax.plot(degrees(angles[indexes]), norms[indexes])
+    return fig
+
+
+def compute_coefs_of_subtracted_solution(subtracted_soln, eigvecs):
+    """
+    Compute coefficients of subtracted solution
+    """
+    def opt_func(x, *, soln):
+        """
+        Function for least squares
+        """
+        complex_diff = dot(eigvecs, x).sum(axis=0) - soln
+        return nparray([complex_diff.real, complex_diff.imag]).flatten()
+
+    initial_coefs = zeros(eigvecs.shape[0])
+    res = []
+    fun = []
+    for soln in subtracted_soln:
+        out = least_squares(opt_func, initial_coefs, kwargs={'soln': soln})
+        if out.success:
+            res.append(out.x)
+            fun.append(out.fun)
+        else:
+            res.append(full(eigvecs.shape[0], nan))
+            fun.append(full(eigvecs.shape[0], nan))
+    return nparray(res), nparray(fun)
+
+
+def compute_jacobian_at_index(soln, *, eps, θ_scale=float_type(1), index):
+    """
+    Compute jacobian from solution at index
+    """
+    s = slice(index, index+1)
+    solution = soln.solution[s]
+    angles = soln.angles[s]
+    cons = soln.initial_conditions
+    soln_input = soln.solution_input
+
+    init_con = cons.init_con
+    γ = cons.γ
+    a_0 = cons.a_0
+    norm_kepler_sq = cons.norm_kepler_sq
+
+    η_derivs = soln_input.η_derivs
+    use_E_r = soln_input.use_E_r
+
+    return compute_jacobian(
+        γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq, init_con=init_con,
+        θ_scale=θ_scale, η_derivs=η_derivs, use_E_r=use_E_r, θ=angles,
+        params=solution, eps=eps,
+    )[0]
+
+
+@single_solution_plotter
+def plot_eigenvector_coef_around_sonic_point(
+    fig, soln, *, start=0, stop=90, linestyle='.', eps, local_eigvecs=True,
+    use_E_r, **kwargs
+):
+    """
+    Plot coefficients of eigenvectors around the sonic point
+    """
+    angles = soln.angles
+    indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
+    solution = soln.solution
+    if use_E_r:
+        print("E_r used")
+
+    # find sonic point
+    sonic_point_index = argmin(npabs(1 - soln.solution[:, ODEIndex.v_θ]))
+
+    if local_eigvecs:
+        sonic_vals = solution[(sonic_point_index,)]
+        subtracted_soln = solution - sonic_vals
+
+        jacobians = compute_jacobian_from_solution(
+            soln, eps=eps,
+        )
+        eigvecs = nparray([
+            compute_eigenvalues_and_eigenvectors(j)[1]
+            for j in jacobians
+        ])
+        inv_eigvecs = inv(eigvecs)
+        coefs = nparray([
+            dot(inv_eigvecs[i], subtracted_soln[i])
+            for i in range(inv_eigvecs.shape[0])
+        ]).real
+
+    else:
+        # subtract sonic point vals from solution
+        sonic_vals = solution[(sonic_point_index,)]
+        subtracted_soln = solution - sonic_vals
+
+        # find eigenvectors at sonic point
+        sonic_jac = compute_jacobian_at_index(
+            soln, index=sonic_point_index, eps=eps
+        )
+        _, eigvecs = compute_eigenvalues_and_eigenvectors(sonic_jac)
+
+        inv_eigvecs = inv(eigvecs)
+
+        coefs = dot(inv_eigvecs, subtracted_soln.T).T
+
+    # coefs, err = compute_coefs_of_subtracted_solution(
+    #     subtracted_soln[indexes], eigvecs
+    # )
+
+    ax = fig.subplots(**kwargs)
+    for i in range(coefs.shape[1]):
+        ax.plot(
+            degrees(angles[indexes]),
+            coefs[indexes, i],
+            linestyle,
+            color=COLOURS[i],
+            label=str(i),
+        )
+        # ax.plot(
+        #     degrees(angles[indexes]),
+        #     err[:, i],
+        #     'x',
+        #     color=COLOURS[i],
+        #     label=str(i),
+        # )
+    ax.axvline(degrees(angles[sonic_point_index]), label="Sonic point")
+    ax.legend()
+    ax.set_xlabel("angle from plane (°)")
+
     return fig

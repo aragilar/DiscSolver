@@ -9,6 +9,7 @@ from disc_solver.analyse.compare_plot import compare_plot
 from disc_solver.analyse.component_plot import plot as component_plot
 from disc_solver.analyse.compute_jacobian import (
     jacobian_eigenvalues_plot, jacobian_eigenvectors_plot,
+    jacobian_eigenvector_coef_plot,
 )
 from disc_solver.analyse.conserve_plot import conserve_main
 from disc_solver.analyse.derivs_plot import derivs_plot
@@ -533,6 +534,20 @@ class TestAnalysis:
 
     def test_jacobian_eigenvectors_file(self, solution_not_approx, plot_file):
         return jacobian_eigenvectors_plot(
+            solution_not_approx, plot_filename=plot_file, eps=1e-10
+        )
+
+    def test_jacobian_eigenvector_coef_show(
+        self, solution_not_approx, mpl_interactive
+    ):
+        jacobian_eigenvector_coef_plot(
+            solution_not_approx, show=True, eps=1e-10
+        )
+
+    def test_jacobian_eigenvector_coef_file(
+        self, solution_not_approx, plot_file
+    ):
+        return jacobian_eigenvector_coef_plot(
             solution_not_approx, plot_filename=plot_file, eps=1e-10
         )
 
