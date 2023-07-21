@@ -10,7 +10,9 @@ from os import fspath
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
 
-from numpy import sqrt, linspace, logical_not as npnot, any as np_any
+from numpy import (
+    sqrt, linspace, logical_not as npnot, any as np_any, argmin, abs as npabs,
+)
 from scipy.interpolate import interp1d
 
 from matplotlib.cm import get_cmap
@@ -474,6 +476,21 @@ def get_mach_numbers(solution):
     fast_mach = soln[:, ODEIndex.v_θ] / wave_speeds[MHD_Wave_Index.fast]
     sonic_mach = soln[:, ODEIndex.v_θ]
     return slow_mach, sonic_mach, alfven_mach, fast_mach
+
+
+def get_critical_point_indices(solution):
+    """
+    Get the index at which each of the critical points occur closest to. Order
+    is slow, sonic, alfven, fast.
+    """
+    slow_mach, sonic_mach, alfven_mach, fast_mach = get_mach_numbers(solution)
+
+    slow_index = argmin(npabs(1 - slow_mach))
+    sonic_index = argmin(npabs(1 - sonic_mach))
+    alfven_index = argmin(npabs(1 - alfven_mach))
+    fast_index = argmin(npabs(1 - fast_mach))
+
+    return slow_index, sonic_index, alfven_index, fast_index
 
 
 def get_sonic_point(solution):
