@@ -6,7 +6,7 @@ from functools import wraps
 
 from numpy import (
     degrees, zeros, logical_not as npnot, isfinite, nan, full,
-    array as nparray, argmin, abs as npabs, dot, sum as npsum,
+    array as nparray, dot, sum as npsum,
 )
 from numpy.linalg import inv
 from scipy.linalg import eigvals, eig
@@ -16,16 +16,21 @@ import matplotlib.pyplot as plt
 
 from ..float_handling import float_type
 from ..solve.solution import ode_system
-from ..utils import ODEIndex
 
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
     get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
-    DEFAULT_MPL_STYLE,
+    DEFAULT_MPL_STYLE, get_critical_point_indices
 )
 
 mpl.rcParams['agg.path.chunksize'] = 1000000
 COLOURS = plt.get_cmap("tab20").colors
+CRITICAL_POINT_MAP = {
+    "slow": 0,
+    "sonic": 1,
+    "alfven": 2,
+    "fast": 3,
+}
 
 
 def plot_parser(parser):
@@ -86,12 +91,45 @@ def jacobian_eigenvectors_main(
     )
 
 
+def eigen_parser(parser):
+    """
+    Add arguments for plot command to parser
+    """
+    common_plotting_options(parser)
+    parser.add_argument(
+        "--eps", action='store', default=1e-10, type=float
+    )
+    parser.add_argument(
+        "--critical-point", action='store', default="sonic",
+        choices=CRITICAL_POINT_MAP.keys(),
+    )
+    local_group = parser.add_mutually_exclusive_group()
+    local_group.add_argument(
+        "--local-eigvecs", action='store_true', dest="local_eigvecs",
+    )
+    local_group.add_argument(
+        "--global-eigvecs", action='store_false', dest="local_eigvecs",
+    )
+    return parser
+
+
+def get_eigen_args(args):
+    """
+    Parse plot args
+    """
+    return {
+        "eps": float(args.get("eps", 1e-10)),
+        "critical_point": args.get("critical_point", "sonic"),
+        "local_eigvecs": args.get("local_eigvecs", True),
+    }
+
+
 @analyse_main_wrapper(
     "Plot eigenvectors of jacobians for DiscSolver",
-    plot_parser,
+    eigen_parser,
     cmd_parser_splitters={
         "common_plot_args": get_common_plot_args,
-        "plot_args": get_plot_args,
+        "plot_args": get_eigen_args,
     }
 )
 def jacobian_eigenvector_coef_main(
@@ -254,7 +292,8 @@ def jacobian_eigenvectors_plot(
 def jacobian_eigenvector_coef_plot(
     soln, *, soln_range=None, plot_filename=None, show=False, start=0, stop=90,
     figargs=None, linestyle='.', title=None, close=True, filename,
-    mpl_style=DEFAULT_MPL_STYLE, with_version=True, eps
+    mpl_style=DEFAULT_MPL_STYLE, with_version=True, eps, local_eigvecs=True,
+    critical_point="sonic",
 ):
     """
     Show derivatives
@@ -264,7 +303,8 @@ def jacobian_eigenvector_coef_plot(
     fig = plot_eigenvector_coef_around_sonic_point(
         soln, soln_range, linestyle=linestyle, start=start, stop=stop,
         figargs=figargs, title=title, filename=filename,
-        mpl_style=mpl_style, with_version=with_version, eps=eps
+        mpl_style=mpl_style, with_version=with_version, eps=eps,
+        local_eigvecs=local_eigvecs, critical_point=critical_point,
     )
 
     return plot_output_wrapper(
@@ -506,27 +546,17 @@ def compute_jacobian_at_index(soln, *, eps, θ_scale=float_type(1), index):
     )[0]
 
 
-@single_solution_plotter
-def plot_eigenvector_coef_around_sonic_point(
-    fig, soln, *, start=0, stop=90, linestyle='.', eps, local_eigvecs=True,
-    use_E_r, **kwargs
+def get_eigenvector_coef_around_critical_point(
+    soln, *, critical_point_index, eps, local_eigvecs
 ):
     """
-    Plot coefficients of eigenvectors around the sonic point
+    Get coefficients of eigenvectors around a critical point
     """
-    angles = soln.angles
-    indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
     solution = soln.solution
-    if use_E_r:
-        print("E_r used")
-
-    # find sonic point
-    sonic_point_index = argmin(npabs(1 - soln.solution[:, ODEIndex.v_θ]))
+    critical_vals = solution[(critical_point_index,)]
+    subtracted_soln = solution - critical_vals
 
     if local_eigvecs:
-        sonic_vals = solution[(sonic_point_index,)]
-        subtracted_soln = solution - sonic_vals
-
         jacobians = compute_jacobian_from_solution(
             soln, eps=eps,
         )
@@ -541,19 +571,41 @@ def plot_eigenvector_coef_around_sonic_point(
         ]).real
 
     else:
-        # subtract sonic point vals from solution
-        sonic_vals = solution[(sonic_point_index,)]
-        subtracted_soln = solution - sonic_vals
-
-        # find eigenvectors at sonic point
-        sonic_jac = compute_jacobian_at_index(
-            soln, index=sonic_point_index, eps=eps
+        # find eigenvectors at critical point
+        critical_jac = compute_jacobian_at_index(
+            soln, index=critical_point_index, eps=eps
         )
-        _, eigvecs = compute_eigenvalues_and_eigenvectors(sonic_jac)
+        _, eigvecs = compute_eigenvalues_and_eigenvectors(critical_jac)
 
         inv_eigvecs = inv(eigvecs)
 
         coefs = dot(inv_eigvecs, subtracted_soln.T).T
+
+    return coefs
+
+
+@single_solution_plotter
+def plot_eigenvector_coef_around_sonic_point(
+    fig, soln, *, start=0, stop=90, linestyle='.', eps, local_eigvecs=True,
+    use_E_r, critical_point="sonic", **kwargs
+):
+    """
+    Plot coefficients of eigenvectors around the sonic point
+    """
+    angles = soln.angles
+    indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
+    if use_E_r:
+        print("E_r used")
+
+    crit_indexes = get_critical_point_indices(soln)
+
+    critical_point_index = crit_indexes[CRITICAL_POINT_MAP[critical_point]]
+    critical_point_label = critical_point.capitalize() + " point"
+
+    coefs = get_eigenvector_coef_around_critical_point(
+        soln, critical_point_index=critical_point_index, eps=eps,
+        local_eigvecs=local_eigvecs,
+    )
 
     # coefs, err = compute_coefs_of_subtracted_solution(
     #     subtracted_soln[indexes], eigvecs
@@ -575,7 +627,9 @@ def plot_eigenvector_coef_around_sonic_point(
         #     color=COLOURS[i],
         #     label=str(i),
         # )
-    ax.axvline(degrees(angles[sonic_point_index]), label="Sonic point")
+    ax.axvline(
+        degrees(angles[critical_point_index]), label=critical_point_label
+    )
     ax.legend()
     ax.set_xlabel("angle from plane (°)")
 

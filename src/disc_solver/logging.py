@@ -3,12 +3,17 @@
 Logging configuration functions
 """
 import multiprocessing
+from os import environ
 
 from logbook import NullHandler, FileHandler, NestedSetup
 from logbook.more import ColorizedStderrHandler
 from logbook.queues import (
     ThreadedWrapperHandler, MultiProcessingHandler, MultiProcessingSubscriber,
 )
+
+from stringtopy import str_to_bool_converter
+
+str_to_bool = str_to_bool_converter()
 
 
 def logging_options(parser):
@@ -53,8 +58,15 @@ def log_handler(args, thread_wrapping=True):
         file_handler = NullHandler()
 
     if thread_wrapping:
-        file_handler = ThreadedWrapperHandler(file_handler)
-        stderr_handler = ThreadedWrapperHandler(stderr_handler)
+        disable_thread_wrapping = environ.get(
+            "DISC_SOLVER_DISABLE_THREADING", None
+        )
+        if disable_thread_wrapping is not None:
+            disable_thread_wrapping = str_to_bool(disable_thread_wrapping)
+
+        if not disable_thread_wrapping:
+            file_handler = ThreadedWrapperHandler(file_handler)
+            stderr_handler = ThreadedWrapperHandler(stderr_handler)
 
     return NestedSetup([
         NullHandler(),  # catch everything else
