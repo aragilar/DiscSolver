@@ -6,7 +6,7 @@ from ._containers import (
     Solution, SolutionInput, ConfigInput, Problems, InternalData, Run,
     InitialConditions, JacobianData, Solutions, MCMCVars,
 )
-from ._utils import ds_registry, _str_β_to_γ
+from ._utils import ds_registry, _str_β_to_γ, ensure_fully_loaded
 
 
 # pylint: disable=missing-docstring
@@ -571,7 +571,7 @@ def _config_loader13(group):
         v_θ_sonic_crit=group["v_θ_sonic_crit"],
         after_sonic=group["after_sonic"],
         sonic_interp_size=group["sonic_interp_size"],
-        interp_range=group["interp_range"],
+        interp_range=ensure_fully_loaded(group["interp_range"]),
         interp_slice=group["interp_slice"],
         use_E_r=None,
     )
@@ -607,7 +607,7 @@ def _config_loader14(group):
         v_θ_sonic_crit=group["v_θ_sonic_crit"],
         after_sonic=group["after_sonic"],
         sonic_interp_size=group["sonic_interp_size"],
-        interp_range=group["interp_range"],
+        interp_range=ensure_fully_loaded(group["interp_range"]),
         interp_slice=group["interp_slice"],
         use_E_r=group.attrs["use_E_r"],
     )
@@ -1038,7 +1038,7 @@ def _input_loader13(group):
     if group["interp_range"] is None:
         interp_range = None
     else:
-        interp_range = group["interp_range"]
+        interp_range = ensure_fully_loaded(group["interp_range"])
     return SolutionInput(
         start=group.attrs["start"],
         stop=group.attrs["stop"],
@@ -1093,7 +1093,7 @@ def _input_loader14(group):
     if group["interp_range"] is None:
         interp_range = None
     else:
-        interp_range = group["interp_range"]
+        interp_range = ensure_fully_loaded(group["interp_range"])
     return SolutionInput(
         start=group.attrs["start"],
         stop=group.attrs["stop"],
@@ -1252,9 +1252,9 @@ def _mcmc_vars_loader(group):
 @ds_registry.loader("slice", version=1)
 def _slice_loader(group):
     return slice(
-        group["start"],
-        group["stop"],
-        group["step"],
+        ensure_fully_loaded(group["start"]),
+        ensure_fully_loaded(group["stop"]),
+        ensure_fully_loaded(group["step"]),
     )
 
 # pylint: enable=missing-docstring
