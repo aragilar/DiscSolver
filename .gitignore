@@ -10,3 +10,4 @@ dist
 *.egg-info
 soln.hdf5
 .pytest_cache
+build
