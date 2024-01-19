@@ -17,7 +17,9 @@ from ..utils import (
 )
 
 NUM_ITEMS_PER_LEGEND_COLUMN = 15
-SLOW_STYLE = '--'
+SLOW_STYLE = '-.'
+ALFVEN_STYLE = '--'
+FAST_STYLE = '-.'
 
 
 def diverge_options(parser):
@@ -25,14 +27,9 @@ def diverge_options(parser):
     Add arguments for diverge command to parser
     """
     common_plotting_options(parser)
-    parser.add_argument(
-        "--with-slow", action='store_true', default=False)
-    parser.add_argument(
-        "--with-alfven", action='store_true', default=False)
-    parser.add_argument(
-        "--with-fast", action='store_true', default=False)
-    parser.add_argument(
-        "--with-sonic", action='store_true', default=False)
+    parser.add_argument("--with-slow", action='store_true', default=False)
+    parser.add_argument("--with-alfven", action='store_true', default=False)
+    parser.add_argument("--with-fast", action='store_true', default=False)
     return parser
 
 
@@ -42,6 +39,8 @@ def get_plot_args(args):
     """
     return {
         "with_slow": args.get("with_slow", False),
+        "with_alfven": args.get("with_alfven", False),
+        "with_fast": args.get("with_fast", False),
     }
 
 
@@ -62,7 +61,7 @@ def diverge_main(solutions, common_plot_args, plot_args):
 
 def generate_diverge_plot(
     solutions, *, figargs=None, start=0, stop=90, linestyle='-',
-    with_slow=False
+    with_slow=False, with_alfven=False, with_fast=False,
 ):
     """
     Generate plot to compare how different runs change in v_θ
@@ -74,7 +73,6 @@ def generate_diverge_plot(
     colors = distinct_color_map(len(solutions))
 
     num_lines = 0
-    initial_plot = True
 
     for (soln_name, soln), color in zip(solutions, colors):
         solution = soln.solution
@@ -90,16 +88,30 @@ def generate_diverge_plot(
             solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1.0
         ))
 
-        if initial_plot:
-            initial_plot = False
-            initial_plot = False
-            if with_slow:
-                ax.plot(
-                    degrees(angles[indexes]),
-                    wave_speeds[MHD_Wave_Index.slow][indexes],
-                    label="slow", color=color, linestyle=SLOW_STYLE,
-                )
-                num_lines += 1
+        if with_slow:
+            ax.plot(
+                degrees(angles[indexes]),
+                wave_speeds[MHD_Wave_Index.slow][indexes],
+                label="slow", color=color, linestyle=SLOW_STYLE,
+            )
+            num_lines += 1
+
+        if with_alfven:
+            ax.plot(
+                degrees(angles[indexes]),
+                wave_speeds[MHD_Wave_Index.alfven][indexes],
+                label="alfven", color=color, linestyle=ALFVEN_STYLE,
+            )
+            num_lines += 1
+
+        if with_fast:
+            ax.plot(
+                degrees(angles[indexes]),
+                wave_speeds[MHD_Wave_Index.fast][indexes],
+                label="fast", color=color, linestyle=FAST_STYLE,
+            )
+            num_lines += 1
+
     ax.set_xlabel("θ — angle from plane (°)")
     ax.set_ylabel("$v_θ / c_s$")
     ax.legend(ncol=max(1, num_lines//NUM_ITEMS_PER_LEGEND_COLUMN))
@@ -110,7 +122,8 @@ def generate_diverge_plot(
 def diverge_plot(
     solutions, *, plot_filename=None, show=False, start=0, stop=90,
     figargs=None, title=None, linestyle='-', with_slow=False, close=True,
-    mpl_style=DEFAULT_MPL_STYLE, with_version=True
+    mpl_style=DEFAULT_MPL_STYLE, with_version=True, with_alfven=False,
+    with_fast=False,
 ):
     """
     Plot solution to file, with velocities, fields onto on one plot
@@ -118,7 +131,8 @@ def diverge_plot(
     with use_style(mpl_style):
         fig = generate_diverge_plot(
             solutions, start=start, stop=stop, figargs=figargs,
-            linestyle=linestyle, with_slow=with_slow,
+            linestyle=linestyle, with_slow=with_slow, with_alfven=with_alfven,
+            with_fast=with_fast,
         )
         if title is None:
             fig.suptitle("Comparison of v_θ")
