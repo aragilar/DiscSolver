@@ -157,7 +157,7 @@ def stepper_creator(soln_writer, *, step_size, solution_input):
                 limits["max"] - limits["mid"]
             )
             if new_v_r == current_v_r:
-                StepperStop("Hit numerical limit")
+                raise StepperStop("Hit numerical limit")
             return SolutionInput(**get_next_input(inp_dict, new_v_r))
         else:
             raise StepperError("Unknown phase")
