@@ -197,7 +197,7 @@ def human_view_splitter_generator():
         """
         # pylint: disable=unused-argument
         solutions.append(soln)
-        diverge_plot(enumerate(solutions), show=True)
+        diverge_plot(enumerate(solutions), show=True, filename="N/A")
         soln_type = input("What type: ").strip()
         while soln_type not in ("sign flip", "diverge", "STOP"):
             print("Solution type must be either 'sign flip' or 'diverge'")
