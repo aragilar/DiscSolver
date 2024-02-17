@@ -41,11 +41,13 @@ def get_plot_args(args):
         "plot_args": get_plot_args,
     }
 )
-def conserve_main(solutions, common_plot_args, plot_args):
+def conserve_main(*, solutions, common_plot_args, plot_args, filename):
     """
     Entry point for ds-diverge-plot
     """
-    return conserve_plot(solutions, **plot_args, **common_plot_args)
+    return conserve_plot(
+        solutions, **plot_args, **common_plot_args, filename=filename,
+    )
 
 
 def generate_conserve_plot(
@@ -79,7 +81,7 @@ def generate_conserve_plot(
 def conserve_plot(
     solutions, *, plot_filename=None, show=False, start=0, stop=90,
     figargs=None, title=None, linestyle='-', close=True,
-    mpl_style=DEFAULT_MPL_STYLE, use_E_r=False, with_version=True
+    mpl_style=DEFAULT_MPL_STYLE, use_E_r=False, with_version=True, filename,
 ):
     """
     Plot solution to file, with velocities, fields onto on one plot
@@ -91,7 +93,7 @@ def conserve_plot(
             linestyle=linestyle,
         )
         if title is None:
-            fig.suptitle("Conservation of $ρ v_θ$")
+            fig.suptitle(f"Conservation of $ρ v_θ$ for {filename}")
         else:
             fig.suptitle(title)
 

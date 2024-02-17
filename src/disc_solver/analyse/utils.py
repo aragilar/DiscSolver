@@ -425,15 +425,17 @@ def analyse_multisolution_wrapper(
                 cmd_args[name] = func(args)
             with log_handler(args):
                 with redirected_warnings(), redirected_logging():
+                    soln_filename = args["soln_file"]
                     with h5open(
-                        args["soln_file"], registries, mode='r'
+                        soln_filename, registries, mode='r'
                     ) as soln_file:
                         solutions = sorted(
                             soln_file["run"].solutions.items(),
                             key=lambda x: int(x[0])
                         )
                         return cmd(
-                            solutions, **cmd_args
+                            solutions=solutions, filename=soln_filename,
+                            **cmd_args
                         )
 
         return wrap_analysis_main

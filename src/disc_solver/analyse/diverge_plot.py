@@ -52,11 +52,13 @@ def get_plot_args(args):
         "plot_args": get_plot_args,
     }
 )
-def diverge_main(solutions, common_plot_args, plot_args):
+def diverge_main(*, solutions, common_plot_args, plot_args, filename):
     """
     Entry point for ds-diverge-plot
     """
-    return diverge_plot(solutions, **plot_args, **common_plot_args)
+    return diverge_plot(
+        solutions, **plot_args, **common_plot_args, filename=filename
+    )
 
 
 def generate_diverge_plot(
@@ -123,7 +125,7 @@ def diverge_plot(
     solutions, *, plot_filename=None, show=False, start=0, stop=90,
     figargs=None, title=None, linestyle='-', with_slow=False, close=True,
     mpl_style=DEFAULT_MPL_STYLE, with_version=True, with_alfven=False,
-    with_fast=False,
+    with_fast=False, filename
 ):
     """
     Plot solution to file, with velocities, fields onto on one plot
@@ -135,7 +137,7 @@ def diverge_plot(
             with_fast=with_fast,
         )
         if title is None:
-            fig.suptitle("Comparison of v_θ")
+            fig.suptitle(f"Comparison of v_θ for {filename}")
         else:
             fig.suptitle(title)
 
