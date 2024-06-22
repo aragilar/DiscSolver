@@ -103,36 +103,20 @@ PLOT_ORDERINGS = {
 }
 
 
-def constrain_text(fig, text):
-    """
-    Hack to constrain text on the bottom of the figure
-
-    from matplotlib.figure.Figure.suptitle
-    """
-    # pylint: disable=unused-variable,protected-access
-    if fig._layoutbox is not None:
-        w_pad, h_pad, wspace, hspace = fig.get_constrained_layout_pads(
-            relative=True
-        )
-        figlb = fig._layoutbox
-        text._layoutbox = layoutbox.LayoutBox(
-            parent=figlb, artist=text, name=figlb.name+'.textinfo'
-        )
-        # stack the text on bottom of all the children.
-        for child in figlb.children:
-            if child is not text._layoutbox:
-                layoutbox.vstack(
-                    [child, text._layoutbox],
-                    padding=h_pad*2., strength='required'
-                )
-
-
 def add_version_to_plot(fig):
     """
     Add disc solver version to plot
     """
-    version_text = fig.text(0, 0.01, ds_version)
-    constrain_text(fig, version_text)
+    # We can use supxlabel here as this is still auto if x is set (setting y
+    # would remove _autopos=True)
+    fig.supxlabel(
+        ds_version,
+        # A small amount of space from the border
+        x=0.01,
+        # start laying this out from the left, so we don't overflow the left
+        # border
+        horizontalalignment="left",
+    )
 
 
 def get_common_arguments(
