@@ -15,10 +15,8 @@ from numpy import (
 )
 from scipy.interpolate import interp1d
 
-from matplotlib.cm import get_cmap
 import matplotlib.pyplot as plt
 from matplotlib.style import context as use_style
-import matplotlib._layoutbox as layoutbox
 import mplcursors
 import palettable
 
@@ -37,7 +35,7 @@ logger = logbook.Logger(__name__)
 
 DEFAULT_MPL_STYLE = "bmh"
 
-GREYS = get_cmap("Greys")
+GREYS = plt.get_cmap("Greys")
 
 COMMON_ARGUMENTS = {
     "B_r": {
