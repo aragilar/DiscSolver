@@ -110,6 +110,4 @@ def generate_derivs_plot(
 
         ax.set_xlabel("angle from plane (°)")
         ax.set_title(settings["name"])
-        if settings.get("legend"):
-            ax.legend()
     return fig
