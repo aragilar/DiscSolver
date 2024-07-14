@@ -3,7 +3,7 @@
 Plot command for DiscSolver
 """
 from numpy import degrees, sum as np_sum, pi
-from scipy.integrate import simps
+from scipy.integrate import simpson as simps
 
 from ..float_handling import float_type
 from ..utils import ODEIndex
