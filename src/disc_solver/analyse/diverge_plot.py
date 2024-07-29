@@ -114,7 +114,7 @@ def generate_diverge_plot(
             )
             num_lines += 1
 
-    ax.set_xlabel("θ — angle from plane (°)")
+    ax.set_xlabel("$θ$ — angle from plane (°)")
     ax.set_ylabel("$v_θ / c_s$")
     ax.legend(ncol=max(1, num_lines//NUM_ITEMS_PER_LEGEND_COLUMN))
     add_label_display_on_select(ax)
