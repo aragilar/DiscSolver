@@ -87,6 +87,30 @@ def info(soln_file, *, group, soln_range, output_file, filename):
             "Coordinate System: {!s}".format(soln_instance.coordinate_system),
             file=output_file
         )
+        print(
+            "Has internal data: {}".format(
+                soln_instance.internal_data is not None
+            ),
+            file=output_file
+        )
+        print(
+            "Has derivatives: {}".format(
+                soln_instance.derivatives is not None
+            ),
+            file=output_file
+        )
+        print(
+            "Has t_roots: {}".format(
+                soln_instance.t_roots is not None
+            ),
+            file=output_file
+        )
+        print(
+            "Has y_roots: {}".format(
+                soln_instance.y_roots is not None
+            ),
+            file=output_file
+        )
     elif group == "sonic-on-scale":
         print("{}: {}".format(
             soln_file.config_input.label,
