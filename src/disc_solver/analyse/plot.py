@@ -21,14 +21,15 @@ def plot_parser(parser):
     """
     common_plotting_options(parser)
     parser.add_argument("--v_θ", choices=("log", "linear"), default="linear")
+    parser.add_argument("--with-slow", action='store_true', default=False)
+    parser.add_argument("--with-alfven", action='store_true', default=False)
+    parser.add_argument("--with-fast", action='store_true', default=False)
+    parser.add_argument("--with-sonic", action='store_true', default=False)
+    parser.add_argument("--portrait", action='store_true', default=False)
+    parser.add_argument("--hide-roots", action='store_true', default=False)
     parser.add_argument(
-        "--with-slow", action='store_true', default=False)
-    parser.add_argument(
-        "--with-alfven", action='store_true', default=False)
-    parser.add_argument(
-        "--with-fast", action='store_true', default=False)
-    parser.add_argument(
-        "--with-sonic", action='store_true', default=False)
+        "--hide-sonic-angle", action='store_true', default=False
+    )
     return parser
 
 
@@ -42,6 +43,9 @@ def get_plot_args(args):
         "with_alfven": args.get("with_alfven", False),
         "with_fast": args.get("with_fast", False),
         "with_sonic": args.get("with_sonic", False),
+        "portrait": args.get("portrait", False),
+        "hide_roots": args.get("hide_roots", False),
+        "hide_sonic_angle": args.get("hide_sonic_angle", False),
     }
 
 
@@ -65,7 +69,8 @@ def plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
     with_slow=False, with_alfven=False, with_fast=False, with_sonic=False,
     start=0, stop=90, figargs=None, v_θ_scale="linear", title=None, close=True,
-    filename, mpl_style=DEFAULT_MPL_STYLE, with_version=True
+    filename, mpl_style=DEFAULT_MPL_STYLE, with_version=True, portrait=False,
+    hide_roots=False, hide_sonic_angle=False,
 ):
     """
     Plot solution to file
@@ -76,7 +81,8 @@ def plot(
         with_alfven=with_alfven, with_fast=with_fast, with_sonic=with_sonic,
         start=start, stop=stop, figargs=figargs, v_θ_scale=v_θ_scale,
         title=title, filename=filename, mpl_style=mpl_style,
-        with_version=with_version,
+        with_version=with_version, portrait=portrait, hide_roots=hide_roots,
+        hide_sonic_angle=hide_sonic_angle,
     )
 
     return plot_output_wrapper(
@@ -88,11 +94,14 @@ def plot(
 def generate_plot(
     fig, soln, *, linestyle='-', with_slow=False, with_alfven=False,
     with_fast=False, with_sonic=False, start=0, stop=90, v_θ_scale="linear",
-    use_E_r=False
+    use_E_r=False, portrait=False, hide_roots=False, hide_sonic_angle=False,
 ):
     """
     Generate plot, with enough freedom to be able to format fig
     """
+    nrows = 4 if portrait else 2
+    ncols = 2 if portrait else 4
+
     solution = soln.solution
     angles = soln.angles
     cons = soln.initial_conditions
@@ -135,11 +144,11 @@ def generate_plot(
         })
 
     axes = fig.subplots(
-        nrows=2, ncols=4, sharex=True, gridspec_kw=dict(hspace=0),
+        nrows=nrows, ncols=ncols, sharex=True, gridspec_kw=dict(hspace=0),
     )
 
     # only add label to bottom plots
-    for ax in axes[1]:
+    for ax in axes[-1]:
         ax.set_xlabel("angle from plane (°)")
 
     axes.shape = len(param_names)
@@ -157,13 +166,13 @@ def generate_plot(
                 extra["data"][indexes],
                 label=extra.get("label")
             )
-        if sonic_angle is not None:
+        if sonic_angle is not None and not hide_sonic_angle:
             ax.plot(
                 degrees(sonic_angle),
                 sonic_values[i] - settings.get("offset", 0),
                 linestyle=None, marker='.', color='red',
             )
-        if roots_angles is not None:
+        if roots_angles is not None and not hide_roots:
             ax.plot(
                 degrees(roots_angles),
                 roots_values[:, i] - settings.get("offset", 0),
