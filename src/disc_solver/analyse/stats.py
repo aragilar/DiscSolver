@@ -100,8 +100,9 @@ def compute_max_vert_jet_velocity(soln):
     heights, vert_soln = convert_spherical_to_cylindrical(
         angles, solution, γ=inp.γ, c_s_on_v_k=inp.c_s_on_v_k, use_E_r=False,
     )
-    max_v_z = max(vert_soln[:, CylindricalODEIndex.v_z])
-    max_v_z_height = heights[argmax(max_v_z)]
+    max_v_z_idx = argmax(vert_soln[:, CylindricalODEIndex.v_z])
+    max_v_z = vert_soln[max_v_z_idx, CylindricalODEIndex.v_z]
+    max_v_z_height = heights[max_v_z_idx]
     return {
         "max_jet_v_z": max_v_z,
         "max_jet_v_z_height": max_v_z_height,
