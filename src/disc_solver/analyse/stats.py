@@ -207,9 +207,15 @@ def write_stats(solutions, *, output_file):
             }
             if soln is not None:
                 soln_info.update(soln.solution_input.asdict())
-                csvwriter.writerow(compute_solution_stats(
-                    soln, metadata=soln_info
-                ))
+                try:
+                    csvwriter.writerow(compute_solution_stats(
+                        soln, metadata=soln_info
+                    ))
+                except ValueError:
+                    log.exception(
+                        "Failed to collect stats for {} {}",
+                        filename, soln_name,
+                    )
                 out.flush()
 
 
