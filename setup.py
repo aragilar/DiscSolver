@@ -79,6 +79,7 @@ setuptools.setup(
             "ds-stats = disc_solver.analyse.stats:stats_main",
             "ds-csvrunner = disc_solver.solve.csvrunner:main",
             "ds-hdf5runner = disc_solver.solve.hdf5runner:main",
+            "ds-flow-plot = disc_solver.analyse.trajectory:plot_main"
         ],
     },
     cmdclass=versioneer.get_cmdclass(),
