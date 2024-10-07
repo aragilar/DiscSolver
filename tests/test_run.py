@@ -25,6 +25,7 @@ from disc_solver.analyse.plot import plot
 from disc_solver.analyse.sonic_ratio_plot import plot as sonic_ratio_plot
 from disc_solver.analyse.stats import stats_main
 from disc_solver.analyse.surface_density_plot import surface_density_plot
+from disc_solver.analyse.trajectory import plot as trajectory_plot
 from disc_solver.analyse.taylor_plot import taylor_plot
 from disc_solver.analyse.utils import AnalysisError
 from disc_solver.analyse.validate_plot import validate_plot
@@ -549,6 +550,14 @@ class TestAnalysis:
     ):
         return jacobian_eigenvector_coef_plot(
             solution_not_approx, plot_filename=plot_file, eps=1e-10
+        )
+
+    def test_trajectory_plot_show(self, solution, mpl_interactive):
+        trajectory_plot(solution, show=True, v_start_position=(2, 0.00001))
+
+    def test_trajectory_plot_file(self, solution, plot_file):
+        return trajectory_plot(
+            solution, plot_filename=plot_file, v_start_position=(2, 0.00001),
         )
 
 

@@ -252,18 +252,22 @@ def analysis_func_wrapper_multisolution(func):
     return wrapper
 
 
-def common_plotting_options(parser):
+def common_output_plot_options(parser):
     """
-    Common plotting options to control appearance and output
+    Control how plot is outputted, including filename and figure size.
     """
     parser.add_argument("--show", action="store_true", default=False)
     parser.add_argument("--filename", default=None)
     parser.add_argument(
         "--figsize", nargs=2, default=None, type=str_to_float
     )
-    parser.add_argument("--start", default='0', type=str_to_float)
-    parser.add_argument("--stop", default='90', type=str_to_float)
-    parser.add_argument("--linestyle", default="-")
+    return parser
+
+
+def common_plot_appearence_options(parser):
+    """
+    Common options for how the overall plot appears.
+    """
     parser.add_argument("--title", default=None)
     parser.add_argument("--style", default=DEFAULT_MPL_STYLE)
     parser.add_argument(
@@ -273,9 +277,32 @@ def common_plotting_options(parser):
     return parser
 
 
-def get_common_plot_args(args):
+def common_plotting_options(parser):
     """
-    Extract the common plot options into the correct variables
+    Common plotting options to control appearance and output
+    """
+    common_output_plot_options(parser)
+    common_plot_appearence_options(parser)
+    parser.add_argument("--start", default='0', type=str_to_float)
+    parser.add_argument("--stop", default='90', type=str_to_float)
+    parser.add_argument("--linestyle", default="-")
+    return parser
+
+
+def get_common_plot_appearence_args(args):
+    """
+    Get arguments for how the overall plot appears.
+    """
+    return {
+        "title": args["title"],
+        "mpl_style": args["style"],
+        "with_version": args["with_version"],
+    }
+
+
+def get_common_plot_output_args(args):
+    """
+    Control how plot is outputted, including filename and figure size.
     """
     figargs = {}
     if args.get("figsize") is not None:
@@ -285,13 +312,21 @@ def get_common_plot_args(args):
         "show": args["show"],
         "plot_filename": args["filename"],
         "figargs": figargs,
+    }
+
+
+def get_common_plot_args(args):
+    """
+    Extract the common plot options into the correct variables
+    """
+    appearence = get_common_plot_appearence_args(args)
+    output = get_common_plot_output_args(args)
+    other = {
         "start": args["start"],
         "stop": args["stop"],
         "linestyle": args["linestyle"],
-        "title": args["title"],
-        "mpl_style": args["style"],
-        "with_version": args["with_version"],
     }
+    return dict(**appearence, **output, **other)
 
 
 def analyse_main_wrapper(
