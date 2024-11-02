@@ -13,8 +13,9 @@ from .utils import (
     distinct_color_map, analyse_multisolution_wrapper, DEFAULT_MPL_STYLE,
     add_version_to_plot, add_label_display_on_select,
 )
+from ..critical_points import mhd_wave_speeds
 from ..utils import (
-    mhd_wave_speeds, MHD_Wave_Index, ODEIndex, MAGNETIC_INDEXES
+    MHD_Wave_Index, ODEIndex,
 )
 
 logger = logbook.Logger(__name__)
@@ -114,9 +115,7 @@ def generate_diverge_plot(
             label=soln_name, color=color, linestyle=linestyle,
         )
 
-        wave_speeds = np.sqrt(mhd_wave_speeds(
-            solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1.0
-        ))
+        wave_speeds = np.sqrt(mhd_wave_speeds(values=solution))
 
         if with_slow:
             ax.plot(

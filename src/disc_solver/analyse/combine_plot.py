@@ -8,9 +8,9 @@ import numpy as np
 from numpy import degrees, sqrt
 
 from ..constants import KM
+from ..critical_points import mhd_wave_speeds
 from ..utils import (
-    mhd_wave_speeds, MHD_Wave_Index, get_normalisation, ODEIndex,
-    MAGNETIC_INDEXES,
+    MHD_Wave_Index, get_normalisation, ODEIndex,
 )
 
 from .utils import (
@@ -105,9 +105,7 @@ def generate_plot_combine(
 
     norms = get_normalisation(inp)  # need to allow config here
     B_norm, v_norm, ρ_norm = norms["B_norm"], norms["v_norm"], norms["ρ_norm"]
-    wave_speeds = np.sqrt(mhd_wave_speeds(
-        solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1
-    ))
+    wave_speeds = np.sqrt(mhd_wave_speeds(values=solution))
 
     plot_props = OrderedDict([
         ("velocity", {

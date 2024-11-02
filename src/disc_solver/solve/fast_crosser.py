@@ -16,7 +16,7 @@ from .stepper import (
 )
 from .utils import SolverError
 
-from ..analyse.utils import get_mach_numbers
+from ..critical_points import get_mach_numbers
 from ..file_format import SolutionInput, Solution
 
 log = logbook.Logger(__name__)

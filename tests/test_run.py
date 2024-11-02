@@ -508,8 +508,7 @@ class TestAnalysis:
 
     def test_vert_plot_show(self, solution, mpl_interactive):
         vert_plot(
-            solution, show=True, with_slow=True, with_alfven=True,
-            with_fast=True, with_sonic=True,
+            solution, show=True, with_sonic=True,
         )
 
     def test_vert_plot_file(self, solution, plot_file):

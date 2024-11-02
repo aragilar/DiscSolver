@@ -16,11 +16,12 @@ import matplotlib.pyplot as plt
 
 from ..float_handling import float_type
 from ..solve.solution import ode_system
+from ..critical_points import get_critical_point_indices
 
 from .utils import (
     single_solution_plotter, common_plotting_options, analyse_main_wrapper,
     get_common_plot_args, analysis_func_wrapper, plot_output_wrapper,
-    DEFAULT_MPL_STYLE, get_critical_point_indices
+    DEFAULT_MPL_STYLE,
 )
 
 mpl.rcParams['agg.path.chunksize'] = 1000000

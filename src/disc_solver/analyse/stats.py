@@ -12,13 +12,13 @@ from numpy import degrees, argmax, max as np_max, sqrt
 
 from h5preserve import open as h5open
 
+from ..critical_points import get_mach_numbers, get_all_sonic_points
 from ..file_format import SOLUTION_INPUT_FIELDS, registries
 from ..logging import log_handler
 from ..utils import (
     open_or_stream, main_entry_point_wrapper, ODEIndex, CylindricalODEIndex,
     convert_spherical_to_cylindrical,
 )
-from .utils import get_mach_numbers, get_all_sonic_points
 from .phys_ratio_plot import compute_M_dot_out_on_M_dot_in, compute_Σ
 from .validate_plot import (
     validate_continuity, validate_solenoid, validate_radial_momentum,
