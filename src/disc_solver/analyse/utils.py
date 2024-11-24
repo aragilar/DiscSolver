@@ -11,9 +11,8 @@ import logbook
 from logbook.compat import redirected_warnings, redirected_logging
 
 from numpy import (
-    sqrt, linspace, logical_not as npnot, any as np_any, argmin, abs as npabs,
+    sqrt, linspace, logical_not as npnot,
 )
-from scipy.interpolate import interp1d
 
 import matplotlib.pyplot as plt
 from matplotlib.style import context as use_style
@@ -27,8 +26,7 @@ from ..file_format import registries
 from ..logging import log_handler
 from ..utils import (
     ODEIndex, str_to_float, get_solutions, DiscSolverError,
-    CylindricalODEIndex, main_entry_point_wrapper, mhd_wave_speeds,
-    MHD_Wave_Index, MAGNETIC_INDEXES,
+    CylindricalODEIndex, main_entry_point_wrapper,
 )
 
 logger = logbook.Logger(__name__)
@@ -479,79 +477,6 @@ def get_scale_height(solution):
     Get the scale height of the solution
     """
     return solution.solution_input.c_s_on_v_k
-
-
-def get_mach_numbers(solution):
-    """
-    Compute the mach numbers of the solution. Order is slow, sonic, alfven,
-    fast.
-    """
-    soln = solution.solution
-    wave_speeds = sqrt(mhd_wave_speeds(
-        soln[:, MAGNETIC_INDEXES], soln[:, ODEIndex.ρ], 1
-    ))
-    slow_mach = soln[:, ODEIndex.v_θ] / wave_speeds[MHD_Wave_Index.slow]
-    alfven_mach = soln[:, ODEIndex.v_θ] / wave_speeds[MHD_Wave_Index.alfven]
-    fast_mach = soln[:, ODEIndex.v_θ] / wave_speeds[MHD_Wave_Index.fast]
-    sonic_mach = soln[:, ODEIndex.v_θ]
-    return slow_mach, sonic_mach, alfven_mach, fast_mach
-
-
-def get_critical_point_indices(solution):
-    """
-    Get the index at which each of the critical points occur closest to. Order
-    is slow, sonic, alfven, fast.
-    """
-    slow_mach, sonic_mach, alfven_mach, fast_mach = get_mach_numbers(solution)
-
-    slow_index = argmin(npabs(1 - slow_mach))
-    sonic_index = argmin(npabs(1 - sonic_mach))
-    alfven_index = argmin(npabs(1 - alfven_mach))
-    fast_index = argmin(npabs(1 - fast_mach))
-
-    return slow_index, sonic_index, alfven_index, fast_index
-
-
-def get_sonic_point(solution):
-    """
-    Get the angle at which the sonic point occurs
-    """
-    # This bit needs fixing, should check if sound speed is the root
-    # if solution.t_roots is not None:
-    #     return solution.t_roots[0]
-    # Also should work out purpose of function - extrapolate or not, roots or
-    # not. Currently only used in info
-    fit = interp1d(
-        solution.solution[:, ODEIndex.v_θ],
-        solution.angles,
-        fill_value="extrapolate",
-    )
-    return fit(1.0)
-
-
-def get_all_sonic_points(solution):
-    """
-    Get the angles at which the mhd sonic points occurs
-    """
-    slow_mach, sonic_mach, alfven_mach, fast_mach = get_mach_numbers(solution)
-    angles = solution.angles
-    if np_any(slow_mach > 1.0):
-        slow_angle = interp1d(slow_mach, angles)(1.0)
-    else:
-        slow_angle = None
-    if np_any(sonic_mach > 1.0):
-        sonic_angle = interp1d(sonic_mach, angles)(1.0)
-    else:
-        sonic_angle = None
-    if np_any(alfven_mach > 1.0):
-        alfven_angle = interp1d(alfven_mach, angles)(1.0)
-    else:
-        alfven_angle = None
-    if np_any(fast_mach > 1.0):
-        fast_angle = interp1d(fast_mach, angles)(1.0)
-    else:
-        fast_angle = None
-    return slow_angle, sonic_angle, alfven_angle, fast_angle
 
 
 class AnalysisError(DiscSolverError):

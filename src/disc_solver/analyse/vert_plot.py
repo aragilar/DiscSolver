@@ -5,8 +5,7 @@ Plot command for DiscSolver
 from numpy import sqrt, ones as np_ones
 
 from ..utils import (
-    mhd_wave_speeds, MHD_Wave_Index, CylindricalODEIndex,
-    VERT_MAGNETIC_INDEXES, convert_spherical_to_cylindrical,
+    CylindricalODEIndex, convert_spherical_to_cylindrical,
     get_vertical_scaling,
 )
 
@@ -24,12 +23,6 @@ def plot_parser(parser):
     common_plotting_options(parser)
     parser.add_argument("--v_θ", choices=("log", "linear"), default="linear")
     parser.add_argument(
-        "--with-slow", action='store_true', default=False)
-    parser.add_argument(
-        "--with-alfven", action='store_true', default=False)
-    parser.add_argument(
-        "--with-fast", action='store_true', default=False)
-    parser.add_argument(
         "--with-sonic", action='store_true', default=False)
     return parser
 
@@ -39,9 +32,6 @@ def get_plot_args(args):
     Parse plot args
     """
     return {
-        "with_slow": args.get("with_slow", False),
-        "with_alfven": args.get("with_alfven", False),
-        "with_fast": args.get("with_fast", False),
         "with_sonic": args.get("with_sonic", False),
     }
 
@@ -64,17 +54,15 @@ def plot_main(soln, *, soln_range, common_plot_args, plot_args):
 @analysis_func_wrapper
 def plot(
     soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
-    with_slow=False, with_alfven=False, with_fast=False, with_sonic=False,
-    start=0, stop=90, figargs=None, title=None, close=True, filename,
-    mpl_style=DEFAULT_MPL_STYLE, with_version=True
+    with_sonic=False, start=0, stop=90, figargs=None, title=None, close=True,
+    filename, mpl_style=DEFAULT_MPL_STYLE, with_version=True
 ):
     """
     Plot solution to file
     """
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_plot(
-        soln, soln_range, linestyle=linestyle, with_slow=with_slow,
-        with_alfven=with_alfven, with_fast=with_fast, with_sonic=with_sonic,
+        soln, soln_range, linestyle=linestyle, with_sonic=with_sonic,
         start=start, stop=stop, figargs=figargs, title=title,
         filename=filename, mpl_style=mpl_style, with_version=with_version,
     )
@@ -86,8 +74,8 @@ def plot(
 
 @single_solution_plotter
 def generate_plot(
-    fig, soln, *, linestyle='-', with_slow=False, with_alfven=False,
-    with_fast=False, with_sonic=False, start=0, stop=90, use_E_r=False
+    fig, soln, *, linestyle='-', with_sonic=False, start=0, stop=90,
+    use_E_r=False
 ):
     """
     Generate plot, with enough freedom to be able to format fig
@@ -100,12 +88,6 @@ def generate_plot(
     heights, vert_soln = convert_spherical_to_cylindrical(
         angles, solution, γ=inp.γ, c_s_on_v_k=inp.c_s_on_v_k, use_E_r=use_E_r,
     )
-
-    wave_speeds = sqrt(mhd_wave_speeds(
-        vert_soln[:, VERT_MAGNETIC_INDEXES],
-        vert_soln[:, CylindricalODEIndex.ρ], 1,
-        index=CylindricalODEIndex.B_z,
-    ))
 
     indexes = (start <= heights) & (heights <= stop)
 
@@ -121,21 +103,6 @@ def generate_plot(
         ),
     )
 
-    if with_slow:
-        param_names[CylindricalODEIndex.v_z]["extras"].append({
-            "label": "slow",
-            "data": wave_speeds[MHD_Wave_Index.slow],
-        })
-    if with_alfven:
-        param_names[CylindricalODEIndex.v_z]["extras"].append({
-            "label": "alfven",
-            "data": wave_speeds[MHD_Wave_Index.alfven],
-        })
-    if with_fast:
-        param_names[CylindricalODEIndex.v_z]["extras"].append({
-            "label": "fast",
-            "data": wave_speeds[MHD_Wave_Index.fast],
-        })
     if with_sonic:
         param_names[CylindricalODEIndex.v_z]["extras"].append({
             "label": "sound",

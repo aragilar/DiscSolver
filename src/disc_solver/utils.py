@@ -100,49 +100,6 @@ VERT_DIFFUSIVE_INDEXES = [
 ]
 
 
-def is_supersonic(v, B, rho, sound_speed, mhd_wave_type):
-    """
-    Checks whether velocity is supersonic.
-    """
-    speeds = mhd_wave_speeds(B, rho, sound_speed)
-
-    v_axis = 1 if v.ndim > 1 else 0
-    v_sq = np.sum(v**2, axis=v_axis)
-
-    with np.errstate(invalid="ignore"):
-        return v_sq > speeds[MHD_Wave_Index[mhd_wave_type]]
-
-
-def mhd_wave_speeds(B, rho, sound_speed, *, index=ODEIndex.B_θ):
-    """
-    Computes MHD wave speeds (slow, alfven, fast)
-    """
-    B_axis = 1 if B.ndim == 2 else 0
-
-    B_sq = np.sum(B**2, axis=B_axis)
-
-    if B_axis:
-        cos_sq_psi = B[:, index]**2 / B_sq
-    else:
-        cos_sq_psi = B[index]**2 / B_sq
-
-    v_a_sq = B_sq / (4*pi*rho)
-    slow = 1/2 * (
-        v_a_sq + sound_speed**2 - sqrt(
-            (v_a_sq + sound_speed**2)**2 -
-            4 * v_a_sq * sound_speed**2 * cos_sq_psi
-        )
-    )
-    alfven = v_a_sq * cos_sq_psi
-    fast = 1/2 * (
-        v_a_sq + sound_speed**2 + sqrt(
-            (v_a_sq + sound_speed**2)**2 -
-            4 * v_a_sq * sound_speed**2 * cos_sq_psi
-        )
-    )
-    return slow, alfven, fast
-
-
 def cot(angle):
     """
     Computes cot

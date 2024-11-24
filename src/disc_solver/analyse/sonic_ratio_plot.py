@@ -4,11 +4,12 @@ Plot command for DiscSolver
 """
 from numpy import degrees
 
+from ..critical_points import get_mach_numbers
 from .utils import (
     multiple_solution_plotter, analyse_main_wrapper_multisolution,
     analysis_func_wrapper_multisolution, common_plotting_options,
     get_common_plot_args, plot_output_wrapper, DEFAULT_MPL_STYLE,
-    distinct_color_map, get_mach_numbers
+    distinct_color_map,
 )
 
 

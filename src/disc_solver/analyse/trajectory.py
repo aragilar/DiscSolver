@@ -5,14 +5,14 @@ Compute and plot field-lines/trajectories.
 from numpy import (
     array, sin, cos, arctan2, searchsorted, degrees, argmax, tan,
 )
-
+from ..critical_points import get_all_sonic_points
 from ..utils import ODEIndex
 
 from .utils import (
     single_solution_plotter, analyse_main_wrapper, analysis_func_wrapper,
     common_output_plot_options, common_plot_appearence_options,
     get_common_plot_appearence_args, get_common_plot_output_args,
-    plot_output_wrapper, DEFAULT_MPL_STYLE, get_all_sonic_points,
+    plot_output_wrapper, DEFAULT_MPL_STYLE,
 )
 
 DEFAULT_V_START_POSITION = (2, .1)

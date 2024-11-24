@@ -4,8 +4,9 @@ Plot command for DiscSolver
 """
 from numpy import degrees, sqrt, ones as np_ones
 
+from ..critical_points import mhd_wave_speeds
 from ..utils import (
-    mhd_wave_speeds, MHD_Wave_Index, ODEIndex, MAGNETIC_INDEXES,
+    MHD_Wave_Index, ODEIndex,
 )
 
 from .utils import (
@@ -110,9 +111,7 @@ def generate_plot(
     roots_angles = soln.t_roots
     roots_values = soln.y_roots
 
-    wave_speeds = sqrt(mhd_wave_speeds(
-        solution[:, MAGNETIC_INDEXES], solution[:, ODEIndex.ρ], 1
-    ))
+    wave_speeds = sqrt(mhd_wave_speeds(values=solution))
 
     indexes = (start <= degrees(angles)) & (degrees(angles) <= stop)
 

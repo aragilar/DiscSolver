@@ -4,10 +4,11 @@ Info command and associated code
 """
 from sys import stdout
 
+from ..critical_points import get_sonic_point, get_all_sonic_points
 from ..utils import get_solutions
 from .utils import (
-    analyse_main_wrapper, analysis_func_wrapper, get_sonic_point,
-    get_scale_height, AnalysisError, get_all_sonic_points,
+    analyse_main_wrapper, analysis_func_wrapper, get_scale_height,
+    AnalysisError,
 )
 from ..solve.mcmc import get_logprob_of_soln
 
