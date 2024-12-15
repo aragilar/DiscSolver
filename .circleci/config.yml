@@ -44,8 +44,6 @@ orbs:
           - run: apt-get dist-upgrade -y
           - run: apt-get install -y git
           - run: apt-get install -y ca-certificates curl
-          - run: echo 'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20240930/ testing main' >> /etc/apt/sources.list
-          - run: apt-get update
           #
           - run: apt-get install -y python3-dev
           - run: apt-get install -y python3-tk
@@ -53,7 +51,7 @@ orbs:
           - run: apt-get install -y python-is-python3
           - run: apt-get install -y tox
           #
-          - run: apt-get install -y libsundials-dev=6.4.1+dfsg1-3+b7 # scikits.odes
+          - run: apt-get install -y libsundials-dev # scikits.odes
           - run: apt-get install -y libhdf5-dev # h5py
           - run: apt-get install -y libgirepository1.0-dev # matplotlib/pygobject
           - run: apt-get install -y libgtk-3-dev # matplotlib/pygobject
