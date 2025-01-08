@@ -7,7 +7,7 @@ orbs:
         parameters:
           tox_name:
             type: string
-            default: py312
+            default: py313
           tox_args:
             type: string
             default: --
@@ -23,7 +23,7 @@ orbs:
         parameters:
           tox_name:
             type: string
-            default: py312
+            default: py313
           tox_args:
             type: string
             default: --
@@ -67,6 +67,7 @@ orbs:
       tox_install:
         steps:
           - run: cp ci_support/_manylinux.py /usr/lib/python3/dist-packages/_manylinux.py
+          - run: cp ci_support/_manylinux.py /usr/lib/python3.13/_manylinux.py
           # Delete EXTERNALLY-MANAGED so we can use pip outside a venv (
           # TODO: need a better plan here)
           - run: find /usr/lib/python* -name EXTERNALLY-MANAGED -delete
@@ -76,7 +77,7 @@ orbs:
         parameters:
           tox_name:
             type: string
-            default: py312
+            default: py313
           tox_args:
             type: string
             default: --
@@ -125,8 +126,8 @@ workflows:
   commit:
     jobs:
       - tox_orb/tox_large_job:
-          name: py312
-          tox_name: py312
+          name: py313
+          tox_name: py313
           tox_args: -- -n 4
       - tox_orb/tox_job:
           name: flake8
@@ -151,8 +152,8 @@ workflows:
                 - master
     jobs:
       - tox_orb/tox_large_job:
-          name: py312
-          tox_name: py312
+          name: py313
+          tox_name: py313
           tox_args: -- -n 4
       - tox_orb/tox_job:
           name: flake8

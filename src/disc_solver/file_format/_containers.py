@@ -353,8 +353,7 @@ class Problems(MutableMapping):
         del self._problems[key]
 
     def __iter__(self):
-        for key in self._problems:
-            yield key
+        yield from self._problems
 
     def __len__(self):
         return len(self._problems)
@@ -529,8 +528,7 @@ class Solutions(MutableMapping):
         del self._solutions[key]
 
     def __iter__(self):
-        for key in self._solutions:
-            yield key
+        yield from self._solutions
 
     def __len__(self):
         return len(self._solutions)
