@@ -67,8 +67,8 @@ orbs:
           - run: which python3
       tox_install:
         steps:
-          - run: cp ci_support/_manylinux.py /usr/lib/python3/dist-packages/_manylinux.py
-          - run: cp ci_support/_manylinux.py /usr/lib/python3.13/_manylinux.py
+          #- run: cp ci_support/_manylinux.py /usr/lib/python3/dist-packages/_manylinux.py
+          #- run: cp ci_support/_manylinux.py /usr/lib/python3.13/_manylinux.py
           # Delete EXTERNALLY-MANAGED so we can use pip outside a venv (
           # TODO: need a better plan here)
           - run: find /usr/lib/python* -name EXTERNALLY-MANAGED -delete
