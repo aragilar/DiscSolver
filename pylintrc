@@ -205,7 +205,7 @@ additional-builtins=
 [DESIGN]
 
 # Maximum number of arguments for function / method
-max-args=5
+max-args=7
 
 # Argument names that match this expression will be ignored. Default to name
 # with leading underscore
@@ -234,6 +234,9 @@ min-public-methods=2
 
 # Maximum number of public methods for a class (see R0904).
 max-public-methods=20
+
+# R0917
+max-positional-arguments=7
 
 
 [CLASSES]

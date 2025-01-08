@@ -614,6 +614,7 @@ def solution(
     interp_slice = soln_input.interp_slice
     sonic_interp_size = soln_input.sonic_interp_size
     use_E_r = soln_input.use_E_r
+    taylor_internal = None
 
     if with_taylor:
         taylor_stop_angle = radians(soln_input.taylor_stop_angle)

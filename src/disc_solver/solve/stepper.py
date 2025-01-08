@@ -305,7 +305,7 @@ def step_input():
 
 
 def solver(
-    soln_input, run, store_internal=True, num_attempts=DEFAULT_NUM_ATTEMPTS,
+    soln_input, run, *, store_internal=True, num_attempts=DEFAULT_NUM_ATTEMPTS,
     max_search_steps=DEFAULT_MAX_SEARCH_STEPS, no_final_solution=False
 ):
     """

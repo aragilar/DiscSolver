@@ -243,8 +243,7 @@ def get_all_files(args):
     Get files from cli arguments and/or stdin
     """
     if args.solution_files:
-        for file in args.solution_files:
-            yield file
+        yield from args.solution_files
     if args.with_stdin:
         yield stdin.readline().strip()
 
