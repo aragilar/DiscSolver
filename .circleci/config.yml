@@ -44,6 +44,7 @@ orbs:
           - run: apt-get dist-upgrade -y
           - run: apt-get install -y git
           - run: apt-get install -y ca-certificates curl
+          - run: apt-get install -y cargo
           #
           - run: apt-get install -y python3-dev
           - run: apt-get install -y python3-tk
