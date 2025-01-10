@@ -3,7 +3,7 @@
 stats command
 """
 from csv import DictWriter
-from sys import stdin
+from sys import stdin, exc_info
 
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
@@ -56,6 +56,7 @@ FIELD_NAMES = list(SOLUTION_INPUT_FIELDS) + [
     "max_diff_E_φ",
     "filename",
     "solution_name",
+    "max_angle_reached_degrees",
 ]
 
 
@@ -164,10 +165,12 @@ def singluar_stats(solution):
     M_dot_out_on_M_dot_in = compute_M_dot_out_on_M_dot_in(solution)
     Σ = compute_Σ(solution)
     max_B_p_on_B_t = max(compute_B_poloidal_vs_B_toroidal(solution))
+    max_angle_reached = degrees(solution.angles[-1])
     return {
         "M_dot_out_on_M_dot_in": M_dot_out_on_M_dot_in,
         "Σ": Σ,
         "max_B_p_on_B_t": max_B_p_on_B_t,
+        "max_angle_reached_degrees": max_angle_reached,
     }
 
 
@@ -217,6 +220,7 @@ def write_stats(solutions, *, output_file):
                         filename, soln_name,
                     )
                 out.flush()
+                del soln
 
 
 def get_all_solutions(files):
@@ -225,17 +229,20 @@ def get_all_solutions(files):
     in `files`.
     """
     for file in files:
-        try:
+        with log.catch_exceptions(
+            "Failed to read stats from file {}", file,
+        ):
             with h5open(file, registries, mode='r') as soln_file:
                 try:
                     run = soln_file["run"]
                     for soln_name, soln in run.solutions.items():
                         yield file, soln_name, soln
                     yield file, "final", run.final_solution
-                except KeyError as e:
-                    log.notice(f"Failed to read stats from file {file}: {e}")
-        except OSError as e:
-            log.warning(f"Failed to read stats from file {file}: {e}")
+                except KeyError:
+                    log.notice(
+                        "Failed to read stats from file {}", file,
+                        exc_info=exc_info(),
+                    )
 
 
 def get_all_files(args):
