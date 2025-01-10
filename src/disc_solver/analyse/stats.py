@@ -245,7 +245,8 @@ def get_all_files(args):
     if args.solution_files:
         yield from args.solution_files
     if args.with_stdin:
-        yield stdin.readline().strip()
+        for line in stdin:
+            yield line.strip()
 
 
 @main_entry_point_wrapper(description="compute statistics of the solutions")
