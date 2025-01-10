@@ -73,13 +73,31 @@ def follow_trajectory(
                 θ_vals=θ_vals, radial_power=radial_power,
             )
         except IndexError:
-            print("Errored at step", step, pos)
+            print("Errored at step with current scaling, dropping", step, pos)
+            old_scaling = step_scaling
+            step_scaling = old_scaling * 0.01
+            print(
+                "Old scaling was", old_scaling, "new scaling is", step_scaling
+            )
+            prev_vals = values[-1]
+            prev_pos = positions[-1]
+            pos = prev_pos + step_scaling * prev_vals
             # We've run out of solution to show
-            break
-        values.append(vals)
-        positions.append(pos)
-        # Add in scaling by r^2 to allow for bigger steps
-        pos = pos + step_scaling * vals
+            try:
+                vals = compute_values(
+                    x=pos[0], y=pos[1], angles=angles, r_vals=r_vals,
+                    θ_vals=θ_vals, radial_power=radial_power,
+                )
+            except IndexError:
+                print("Errored at step with new scaling, stopping", step, pos)
+                break
+            values.append(vals)
+            positions.append(pos)
+        else:
+            values.append(vals)
+            positions.append(pos)
+            # Add in scaling by r^2 to allow for bigger steps
+            pos = pos + step_scaling * vals
     return array(values), array(positions)
 
 
@@ -232,14 +250,6 @@ def generate_plot(
     v_sonic_pos = v_positions[v_sonic_idx]
 
     ax.plot(
-        v_positions[:, 0], v_positions[:, 1], label="$v$ streamline",
-        color="C0",
-    )
-    ax.plot(
-        B_positions[:, 0], B_positions[:, 1], label="$B$ field line",
-        color="C1",
-    )
-    ax.plot(
         v_sonic_pos[0], v_sonic_pos[1], label="sonic point", marker='x',
         color="C3",
     )
@@ -290,6 +300,15 @@ def generate_plot(
         (0, 0), slope=tan(max_v_angle),
         label=f"Max angle in v streamline {degrees(max_v_angle)}°",
         color="C8",
+    )
+
+    ax.plot(
+        B_positions[:, 0], B_positions[:, 1], label="$B$ field line",
+        color="C1",
+    )
+    ax.plot(
+        v_positions[:, 0], v_positions[:, 1], label="$v$ streamline",
+        color="C0",
     )
 
     ax.set_xlabel("Cylindrical radius (distance from origin, arb. units)")
