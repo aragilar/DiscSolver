@@ -8,7 +8,7 @@ from sys import stdin, exc_info
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
 
-from numpy import degrees, argmax, max as np_max, sqrt
+from numpy import degrees, nanargmax, nanmax, sqrt
 
 from h5preserve import open as h5open
 
@@ -101,7 +101,7 @@ def compute_max_vert_jet_velocity(soln):
     heights, vert_soln = convert_spherical_to_cylindrical(
         angles, solution, γ=inp.γ, c_s_on_v_k=inp.c_s_on_v_k, use_E_r=False,
     )
-    max_v_z_idx = argmax(vert_soln[:, CylindricalODEIndex.v_z])
+    max_v_z_idx = nanargmax(vert_soln[:, CylindricalODEIndex.v_z])
     max_v_z = vert_soln[max_v_z_idx, CylindricalODEIndex.v_z]
     max_v_z_height = heights[max_v_z_idx]
     return {
@@ -120,17 +120,17 @@ def get_max_mach_numbers(solution):
         Find the angle for maximum value for the mach numbers associated with
         the all the sound speeds.
         """
-        return degrees(solution.angles[argmax(mach)])
+        return degrees(solution.angles[nanargmax(mach)])
     slow_mach, sonic_mach, alfven_mach, fast_mach = get_mach_numbers(solution)
 
     return {
-        "max_slow_mach": np_max(slow_mach),
+        "max_slow_mach": nanmax(slow_mach),
         "max_slow_mach_angle_degrees": get_max_mach_degrees(slow_mach),
-        "max_sonic_mach": np_max(sonic_mach),
+        "max_sonic_mach": nanmax(sonic_mach),
         "max_sonic_mach_angle_degrees": get_max_mach_degrees(sonic_mach),
-        "max_alfven_mach": np_max(alfven_mach),
+        "max_alfven_mach": nanmax(alfven_mach),
         "max_alfven_mach_angle_degrees": get_max_mach_degrees(alfven_mach),
-        "max_fast_mach": np_max(fast_mach),
+        "max_fast_mach": nanmax(fast_mach),
         "max_fast_mach_angle_degrees": get_max_mach_degrees(fast_mach),
     }
 
@@ -165,7 +165,7 @@ def singluar_stats(solution):
     M_dot_out_on_M_dot_in = compute_M_dot_out_on_M_dot_in(solution)
     Σ = compute_Σ(solution)
     max_B_p_on_B_t = max(compute_B_poloidal_vs_B_toroidal(solution))
-    max_angle_reached = degrees(np_max(solution.angles))
+    max_angle_reached = degrees(nanmax(solution.angles))
     return {
         "M_dot_out_on_M_dot_in": M_dot_out_on_M_dot_in,
         "Σ": Σ,
