@@ -165,7 +165,7 @@ def singluar_stats(solution):
     M_dot_out_on_M_dot_in = compute_M_dot_out_on_M_dot_in(solution)
     Σ = compute_Σ(solution)
     max_B_p_on_B_t = max(compute_B_poloidal_vs_B_toroidal(solution))
-    max_angle_reached = degrees(solution.angles[-1])
+    max_angle_reached = degrees(np_max(solution.angles))
     return {
         "M_dot_out_on_M_dot_in": M_dot_out_on_M_dot_in,
         "Σ": Σ,
