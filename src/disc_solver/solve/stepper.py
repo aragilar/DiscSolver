@@ -6,14 +6,14 @@ from enum import Enum
 
 import logbook
 
-from numpy import diff, any as np_any, all as np_all, logical_and as np_and
+from numpy import diff, any as np_any, logical_and as np_and
 
 from .config import define_conditions
 from .solution import solution
 from .utils import validate_solution, SolverError
 
 from ..file_format import SolutionInput, Solution
-from ..utils import ODEIndex
+from ..utils import ODEIndex, is_monotonically_increasing
 
 log = logbook.Logger(__name__)
 
@@ -59,7 +59,7 @@ def is_solution_best(soln):
     if not np_any(v_θ_near_sonic):
         return soln, False
 
-    if np_any(diff(v_θ[v_θ_near_sonic], n=2)) > 0:
+    if np_any(diff(v_θ[v_θ_near_sonic], n=2) > 0):
         return soln, False
 
     return soln, True
@@ -234,8 +234,7 @@ def v_θ_deriv_splitter(soln, cutoff=DEFAULT_SPLITTER_CUTOFF, **kwargs):
     if np_any(v_θ_above_sonic):
         return SplitterStatus.DIVERGE
 
-    d_v_θ = diff(v_θ[v_θ_near_sonic])
-    if np_all(d_v_θ > 0):
+    if is_monotonically_increasing(v_θ[v_θ_near_sonic]):
         return SplitterStatus.DIVERGE
     return SplitterStatus.SIGN_FLIP
 

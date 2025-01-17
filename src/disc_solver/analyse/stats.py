@@ -17,7 +17,7 @@ from ..file_format import SOLUTION_INPUT_FIELDS, registries
 from ..logging import log_handler
 from ..utils import (
     open_or_stream, main_entry_point_wrapper, ODEIndex, CylindricalODEIndex,
-    convert_spherical_to_cylindrical,
+    convert_spherical_to_cylindrical, is_monotonically_increasing,
 )
 from .phys_ratio_plot import compute_M_dot_out_on_M_dot_in, compute_Σ
 from .validate_plot import (
@@ -57,6 +57,7 @@ FIELD_NAMES = list(SOLUTION_INPUT_FIELDS) + [
     "filename",
     "solution_name",
     "max_angle_reached_degrees",
+    "v_θ_starts_monotonic",
 ]
 
 
@@ -158,6 +159,16 @@ def labelled_get_all_sonic_points(solution):
     }
 
 
+def is_v_θ_monotonic(solution, *, upto_degrees=20):
+    """
+    Check if v_θ is monotonic up to `upto_degrees`.
+    """
+    to_check_slice = degrees(solution.angles) <= upto_degrees
+    return is_monotonically_increasing(
+        solution.solution[to_check_slice, ODEIndex.v_θ]
+    )
+
+
 def singluar_stats(solution):
     """
     Labels all the singular valued properties of a solution.
@@ -166,11 +177,13 @@ def singluar_stats(solution):
     Σ = compute_Σ(solution)
     max_B_p_on_B_t = max(compute_B_poloidal_vs_B_toroidal(solution))
     max_angle_reached = degrees(nanmax(solution.angles))
+    v_θ_monotonic = is_v_θ_monotonic(solution)
     return {
         "M_dot_out_on_M_dot_in": M_dot_out_on_M_dot_in,
         "Σ": Σ,
         "max_B_p_on_B_t": max_B_p_on_B_t,
         "max_angle_reached_degrees": max_angle_reached,
+        "v_θ_starts_monotonic": v_θ_monotonic,
     }
 
 
