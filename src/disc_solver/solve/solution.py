@@ -29,12 +29,12 @@ from .deriv_midplane import (
 from .j_e_funcs import J_r_func, J_θ_func, J_φ_func
 from .utils import (
     velocity_stop_generator, error_handler, rad_to_scaled, scaled_to_rad,
-    SolverError, deduplicate_and_interpolate,
+    SolverError,
 )
 
 from ..float_handling import float_type
 from ..file_format import InternalData, Solution
-from ..utils import ODEIndex
+from ..utils import ODEIndex, deduplicate_and_interpolate
 
 INTEGRATOR = "cvode"
 LINSOLVER = "dense"

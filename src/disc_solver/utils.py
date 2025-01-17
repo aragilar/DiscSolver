@@ -4,18 +4,22 @@ Useful functions
 """
 
 from argparse import ArgumentParser
+from collections import defaultdict
 from configparser import ConfigParser
 from contextlib import contextmanager
 from enum import IntEnum
 from functools import wraps
 from io import IOBase
-from math import pi
+from math import pi, nan
 from multiprocessing import Pool
 from pathlib import Path
 from sys import stdout, argv as sys_argv
 
-import numpy as np
-from numpy import cos, sin, sqrt, tan, diff, all as np_all
+from numpy import (
+    cos, sin, sqrt, tan, diff, all as np_all, searchsorted, any as np_any,
+    max as np_max, full as np_full,
+)
+from scipy.interpolate import interp1d
 
 import logbook
 
@@ -127,18 +131,6 @@ def cosec(angle):
     return 1 / sin(angle)
 
 
-def find_in_array(array, item):
-    """
-    Finds item in array or returns None
-    """
-    if array.ndim > 1:
-        raise TypeError("array must be 1D")
-    try:
-        return list(array).index(item)
-    except ValueError:
-        return None
-
-
 def get_normalisation(inp, radius=AU, mass=M_SUN, density=1.5e-9):
     """
     Get normalisation based on location and density
@@ -190,7 +182,7 @@ def scale_solution_to_radii(soln, new_r, *, γ, use_E_r):
     ρ_scale = new_r ** (2 * γ - 3 / 2)
     η_scale = sqrt(new_r)
 
-    scaled_soln = np.full(soln.shape, np.nan, dtype=soln.dtype)
+    scaled_soln = np_full(soln.shape, nan, dtype=soln.dtype)
 
     if scaled_soln.ndim == 1:
         scaled_soln[VELOCITY_INDEXES] = v_scale * soln[VELOCITY_INDEXES]
@@ -273,7 +265,7 @@ def convert_spherical_to_cylindrical(angles, soln, *, use_E_r, γ, c_s_on_v_k):
         angles, soln, use_E_r=use_E_r, γ=γ, c_s_on_v_k=c_s_on_v_k,
     )
 
-    new_soln = np.full(soln.shape, np.nan, dtype=soln.dtype)
+    new_soln = np_full(soln.shape, nan, dtype=soln.dtype)
 
     if new_soln.ndim == 1:
         new_soln[CylindricalODEIndex.v_φ] = soln[ODEIndex.v_φ]
@@ -403,3 +395,64 @@ def is_monotonically_increasing(arr):
     Return if array is monotonically increasing.
     """
     return np_all(diff(arr) > 0)
+
+
+def first_closest_index(a, val):
+    """
+    Return index of closest value in a to val closest to the start of the
+    array.  Does not assume sorted (use `numpy.searchsorted` otherwise).
+    """
+    if a[0] < val:
+        # mask will contain 0 up to the first index above or equal to val,
+        # which will be 1, and detected by argmax
+        mask = a >= val
+        if np_any(mask):
+            return mask.argmax()
+        return None
+    elif a[0] > val:
+        # mask will contain 0 up to the first index below or equal to val,
+        # which will be 1, and detected by argmax
+        mask = a <= val
+        if np_any(mask):
+            return mask.argmax()
+        return None
+    elif a[0] == val:
+        return 0
+    return None
+
+
+def interp_for_value(*, xs, ys, y, **kwargs):
+    """
+    Find the x value matching the first y using xs and ys via interpolation.
+    """
+    initial_index = first_closest_index(ys, y)
+    if initial_index is None:
+        return None
+    if ys[initial_index] == y:
+        return xs[initial_index]
+    min_index = max(0, initial_index - 1)
+    # Add 2 as we want the next index, plus stop is non-inclusive
+    interp_slice = slice(min_index, initial_index + 2)
+    return interp1d(ys[interp_slice], xs[interp_slice], **kwargs)(y)
+
+
+def deduplicate_and_interpolate(x, y, **kwargs):
+    """
+    As interp1d has issues with duplicates, fix x and y so that it works
+    """
+    dedup_dict = defaultdict(list)
+    for x_i, y_i in zip(x, y):
+        dedup_dict[x_i].append(y_i)
+    fixed_x, fixed_y = zip(*[
+        (x_i, np_max(y_i)) for x_i, y_i in dedup_dict.items()
+    ])
+    return interp1d(fixed_x, fixed_y, **kwargs)
+
+
+def get_closest_value_sorted(*, xs, ys, x):
+    """
+    Get value from `ys` from the index in `xs` of the value closest to `x`.
+
+    `xs` must be sorted, `ys` does not.
+    """
+    return ys[searchsorted(xs, x)]

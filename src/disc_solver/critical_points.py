@@ -2,13 +2,10 @@
 """
 Functions relating to the sonic and MHD points
 """
-from numpy import (
-    sqrt, any as np_any, argmin, abs as npabs, pi
-)
-from scipy.interpolate import interp1d
+from numpy import sqrt, any as np_any, pi
 
 from .utils import (
-    ODEIndex, MHD_Wave_Index,
+    ODEIndex, MHD_Wave_Index, interp_for_value, first_closest_index,
 )
 
 
@@ -72,51 +69,34 @@ def get_critical_point_indices(solution):
     """
     slow_mach, sonic_mach, alfven_mach, fast_mach = get_mach_numbers(solution)
 
-    slow_index = argmin(npabs(1 - slow_mach))
-    sonic_index = argmin(npabs(1 - sonic_mach))
-    alfven_index = argmin(npabs(1 - alfven_mach))
-    fast_index = argmin(npabs(1 - fast_mach))
+    slow_index = first_closest_index(slow_mach, 1)
+    sonic_index = first_closest_index(sonic_mach, 1)
+    alfven_index = first_closest_index(alfven_mach, 1)
+    fast_index = first_closest_index(fast_mach, 1)
 
     return slow_index, sonic_index, alfven_index, fast_index
 
 
-def get_sonic_point(solution):
-    """
-    Get the angle at which the sonic point occurs
-    """
-    # This bit needs fixing, should check if sound speed is the root
-    # if solution.t_roots is not None:
-    #     return solution.t_roots[0]
-    # Also should work out purpose of function - extrapolate or not, roots or
-    # not. Currently only used in info
-    fit = interp1d(
-        solution.solution[:, ODEIndex.v_θ],
-        solution.angles,
-        fill_value="extrapolate",
-    )
-    return fit(1.0)
-
-
 def get_all_sonic_points(solution):
     """
-    Get the angles at which the mhd sonic points occurs
+    Get the angles at which the MHD sonic points occurs
     """
     slow_mach, sonic_mach, alfven_mach, fast_mach = get_mach_numbers(solution)
     angles = solution.angles
     if np_any(slow_mach > 1.0):
-        slow_angle = interp1d(slow_mach, angles)(1.0)
+        slow_angle = interp_for_value(xs=angles, ys=slow_mach, y=1)
     else:
         slow_angle = None
     if np_any(sonic_mach > 1.0):
-        sonic_angle = interp1d(sonic_mach, angles)(1.0)
+        sonic_angle = interp_for_value(xs=angles, ys=sonic_mach, y=1)
     else:
         sonic_angle = None
     if np_any(alfven_mach > 1.0):
-        alfven_angle = interp1d(alfven_mach, angles)(1.0)
+        alfven_angle = interp_for_value(xs=angles, ys=alfven_mach, y=1)
     else:
         alfven_angle = None
     if np_any(fast_mach > 1.0):
-        fast_angle = interp1d(fast_mach, angles)(1.0)
+        fast_angle = interp_for_value(xs=angles, ys=fast_mach, y=1)
     else:
         fast_angle = None
     return slow_angle, sonic_angle, alfven_angle, fast_angle

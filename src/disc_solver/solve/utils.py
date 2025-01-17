@@ -2,7 +2,6 @@
 """
 Utility function and classes for solver associated code
 """
-from collections import defaultdict
 from csv import DictReader, Sniffer, get_dialect
 
 import attr
@@ -11,10 +10,7 @@ import logbook
 from numpy import (
     any as np_any,
     diff,
-    abs as np_abs,
-    max as np_max,
 )
-from scipy.interpolate import interp1d
 
 from scikits.odes.sundials.cvode import StatusEnum
 
@@ -80,35 +76,6 @@ def ontstop_stop(*args):
     """
     # pylint: disable=unused-argument
     return 1
-
-
-def closest(a, max_val):
-    """
-    Return closest value in a to max_val
-    """
-    return a[closest_index(a, max_val)]
-
-
-def closest_less_than(a, max_val):
-    """
-    Return closest value in a to max_val which is less than max_val
-    """
-    return a[closest_less_than_index(a, max_val)]
-
-
-def closest_index(a, max_val):
-    """
-    Return index of closest value in a to max_val
-    """
-    return np_abs(a - max_val).argmin()
-
-
-def closest_less_than_index(a, max_val):
-    """
-    Return index of closest value in a to max_val which is less than max_val
-    """
-    less_than = a < max_val
-    return closest_index(a[less_than], max_val)
 
 
 def add_solver_arguments(
@@ -343,16 +310,3 @@ def get_csv_inputs(input_file, label=''):
             ), label=label), columns=CONFIG_FIELDS)
 
     return inputs
-
-
-def deduplicate_and_interpolate(x, y, **kwargs):
-    """
-    As interp1d has issues with duplicates, fix x and y so that it works
-    """
-    dedup_dict = defaultdict(list)
-    for x_i, y_i in zip(x, y):
-        dedup_dict[x_i].append(y_i)
-    fixed_x, fixed_y = zip(*[
-        (x_i, np_max(y_i)) for x_i, y_i in dedup_dict.items()
-    ])
-    return interp1d(fixed_x, fixed_y, **kwargs)

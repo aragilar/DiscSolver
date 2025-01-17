@@ -4,7 +4,7 @@ Info command and associated code
 """
 from sys import stdout
 
-from ..critical_points import get_sonic_point, get_all_sonic_points
+from ..critical_points import get_all_sonic_points
 from ..utils import get_solutions
 from .utils import (
     analyse_main_wrapper, analysis_func_wrapper, get_scale_height,
@@ -113,9 +113,12 @@ def info(soln_file, *, group, soln_range, output_file, filename):
             file=output_file
         )
     elif group == "sonic-on-scale":
+        _, sonic_θ, _, _ = get_all_sonic_points(
+            soln_instance
+        )
         print("{}: {}".format(
             soln_file.config_input.label,
-            get_sonic_point(soln_instance) / get_scale_height(soln_instance)
+            sonic_θ / get_scale_height(soln_instance)
         ))
     elif group == "solutions":
         for name, _ in sort_solutions(soln_file.solutions):
