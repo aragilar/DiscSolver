@@ -3,10 +3,10 @@
 Compute and plot field-lines/trajectories.
 """
 from numpy import (
-    array, sin, cos, arctan2, searchsorted, degrees, argmax, tan,
+    array, sin, cos, arctan2, degrees, argmax, tan,
 )
 from ..critical_points import get_all_sonic_points
-from ..utils import ODEIndex
+from ..utils import ODEIndex, get_closest_value_sorted
 
 from .utils import (
     single_solution_plotter, analyse_main_wrapper, analysis_func_wrapper,
@@ -23,13 +23,6 @@ DEFAULT_V_STEP_SCALING = 1e-6
 DEFAULT_B_STEP_SCALING = 1e-3
 
 
-def get_closest_value(*, xs, ys, x):
-    """
-    Get value from `ys` from the index in `xs` of the value closest to `x`.
-    """
-    return ys[searchsorted(xs, x)]
-
-
 def compute_values(*, x, y, angles, r_vals, θ_vals, radial_power):
     """
     Get the x,y-axes values at `(x, y)` from `r_vals` and `θ_vals` computed at
@@ -39,8 +32,8 @@ def compute_values(*, x, y, angles, r_vals, θ_vals, radial_power):
     r_pos = x**2 + y**2
     θ_pos = arctan2(y, x)
     rad_coef = r_pos ** radial_power
-    r_val = rad_coef * get_closest_value(xs=angles, ys=r_vals, x=θ_pos)
-    θ_val = rad_coef * get_closest_value(xs=angles, ys=θ_vals, x=θ_pos)
+    r_val = rad_coef * get_closest_value_sorted(xs=angles, ys=r_vals, x=θ_pos)
+    θ_val = rad_coef * get_closest_value_sorted(xs=angles, ys=θ_vals, x=θ_pos)
 
     R_magnitude = r_val ** 2 + θ_val ** 2
     Θ_magnitude = arctan2(θ_val, r_val) + θ_pos

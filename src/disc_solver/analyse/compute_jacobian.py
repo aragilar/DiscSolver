@@ -603,6 +603,10 @@ def plot_eigenvector_coef_around_sonic_point(
     critical_point_index = crit_indexes[CRITICAL_POINT_MAP[critical_point]]
     critical_point_label = critical_point.capitalize() + " point"
 
+    if critical_point_index is None:
+        print("Failed to find", critical_point, "so setting to last value")
+        critical_point_index = -1
+
     coefs = get_eigenvector_coef_around_critical_point(
         soln, critical_point_index=critical_point_index, eps=eps,
         local_eigvecs=local_eigvecs,
