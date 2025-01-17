@@ -15,7 +15,7 @@ from pathlib import Path
 from sys import stdout, argv as sys_argv
 
 import numpy as np
-from numpy import cos, sin, sqrt, tan
+from numpy import cos, sin, sqrt, tan, diff, all as np_all
 
 import logbook
 
@@ -396,3 +396,10 @@ def nicer_mp_pool(*args, **kwargs):
         # problem
         pool.close()
         pool.join()
+
+
+def is_monotonically_increasing(arr):
+    """
+    Return if array is monotonically increasing.
+    """
+    return np_all(diff(arr) > 0)
