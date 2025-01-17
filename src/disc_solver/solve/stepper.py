@@ -59,7 +59,7 @@ def is_solution_best(soln):
     if not np_any(v_θ_near_sonic):
         return soln, False
 
-    if np_any(diff(v_θ[v_θ_near_sonic], n=2)) > 0:
+    if np_any(diff(v_θ[v_θ_near_sonic], n=2) > 0):
         return soln, False
 
     return soln, True
