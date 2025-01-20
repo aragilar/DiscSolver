@@ -394,7 +394,7 @@ def is_monotonically_increasing(arr):
     """
     Return if array is monotonically increasing.
     """
-    return np_all(diff(arr) > 0)
+    return np_all(diff(arr) >= 0)
 
 
 def first_closest_index(a, val):
