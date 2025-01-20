@@ -17,7 +17,7 @@ from sys import stdout, argv as sys_argv
 
 from numpy import (
     cos, sin, sqrt, tan, diff, all as np_all, searchsorted, any as np_any,
-    max as np_max, full as np_full,
+    max as np_max, full as np_full, isnan,
 )
 from scipy.interpolate import interp1d
 
@@ -402,22 +402,23 @@ def first_closest_index(a, val):
     Return index of closest value in a to val closest to the start of the
     array.  Does not assume sorted (use `numpy.searchsorted` otherwise).
     """
-    if a[0] < val:
+    first_nan_free_index = isnan(a).argmin()
+    if a[first_nan_free_index] < val:
         # mask will contain 0 up to the first index above or equal to val,
         # which will be 1, and detected by argmax
         mask = a >= val
         if np_any(mask):
             return mask.argmax()
         return None
-    elif a[0] > val:
+    elif a[first_nan_free_index] > val:
         # mask will contain 0 up to the first index below or equal to val,
         # which will be 1, and detected by argmax
         mask = a <= val
         if np_any(mask):
             return mask.argmax()
         return None
-    elif a[0] == val:
-        return 0
+    elif a[first_nan_free_index] == val:
+        return first_nan_free_index
     return None
 
 
