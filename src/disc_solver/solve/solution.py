@@ -472,10 +472,15 @@ def interp_cross_sonic(
     """
     θ_interp = base_internal_data.angles[interp_slice]
     deriv_v_θ_interp = base_internal_data.derivs[interp_slice, ODEIndex.v_θ]
-    deriv_v_θ_func = deduplicate_and_interpolate(
-        θ_interp, deriv_v_θ_interp, kind='cubic',
-        fill_value="extrapolate", assume_sorted=False,
-    )
+    try:
+        deriv_v_θ_func = deduplicate_and_interpolate(
+            θ_interp, deriv_v_θ_interp, kind='cubic',
+            fill_value="extrapolate", assume_sorted=False,
+        )
+    except ValueError:
+        log.exception("Failed to initialise interpolation")
+        return None, None, None, None
+
     starting_angle = base_solution.values.t[-1]
     soln, internal_data = main_solution(
         system_initial_conditions=system_initial_conditions,
@@ -687,38 +692,41 @@ def solution(
                 sonic_interp_size if after_sonic is None else after_sonic
             ), base_internal_data=internal_data,
         )
+        if int_soln is not None:
+            if store_internal and int_internal is not None:
+                internal_data = internal_data + int_internal
 
-        if store_internal and int_internal is not None:
-            internal_data = internal_data + int_internal
+            joined_angles = concatenate(
+                (joined_angles, scaled_to_rad(int_soln.values.t, θ_scale))
+            )
+            joined_solution = concatenate(
+                (joined_solution, int_soln.values.y)
+            )
 
-        joined_angles = concatenate(
-            (joined_angles, scaled_to_rad(int_soln.values.t, θ_scale))
-        )
-        joined_solution = concatenate(
-            (joined_solution, int_soln.values.y)
-        )
+            post_interp_soln, post_interp_internal_data = main_solution(
+                angles=int_angles, system_initial_conditions=init_con,
+                ode_initial_conditions=int_init_con, γ=γ, a_0=a_0,
+                norm_kepler_sq=norm_kepler_sq,
+                relative_tolerance=relative_tolerance,
+                absolute_tolerance=absolute_tolerance, max_steps=max_steps,
+                onroot_func=onroot_func, tstop=tstop,
+                ontstop_func=ontstop_func, η_derivs=η_derivs,
+                store_internal=store_internal, root_func=root_func,
+                root_func_args=root_func_args, θ_scale=θ_scale,
+                use_E_r=use_E_r,
+            )
 
-        post_interp_soln, post_interp_internal_data = main_solution(
-            angles=int_angles, system_initial_conditions=init_con,
-            ode_initial_conditions=int_init_con, γ=γ, a_0=a_0,
-            norm_kepler_sq=norm_kepler_sq,
-            relative_tolerance=relative_tolerance,
-            absolute_tolerance=absolute_tolerance, max_steps=max_steps,
-            onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
-            η_derivs=η_derivs, store_internal=store_internal,
-            root_func=root_func, root_func_args=root_func_args,
-            θ_scale=θ_scale, use_E_r=use_E_r,
-        )
+            if store_internal and post_interp_internal_data is not None:
+                internal_data = internal_data + post_interp_internal_data
 
-        if store_internal and post_interp_internal_data is not None:
-            internal_data = internal_data + post_interp_internal_data
-
-        joined_angles = concatenate(
-            (joined_angles, scaled_to_rad(post_interp_soln.values.t, θ_scale))
-        )
-        joined_solution = concatenate(
-            (joined_solution, post_interp_soln.values.y)
-        )
+            joined_angles = concatenate(
+                (joined_angles, scaled_to_rad(
+                    post_interp_soln.values.t, θ_scale
+                ))
+            )
+            joined_solution = concatenate(
+                (joined_solution, post_interp_soln.values.y)
+            )
 
     elif jump_before_sonic is not None:
         log.info("jumping over sonic point with jump size {}".format(
