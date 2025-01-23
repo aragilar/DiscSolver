@@ -6,7 +6,7 @@ from enum import Enum
 
 import logbook
 
-from numpy import max as np_max, sqrt
+from numpy import nanmax, sqrt
 
 from .single import solver as single_solver
 from .solution import get_known_broken_solution
@@ -16,7 +16,6 @@ from .stepper import (
 )
 from .utils import SolverError
 
-from ..critical_points import get_mach_numbers
 from ..file_format import SolutionInput, Solution
 
 log = logbook.Logger(__name__)
@@ -42,8 +41,7 @@ def compute_quality(soln):
     """
     Compute the value for comparing the solutions
     """
-    _, _, _, fast_mach = get_mach_numbers(soln)
-    return np_max(fast_mach)
+    return nanmax(soln.angles)
 
 
 def stepper_creator(soln_writer, *, step_size, solution_input):
