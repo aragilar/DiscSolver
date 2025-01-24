@@ -3,6 +3,7 @@
 stats command
 """
 from csv import DictWriter
+from functools import wraps
 from sys import stdin, exc_info
 
 import logbook
@@ -236,6 +237,30 @@ def write_stats(solutions, *, output_file):
                 del soln
 
 
+def write_inputs(solutions, *, output_file):
+    """
+    Write to csv file `output_file` the statistics of all the solutions
+    """
+    with open_or_stream(output_file, mode='a') as out:
+        csvwriter = DictWriter(
+            out, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
+        )
+        csvwriter.writeheader()
+        for solution in solutions:
+            filename, soln_name, soln = solution
+            log.info("Writing {} solution {}", filename, soln_name)
+            if soln is not None:
+                try:
+                    csvwriter.writerow(soln.solution_input.asdict())
+                except ValueError:
+                    log.exception(
+                        "Failed to write input for {} {}",
+                        filename, soln_name,
+                    )
+                out.flush()
+                del soln
+
+
 def get_all_solutions(files):
     """
     Load all the solutions from a file, including the final one, for every file
@@ -269,16 +294,50 @@ def get_all_files(args):
             yield line.strip()
 
 
-@main_entry_point_wrapper(description="compute statistics of the solutions")
-def stats_main(argv, parser):
+def many_file_wrapper(*, description, **kwargs):
+    """
+    Wrapper to handle passing in many files, both from stdin and via arguments
+    to the command.
+    """
+    def decorator(main_func):
+        """
+        Function decorator for many_file_wrapper.
+        """
+        @main_entry_point_wrapper(description=description, **kwargs)
+        @wraps(main_func)
+        def many_file_main(argv, parser):
+            """
+            Logic for many_file_wrapper.
+            """
+            parser.add_argument("--file", default='-')
+            parser.add_argument(
+                "--with-stdin", action='store_true', default=False
+            )
+            parser.add_argument("solution_files", nargs='*')
+            args = parser.parse_args(argv)
+            with (
+                log_handler(args), redirected_warnings(), redirected_logging(),
+            ):
+                return main_func(args)
+        return many_file_main
+    return decorator
+
+
+@many_file_wrapper(description="compute statistics of the solutions")
+def stats_main(args):
     """
     Main entry point for ds-stats
     """
-    parser.add_argument("--file", default='-')
-    parser.add_argument("--with-stdin", action='store_true', default=False)
-    parser.add_argument("solution_files", nargs='*')
-    args = parser.parse_args(argv)
-    with log_handler(args), redirected_warnings(), redirected_logging():
-        return write_stats(
-            get_all_solutions(get_all_files(args)), output_file=args.file
-        )
+    return write_stats(
+        get_all_solutions(get_all_files(args)), output_file=args.file
+    )
+
+
+@many_file_wrapper(description="Dump out all the solution inputs of files")
+def dump_csv_inputs_main(args):
+    """
+    Main entry point for ds-dumpcsv
+    """
+    return write_inputs(
+        get_all_solutions(get_all_files(args)), output_file=args.file
+    )

@@ -77,6 +77,7 @@ setuptools.setup(
             "ds-tocsv = disc_solver.analyse.dump_csv:dump_main",
             "ds-tocfg = disc_solver.analyse.dump_config:dump_main",
             "ds-stats = disc_solver.analyse.stats:stats_main",
+            "ds-dumpcsv = disc_solver.analyse.stats:dump_csv_inputs_main",
             "ds-csvrunner = disc_solver.solve.csvrunner:main",
             "ds-hdf5runner = disc_solver.solve.hdf5runner:main",
             "ds-flow-plot = disc_solver.analyse.trajectory:plot_main"

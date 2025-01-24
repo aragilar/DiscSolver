@@ -23,7 +23,7 @@ from disc_solver.analyse.params_plot import params_plot
 from disc_solver.analyse.phys_ratio_plot import plot as phys_ratio_plot
 from disc_solver.analyse.plot import plot
 from disc_solver.analyse.sonic_ratio_plot import plot as sonic_ratio_plot
-from disc_solver.analyse.stats import stats_main
+from disc_solver.analyse.stats import stats_main, dump_csv_inputs_main
 from disc_solver.analyse.surface_density_plot import surface_density_plot
 from disc_solver.analyse.trajectory import plot as trajectory_plot
 from disc_solver.analyse.taylor_plot import taylor_plot
@@ -516,6 +516,11 @@ class TestAnalysis:
 
     def test_stats(self, solution, tmpdir):
         return stats_main([solution, '--file', str(tmpdir / 'stats.csv')])
+
+    def test_dump_csv_inputs_main(self, solution, tmpdir):
+        return dump_csv_inputs_main([
+            solution, '--file', str(tmpdir / 'inputs.csv')
+        ])
 
     def test_jacobian_eigenvalues_show(
         self, solution_not_approx, mpl_interactive
