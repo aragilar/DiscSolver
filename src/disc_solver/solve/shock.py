@@ -55,7 +55,7 @@ def compute_shock(
     print("possible values to check:", len(search_values))
     for i, (jump_θ, pre_jump_values) in enumerate(search_values):
         v_θ_pre = pre_jump_values[ODEIndex.v_θ]
-        print("v_θ", v_θ_pre, "for iteration", i)
+        print("v_θ", v_θ_pre, "for iteration", i, "angle", degrees(jump_θ))
         ρ_pre = pre_jump_values[ODEIndex.ρ]
         v_θ_post = get_v_θ_post(v_θ_pre)
         ρ_post = get_ρ_post(v_θ_pre=v_θ_pre, ρ_pre=ρ_pre)
