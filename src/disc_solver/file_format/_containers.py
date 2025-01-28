@@ -672,6 +672,18 @@ class InitialConditions:
         self.η_H = η_H
 
 
+    def create_modified(self, *, init_con, angles):
+        """
+        Return a modified version of the initial conditions for later parts of
+        the solution with a different initial `x` (i.e. values) array and new
+        angles.
+        """
+        return attr.evolve(
+            self, init_con=init_con, angles=angles, η_O=None, η_A=None,
+            η_H=None,
+        )
+
+
 @attr.s(eq=False, hash=False)
 class MCMCVars:
     """

@@ -6,9 +6,9 @@ from numpy import (
     zeros, nan
 )
 
-from .solution import main_solution
+from .solution import solution
 
-from ..analysis.plot import generate_plot
+from ..analyse.plot import generate_plot
 from ..float_handling import float_type
 from ..utils import ODEIndex
 
@@ -27,56 +27,60 @@ def compute_shock(
     root_func=None, root_func_args=None, onroot_func=None, tstop=None,
     ontstop_func=None, store_internal=True, θ_scale=float_type(1),
 ):
-    solution = soln.solution
+    values = soln.solution
     angles = soln.angles
 
     initial_conditions = soln.initial_conditions
-    init_con = initial_conditions.init_con
-    γ = initial_conditions.γ
-    a_0 = initial_conditions.a_0
-    norm_kepler_sq = initial_conditions.norm_kepler_sq
 
     soln_input = soln.solution_input
-    absolute_tolerance = soln_input.absolute_tolerance
-    relative_tolerance = soln_input.relative_tolerance
-    max_steps = soln_input.max_steps
-    η_derivs = soln_input.η_derivs
-    use_E_r = soln_input.use_E_r
+    soln_input.use_taylor_jump = False
+    soln_input.jump_before_sonic = False
+    soln_input.v_θ_sonic_crit = None
+    soln_input.after_sonic = None
+    soln_input.interp_range = None
+    soln_input.interp_slice = None
+    soln_input.sonic_interp_size = None
 
-    v_θ = solution[:, ODEIndex.v_θ]
+    v_θ = values[:, ODEIndex.v_θ]
     jumpable_slice = (
         (v_θ > min_v_θ_pre) &
         (v_θ < max_v_θ_pre) &
         (angles > radians(min_angle))
     )
     jumpable_angles = angles[jumpable_slice]
-    jumpable_values = solution[jumpable_slice]
+    jumpable_values = values[jumpable_slice]
+    search_values = list(zip(
+        jumpable_angles, jumpable_values
+    ))
+    print("possible values to check:", len(search_values))
+    for i, (jump_θ, pre_jump_values) in enumerate(search_values):
+        v_θ_pre = pre_jump_values[ODEIndex.v_θ]
+        print("v_θ", v_θ_pre, "for iteration", i)
+        ρ_pre = pre_jump_values[ODEIndex.ρ]
+        v_θ_post = get_v_θ_post(v_θ_pre)
+        ρ_post = get_ρ_post(v_θ_pre=v_θ_pre, ρ_pre=ρ_pre)
+        post_jump_values = pre_jump_values.copy()
+        post_jump_values[ODEIndex.v_θ] = v_θ_post
+        post_jump_values[ODEIndex.ρ] = ρ_post
 
-    jump_θ = jumpable_angles[0]
-    pre_jump_values = jumpable_values[0]
-    v_θ_pre = pre_jump_values[ODEIndex.v_θ]
-    ρ_pre = pre_jump_values[ODEIndex.ρ]
-    v_θ_post = get_v_θ_post(v_θ_pre)
-    ρ_post = get_ρ_post(*, v_θ_pre=v_θ_pre, ρ_pre=ρ_pre)
-    post_jump_values = pre_jump_values.copy()
-    post_jump_values[ODEIndex.v_θ] = v_θ_post
-    post_jump_values[ODEIndex.ρ] = ρ_post
+        post_jump_angles = angles[angles >= jump_θ]
+        modified_initial_conditions = initial_conditions.create_modified(
+            init_con=post_jump_values, angles=post_jump_angles,
+        )
 
-    post_jump_angles = angles[angles >= jump_θ]
+        soln = solution(
+            soln_input, initial_conditions, 
+            root_func=root_func, root_func_args=root_func_args, 
+            onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
+            store_internal=store_internal, with_taylor=False, θ_scale=θ_scale,
+            modified_initial_conditions=modified_initial_conditions,
+        )
+        if soln.angles.shape[0] < 5:
+            # Not worth looking at
+            continue
 
+        fig = plt.figure(constrained_layout=True)
+        generate_plot.__wrapped__(fig, soln, hide_roots=True)
+        fig.savefig(f"shock_{i}.png")
 
-
-    soln, internal_data = main_solution(
-        angles=post_jump_angles, system_initial_conditions=init_con,
-        ode_initial_conditions=post_jump_values, γ=γ, a_0=a_0,
-        norm_kepler_sq=norm_kepler_sq, relative_tolerance=relative_tolerance,
-        absolute_tolerance=absolute_tolerance, max_steps=max_steps,
-        onroot_func=onroot_func, tstop=tstop, ontstop_func=ontstop_func,
-        η_derivs=η_derivs, store_internal=store_internal,
-        root_func=root_func, root_func_args=root_func_args, θ_scale=θ_scale,
-        use_E_r=use_E_r,
-    )
-
-    fig = plt.figure(constrained_layout=True)
-    generate_plot.__wrapped__(fig, soln)
-    plt.show()
+        yield soln
