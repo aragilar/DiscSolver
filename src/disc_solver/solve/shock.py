@@ -1,18 +1,17 @@
-import logbook
 from multiprocessing import current_process
+from pathlib import Path
 
 import arrow
+import logbook
 import matplotlib.pyplot as plt
 from numpy import (
-    array, concatenate, copy, insert, errstate, sqrt, tan, degrees, radians,
-    zeros, nan, all as np_all,
+    degrees, radians, all as np_all,
 )
 
 from .solution import solution
 
 from ..analyse.plot import generate_plot
 from ..analyse.utils import analyse_main_wrapper, analysis_func_wrapper
-from ..float_handling import float_type
 from ..utils import ODEIndex, get_solutions, nicer_mp_pool, expanded_path
 
 log = logbook.Logger(__name__)
@@ -99,7 +98,7 @@ class ShockFinder:
 
         try:
             fig_filename = plot_shock_solution(
-                shock_soln, path=self.plot_path,
+                shock_soln, plot_path=self.plot_path,
             )
         except Exception as e:
             print("plot failed", e)
@@ -141,9 +140,8 @@ def compute_shock(
 def plot_shock_solution(soln, *, plot_path):
 
     process_name = current_process().name
-    filename = expanded_path(plot_path,Path(
-        config_input.label + str(arrow.now()) +
-        str(process_name) + ".hdf5"
+    filename = expanded_path(plot_path, Path(
+        str(arrow.now()) + str(process_name) + ".png"
     ))
     fig = plt.figure(constrained_layout=True)
     generate_plot.__wrapped__(fig, soln, hide_roots=True)
@@ -159,7 +157,7 @@ def shock_parser(parser):
     "Continue with shock from DiscSolver",
     shock_parser,
     cmd_parser_splitters={
-        #"group": lambda args: args["group"]
+        # "group": lambda args: args["group"]
     }
 )
 def shock_main(soln_file, *, soln_range):

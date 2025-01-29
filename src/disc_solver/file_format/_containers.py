@@ -678,7 +678,6 @@ class InitialConditions:
         self.η_A = η_A
         self.η_H = η_H
 
-
     def create_modified(self, *, init_con, angles):
         """
         Return a modified version of the initial conditions for later parts of
