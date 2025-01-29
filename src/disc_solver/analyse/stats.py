@@ -59,6 +59,7 @@ FIELD_NAMES = list(SOLUTION_INPUT_FIELDS) + [
     "solution_name",
     "max_angle_reached_degrees",
     "v_θ_starts_monotonic",
+    "v_θ_ends_low",
 ]
 
 
@@ -170,6 +171,13 @@ def is_v_θ_monotonic(solution, *, upto_degrees=20):
     )
 
 
+def does_v_θ_end_low(solution, *, cutoff=10):
+    """
+    Check if v_θ ends below the value of cutoff.
+    """
+    return solution.solution[-1, ODEIndex.v_θ] <= cutoff
+
+
 def singluar_stats(solution):
     """
     Labels all the singular valued properties of a solution.
@@ -179,12 +187,14 @@ def singluar_stats(solution):
     max_B_p_on_B_t = max(compute_B_poloidal_vs_B_toroidal(solution))
     max_angle_reached = degrees(nanmax(solution.angles))
     v_θ_monotonic = is_v_θ_monotonic(solution)
+    v_θ_ends_low = does_v_θ_end_low(solution)
     return {
         "M_dot_out_on_M_dot_in": M_dot_out_on_M_dot_in,
         "Σ": Σ,
         "max_B_p_on_B_t": max_B_p_on_B_t,
         "max_angle_reached_degrees": max_angle_reached,
         "v_θ_starts_monotonic": v_θ_monotonic,
+        "v_θ_ends_low": v_θ_ends_low,
     }
 
 
