@@ -331,6 +331,13 @@ class SolutionInput:
             η_A=str(self.η_A),
         )
 
+    def new_without_sonic_taylor(self):
+        return attr.evolve(
+            self, use_taylor_jump=False, jump_before_sonic=False,
+            v_θ_sonic_crit=None, after_sonic=None, interp_range=None,
+            interp_slice=None, sonic_interp_size=None,
+        )
+
 
 class Problems(MutableMapping):
     """
