@@ -11,3 +11,4 @@ dist
 soln.hdf5
 .pytest_cache
 build
+__pycache__
