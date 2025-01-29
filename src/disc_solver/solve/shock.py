@@ -1,3 +1,6 @@
+"""
+Support for calculating shocks
+"""
 from multiprocessing import current_process
 from pathlib import Path
 
@@ -18,16 +21,25 @@ log = logbook.Logger(__name__)
 
 
 def get_v_θ_post(v_θ_pre):
+    """
+    Get v_θ post shock.
+    """
     return 1 / v_θ_pre
 
 
 def get_ρ_post(*, v_θ_pre, ρ_pre):
+    """
+    Get ρ post shock.
+    """
     return ρ_pre * v_θ_pre ** 2
 
 
 def get_shock_modified_initial_conditions(
     *, initial_conditions, angles, jump_θ, pre_jump_values
 ):
+    """
+    Get the modified copy of the initial conditions object for after the shock.
+    """
     v_θ_pre = pre_jump_values[ODEIndex.v_θ]
     ρ_pre = pre_jump_values[ODEIndex.ρ]
     v_θ_post = get_v_θ_post(v_θ_pre)
@@ -47,6 +59,9 @@ def get_shock_modified_initial_conditions(
 def find_shock_test_values(
     soln, *, min_v_θ_pre=1, max_v_θ_pre=10, min_angle=40,
 ):
+    """
+    Find possible angles at which to perform the shock.
+    """
     values = soln.solution
     angles = soln.angles
     v_θ = values[:, ODEIndex.v_θ]
@@ -62,6 +77,10 @@ def find_shock_test_values(
 
 # pylint: disable=too-few-public-methods
 class ShockFinder:
+    """
+    wrapper class to handle aligning the shock computation with the needs of
+    multiprocessing.
+    """
     def __init__(
         self, *, new_solution_input, initial_conditions, angles,
         store_internal, plot_path="shock_plots",
@@ -73,6 +92,7 @@ class ShockFinder:
         self.store_internal = store_internal
 
     def __call__(self, search_value):
+        # pylint: disable=broad-exception-caught
         jump_θ, pre_jump_values = search_value
         try:
             shock_initial_conditions = get_shock_modified_initial_conditions(
@@ -113,9 +133,12 @@ class ShockFinder:
 
 
 def compute_shock(
-    soln, *, min_v_θ_pre=1.1, max_v_θ_pre=10, min_angle=40,
+    soln, *, min_v_θ_pre=1.0, max_v_θ_pre=10, min_angle=40,
     store_internal=True,
 ):
+    """
+    Compute the shock at all possible angles that would make sense.
+    """
 
     soln_input = soln.solution_input.new_without_sonic_taylor()
 
@@ -140,6 +163,9 @@ def compute_shock(
 
 
 def plot_shock_solution(soln, *, plot_path):
+    """
+    Plot the solution post shock
+    """
 
     process_name = current_process().name
     filename = expanded_path(plot_path, Path(
@@ -152,6 +178,9 @@ def plot_shock_solution(soln, *, plot_path):
 
 
 def shock_parser(parser):
+    """
+    Parser for shock command
+    """
     return parser
 
 
@@ -163,11 +192,19 @@ def shock_parser(parser):
     }
 )
 def shock_main(soln_file, *, soln_range):
+    """
+    ds-shock entry point
+    """
+    # pylint: disable=missing-kwoa
     return shock_from_file(soln_file, soln_range=soln_range)
 
 
 @analysis_func_wrapper
 def shock_from_file(soln_file, *, soln_range, filename):
+    """
+    Primary shock function
+    """
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
+    print("Looking at", filename, "solution", soln_range)
     soln = get_solutions(soln_file, soln_range)
     compute_shock(soln)
