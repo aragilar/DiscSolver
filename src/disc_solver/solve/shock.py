@@ -60,6 +60,7 @@ def find_shock_test_values(
     return jumpable_angles, jumpable_values
 
 
+# pylint: disable=too-few-public-methods
 class ShockFinder:
     def __init__(
         self, *, new_solution_input, initial_conditions, angles,
@@ -108,6 +109,7 @@ class ShockFinder:
             print("\n\n\nSEE GOOD FILE", fig_filename, "\n\n\n")
 
         return fig_filename
+# pylint: enable=too-few-public-methods
 
 
 def compute_shock(
@@ -166,5 +168,6 @@ def shock_main(soln_file, *, soln_range):
 
 @analysis_func_wrapper
 def shock_from_file(soln_file, *, soln_range, filename):
+    # pylint: disable=too-many-function-args,unexpected-keyword-arg
     soln = get_solutions(soln_file, soln_range)
     compute_shock(soln)

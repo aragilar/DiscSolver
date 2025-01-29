@@ -332,6 +332,11 @@ class SolutionInput:
         )
 
     def new_without_sonic_taylor(self):
+        """
+        Make a copy of the current instance, but drop options related to the
+        midplane or sonic point so that it can be used elsewhere in the solution
+        (e.g. for shocks).
+        """
         return attr.evolve(
             self, use_taylor_jump=False, jump_before_sonic=False,
             v_θ_sonic_crit=None, after_sonic=None, interp_range=None,
