@@ -66,6 +66,18 @@ def replace_empty_string(string):
     return string
 
 
+def handle_old_interp_slice(config):
+        interp_slice = config.get("config", "interp_slice", fallback=None)
+        if interp_slice is None:
+            # This is what the default was
+            interp_slice = "-1000,-100"
+        else:
+            warn(
+                "interp_slice is no longer used, remove it from the config "
+                "file to stop this warning"
+            )
+
+
 # pylint: disable=too-few-public-methods
 
 @attr.s(eq=False, hash=False)
@@ -112,18 +124,21 @@ class ConfigInput:
     η_O = attr.ib()
     η_H = attr.ib()
     η_A = attr.ib()
-    η_derivs = attr.ib(default="True")
-    jump_before_sonic = attr.ib(default=None, converter=replace_empty_string)
-    use_taylor_jump = attr.ib(default="True")
-    mcmc_vars = attr.ib(default=None, converter=replace_empty_string)
-    v_θ_sonic_crit = attr.ib(default=None, converter=replace_empty_string)
-    after_sonic = attr.ib(default=None, converter=replace_empty_string)
-    sonic_interp_size = attr.ib(default=None, converter=replace_empty_string)
+    # new attributes
+    sonic_cross_tool = attr.ib()
+    η_derivs = attr.ib()
+    jump_before_sonic = attr.ib(converter=replace_empty_string)
+    use_taylor_jump = attr.ib()
+    mcmc_vars = attr.ib(converter=replace_empty_string)
+    v_θ_sonic_crit = attr.ib(converter=replace_empty_string)
+    after_sonic = attr.ib(converter=replace_empty_string)
+    sonic_interp_size = attr.ib(converter=replace_empty_string)
+    interp_slice_start = attr.ib()
+    interp_slice_stop = attr.ib()
+    interp_slice_step = attr.ib()
+    use_E_r = attr.ib()
+    # Unused attributes which are kept for backwards compatibility
     interp_range = attr.ib(default="10", converter=replace_empty_string)
-    interp_slice = attr.ib(
-        default="-1000,-100", converter=replace_empty_string
-    )
-    use_E_r = attr.ib(default="False")
 
     def asdict(self):
         """
@@ -131,7 +146,94 @@ class ConfigInput:
         """
         return attr.asdict(self, recurse=False)
 
-    def to_conf_file(self, file):
+    @classmethod
+    def from_configparser(cls, config):
+        start = config.get("config", "start", fallback="0")
+        stop = config.get("config", "stop", fallback="5")
+        taylor_stop_angle = config.get(
+            "config", "taylor_stop_angle", fallback = "0.001"
+        )
+        max_steps = config.get("config", "max_steps", fallback="10000")
+        num_angles = config.get("config", "num_angles", fallback="10000")
+        label = config.get("config", "label", fallback="default")
+        relative_tolerance = config.get(
+            "config", "relative_tolerance", fallback = "1e-6"
+        )
+        absolute_tolerance = config.get(
+            "config", "absolute_tolerance", fallback = "1e-10"
+        )
+        jump_before_sonic = config.get(
+            "config", "jump_before_sonic", fallback = "None"
+        )
+        v_θ_sonic_crit = config.get(
+            "config", "v_θ_sonic_crit", fallback = "None"
+        )
+        after_sonic = config.get(
+            "config", "after_sonic", fallback = "None"
+        )
+        sonic_interp_size = config.get(
+            "config", "sonic_interp_size", fallback = "None"
+        )
+        η_derivs = config.get("config", "η_derivs", fallback="True")
+        nwalkers = config.get("config", "nwalkers", fallback="8")
+        iterations = config.get("config", "iterations", fallback="3")
+        threads = config.get("config", "threads", fallback="1")
+        mcmc_vars = config.get("config", "mcmc_vars", fallback="v_r,v_a,v_k")
+        target_velocity = config.get(
+            "config", "target_velocity", fallback = "0.9"
+        )
+        split_method = config.get(
+            "config", "split_method", fallback = "v_θ_deriv"
+        )
+        use_taylor_jump = config.get(
+            "config", "use_taylor_jump", fallback = "True"
+        )
+        use_E_r = config.get(
+            "config", "use_E_r", fallback = "False"
+        )
+        sonic_cross_method = config.get(
+            "config", "sonic_cross_method", fallback = "None"
+        )
+        γ = config.get("initial", "γ", fallback="0.001")
+        v_rin_on_c_s = config.get("initial", "v_rin_on_c_s", fallback="1")
+        v_a_on_c_s = config.get("initial", "v_a_on_c_s", fallback="1")
+        c_s_on_v_k = config.get("initial", "c_s_on_v_k", fallback="0.03")
+        η_O = config.get("initial", "η_O", fallback="0.001")
+        η_H = config.get("initial", "η_H", fallback="0.0001")
+        η_A = config.get("initial", "η_A", fallback="0.0005")
+
+
+        interp_range = config.get("config", "interp_range", fallback=None)
+        if interp_range is None:
+            # This is what the default was
+            interp_range = "10"
+        else:
+            warn(
+                "interp_range is no longer used, remove it from the config "
+                "file to stop this warning"
+            )
+        interp_slice_kwargs = handle_old_interp_slice(config)
+
+        return cls(
+            start=start, stop=stop, taylor_stop_angle=taylor_stop_angle,
+            max_steps=max_steps, num_angles=num_angles, label=label,
+            relative_tolerance=relative_tolerance,
+            absolute_tolerance=absolute_tolerance,
+            jump_before_sonic=jump_before_sonic, v_θ_sonic_crit=v_θ_sonic_crit,
+            after_sonic=after_sonic, interp_range=interp_range,
+            sonic_interp_size=sonic_interp_size,
+            η_derivs=η_derivs, nwalkers=nwalkers, iterations=iterations,
+            threads=threads, mcmc_vars=mcmc_vars,
+            target_velocity=target_velocity, split_method=split_method,
+            use_taylor_jump=use_taylor_jump, use_E_r=use_E_r,
+            sonic_cross_method=sonic_cross_method, γ=γ,
+            v_rin_on_c_s=v_rin_on_c_s, v_a_on_c_s=v_a_on_c_s,
+            c_s_on_v_k=c_s_on_v_k, η_O=η_O, η_H=η_H, η_A=η_A,
+            **interp_slice_kwargs,
+        )
+
+
+    def to_conf_file(self, file, *, include_legacy=False):
         """
         Convert ConfigInput to cfg file
         """
@@ -152,8 +254,6 @@ class ConfigInput:
         cfg["config"]["threads"] = self.threads
         cfg["config"]["target_velocity"] = self.target_velocity
         cfg["config"]["split_method"] = self.split_method
-        cfg["config"]["interp_range"] = self.interp_range
-        cfg["config"]["interp_slice"] = self.interp_slice
         cfg["config"]["use_E_r"] = self.use_E_r
 
         cfg["initial"]["γ"] = self.γ
@@ -166,6 +266,9 @@ class ConfigInput:
 
         cfg["config"]["η_derivs"] = self.η_derivs
         cfg["config"]["use_taylor_jump"] = self.use_taylor_jump
+        cfg["config"]["interp_slice_start"] = self.interp_slice_start
+        cfg["config"]["interp_slice_stop"] = self.interp_slice_stop
+        cfg["config"]["interp_slice_step"] = self.interp_slice_step
 
         if self.jump_before_sonic is not None:
             cfg["config"]["jump_before_sonic"] = self.jump_before_sonic
@@ -177,6 +280,11 @@ class ConfigInput:
             cfg["config"]["after_sonic"] = self.after_sonic
         if self.sonic_interp_size is not None:
             cfg["config"]["sonic_interp_size"] = self.sonic_interp_size
+
+
+        if include_legacy:
+            cfg["config"]["interp_range"] = self.interp_range
+            cfg["config"]["interp_slice"] = self.interp_slice
 
         cfg.write(file)
 
@@ -221,7 +329,9 @@ class ConfigInput:
                 self.interp_range is None
                 else str_to_int(self.interp_range)
             ),
-            interp_slice=str_to_slice(self.interp_slice),
+            interp_slice_start=str_to_int(self.interp_slice_start),
+            interp_slice_stop=str_to_int(self.interp_slice_stop),
+            interp_slice_step=str_to_int(self.interp_slice_step),
             η_derivs=str_to_bool(self.η_derivs),
             nwalkers=str_to_int(self.nwalkers),
             iterations=str_to_int(self.iterations),
@@ -265,16 +375,27 @@ class SolutionInput:
     η_O = attr.ib()
     η_H = attr.ib()
     η_A = attr.ib()
-    η_derivs = attr.ib(default=True)
-    jump_before_sonic = attr.ib(default=None)
-    use_taylor_jump = attr.ib(default=True)
-    mcmc_vars = attr.ib(default=None, converter=mcmc_vars_str_to_obj)
-    v_θ_sonic_crit = attr.ib(default=None)
-    after_sonic = attr.ib(default=None)
-    sonic_interp_size = attr.ib(default=None)
+    # new attributes
+    sonic_cross_tool = attr.ib()
+    η_derivs = attr.ib()
+    jump_before_sonic = attr.ib()
+    use_taylor_jump = attr.ib()
+    mcmc_vars = attr.ib(converter=mcmc_vars_str_to_obj)
+    v_θ_sonic_crit = attr.ib()
+    after_sonic = attr.ib()
+    sonic_interp_size = attr.ib()
+    interp_slice_start = attr.ib()
+    interp_slice_stop = attr.ib()
+    interp_slice_step = attr.ib()
+    use_E_r = attr.ib()
+    # Unused attributes which are kept for backwards compatibility
     interp_range = attr.ib(default=10)
-    interp_slice = attr.ib(default=slice(-1000, -100), converter=str_to_slice)
-    use_E_r = attr.ib(default=False)
+
+    def compute_interp_slice(self):
+        return slice(
+            self.interp_slice_start, self.interp_slice_stop,
+            self.interp_slice_step,
+        )
 
     def asdict(self):
         """
@@ -312,7 +433,9 @@ class SolutionInput:
                 else str(self.sonic_interp_size)
             ),
             interp_range=str(self.interp_range),
-            interp_slice=slice_to_str(self.interp_slice),
+            interp_slice_start=str(self.interp_slice_start),
+            interp_slice_stop=str(self.interp_slice_stop),
+            interp_slice_step=str(self.interp_slice_step),
             η_derivs=str(self.η_derivs),
             nwalkers=str(self.nwalkers),
             iterations=str(self.iterations),
