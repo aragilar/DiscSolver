@@ -193,6 +193,43 @@ def _solution_loader_3(group):
     )
 
 
+@ds_registry.loader("Solution", version=4)
+def _solution_loader_4(group):
+    if group["t_roots"] is None:
+        t_roots = None
+    else:
+        t_roots = group["t_roots"]["data"]
+    if group["y_roots"] is None:
+        y_roots = None
+    else:
+        y_roots = group["y_roots"]["data"]
+
+    if group["sonic_point"] is None:
+        sonic_point = None
+    else:
+        sonic_point = group["sonic_point"]["data"]
+    if group["sonic_point_values"] is None:
+        sonic_point_values = None
+    else:
+        sonic_point_values = group["sonic_point_values"]["data"]
+
+    return Solution(
+        flag=group.attrs["flag"],
+        coordinate_system=group.attrs["coordinate_system"],
+        angles=group["angles"]["data"],
+        solution=group["solution"]["data"],
+        internal_data=group["internal_data"],
+        initial_conditions=group["initial_conditions"],
+        solution_input=group["solution_input"],
+        t_roots=t_roots,
+        y_roots=y_roots,
+        sonic_point=sonic_point,
+        sonic_point_values=sonic_point_values,
+        derivatives=group["derivatives"],
+        is_post_shock_only=group.attrs["is_post_shock_only"],
+    )
+
+
 @ds_registry.loader("ConfigInput", version=1)
 def _config_loader(group):
     return ConfigInput(
@@ -1212,6 +1249,43 @@ def _run_loader5(group):
         float_type=group["float_type"],
         sonic_method=group["sonic_method"],
         use_E_r=use_E_r,
+    )
+
+
+@ds_registry.loader("Run", version=6)
+def _run_loader6(group):
+    use_E_r = group["use_E_r"]
+
+    config_input = group["config_input"]
+    if config_input.use_E_r is None:
+        config_input.use_E_r = str(use_E_r)
+
+    solutions = group["solutions"]
+    for soln in solutions.values():
+        if soln.solution_input.use_E_r is None:
+            soln.solution_input.use_E_r = use_E_r
+
+    final_solution = group["final_solution"]
+    if final_solution is not None and (
+        final_solution.solution_input.use_E_r is None
+    ):
+        final_solution.solution_input.use_E_r = use_E_r
+
+    return Run(
+        config_input=config_input,
+        config_filename=group["config_filename"],
+        time=group["time"],
+        final_solution=final_solution,
+        solutions=solutions,
+        disc_solver_version=group["disc_solver_version"],
+        float_type=group["float_type"],
+        sonic_method=group["sonic_method"],
+        use_E_r=use_E_r,
+        is_post_shock_only=group.attrs["is_post_shock_only"],
+        based_on_solution_filename=group["based_on_solution_filename"],
+        based_on_solution_solution_name=group[
+            "based_on_solution_solution_name"
+        ],
     )
 
 

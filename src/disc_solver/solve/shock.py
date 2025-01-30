@@ -1,21 +1,20 @@
 """
 Support for calculating shocks
 """
-from multiprocessing import current_process
-from pathlib import Path
-
-import arrow
 import logbook
-import matplotlib.pyplot as plt
 from numpy import (
     degrees, radians, all as np_all,
 )
 
-from .solution import solution
+from h5preserve import open as h5open
 
-from ..analyse.plot import generate_plot
+from .solution import solution
+from .utils import get_multiprocessing_filename
+
+from ..analyse.plot import plot as plot_solution
 from ..analyse.utils import analyse_main_wrapper, analysis_func_wrapper
-from ..utils import ODEIndex, get_solutions, nicer_mp_pool, expanded_path
+from ..file_format import registries
+from ..utils import ODEIndex, get_solutions, nicer_mp_pool
 
 log = logbook.Logger(__name__)
 
@@ -83,13 +82,14 @@ class ShockFinder:
     """
     def __init__(
         self, *, new_solution_input, initial_conditions, angles,
-        store_internal, plot_path="shock_plots",
+        store_internal, plot_path="shock_plots", run,
     ):
         self.new_solution_input = new_solution_input
         self.initial_conditions = initial_conditions
         self.angles = angles
         self.plot_path = plot_path
         self.store_internal = store_internal
+        self.run = run
 
     def __call__(self, search_value):
         # pylint: disable=broad-exception-caught
@@ -101,40 +101,53 @@ class ShockFinder:
             )
         except Exception as e:
             print("initial conditions failed", e)
-            return None
+            return None, None
 
         try:
             shock_soln = solution(
                 self.new_solution_input, self.initial_conditions,
                 store_internal=self.store_internal,
                 modified_initial_conditions=shock_initial_conditions,
-                with_taylor=False,
+                with_taylor=False, is_post_shock_only=True,
             )
         except Exception as e:
             print("solve failed", e)
-            return None
+            return None, None
         if shock_soln.angles.shape[0] < 5:
             # Not worth looking at
-            return None
+            return None, None
 
         try:
-            fig_filename = plot_shock_solution(
-                shock_soln, plot_path=self.plot_path,
+            output_hdf5_filename = get_multiprocessing_filename(self.run)
+            with h5open(output_hdf5_filename, registries, mode='x') as f:
+                f["run"] = self.run
+                self.run.solutions.add_solution(shock_soln)
+                self.run.finalise()
+        except Exception as e:
+            print("save failed", e)
+            return None, None
+
+        plot_filename = output_hdf5_filename.with_suffix(".png")
+
+        try:
+            plot_shock_solution(
+                self.run, plot_filename=plot_filename,
+                output_hdf5_filename=output_hdf5_filename,
             )
         except Exception as e:
             print("plot failed", e)
-            return None
+            return None, None
 
         if np_all(shock_soln.solution[:, ODEIndex.v_θ] < 1):
-            print("\n\n\nSEE GOOD FILE", fig_filename, "\n\n\n")
+            print("\n\n\nSEE GOOD FILE", plot_filename, "\n\n\n")
 
-        return fig_filename
+        return output_hdf5_filename, plot_filename
 # pylint: enable=too-few-public-methods
 
 
 def compute_shock(
     soln, *, min_v_θ_pre=1.0, max_v_θ_pre=10, min_angle=40,
-    store_internal=True,
+    store_internal=True, run,
 ):
     """
     Compute the shock at all possible angles that would make sense.
@@ -152,29 +165,24 @@ def compute_shock(
     ))
     print("possible values to check:", len(search_values))
     with nicer_mp_pool() as pool:
-        for fig_filename in pool.imap(ShockFinder(
+        for soln_filename, fig_filename in pool.imap(ShockFinder(
             new_solution_input=soln_input,
             initial_conditions=soln.initial_conditions,
             angles=soln.angles,
-            store_internal=store_internal
+            store_internal=store_internal, run=run,
         ), search_values):
             if fig_filename is not None:
-                print("New plot", fig_filename)
+                print("New plot", fig_filename, "for", soln_filename)
 
 
-def plot_shock_solution(soln, *, plot_path):
+def plot_shock_solution(run, *, plot_filename, output_hdf5_filename):
     """
     Plot the solution post shock
     """
-
-    process_name = current_process().name
-    filename = expanded_path(plot_path, Path(
-        str(arrow.now()) + str(process_name) + ".png"
-    ))
-    fig = plt.figure(constrained_layout=True)
-    generate_plot.__wrapped__(fig, soln, hide_roots=True)
-    fig.savefig(filename)
-    return filename
+    return plot_solution.__wrapped__(
+        run, soln_range="final", hide_roots=True, plot_filename=plot_filename,
+        filename=output_hdf5_filename, figargs={"figsize": (15, 20)},
+    )
 
 
 def shock_parser(parser):
@@ -200,11 +208,14 @@ def shock_main(soln_file, *, soln_range):
 
 
 @analysis_func_wrapper
-def shock_from_file(soln_file, *, soln_range, filename):
+def shock_from_file(run, *, soln_range, filename):
     """
     Primary shock function
     """
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     print("Looking at", filename, "solution", soln_range)
-    soln = get_solutions(soln_file, soln_range)
-    compute_shock(soln)
+    soln = get_solutions(run, soln_range)
+    shock_run = run.create_shock_run(
+        filename=filename, solution_name=soln_range,
+    )
+    compute_shock(soln, run=shock_run)

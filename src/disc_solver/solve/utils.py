@@ -3,7 +3,10 @@
 Utility function and classes for solver associated code
 """
 from csv import DictReader, Sniffer, get_dialect
+from multiprocessing import current_process
+from pathlib import Path
 
+import arrow
 import attr
 import logbook
 
@@ -310,3 +313,13 @@ def get_csv_inputs(input_file, label=''):
             ), label=label), columns=CONFIG_FIELDS)
 
     return inputs
+
+
+def get_multiprocessing_filename(run):
+    """
+    Get a safe filename in a multiprocessing context.
+    """
+    return Path(
+        run.config_input.label + str(arrow.now()) +
+        str(current_process().name) + ".hdf5"
+    )

@@ -49,12 +49,13 @@ def _initial_dump(initial_conditions):
     )
 
 
-@ds_registry.dumper(Solution, "Solution", version=3)
+@ds_registry.dumper(Solution, "Solution", version=4)
 def _solution_dumper(solution):
     return GroupContainer(
         attrs={
             "flag": solution.flag,
             "coordinate_system": solution.coordinate_system,
+            "is_post_shock_only": solution.is_post_shock_only,
         },
         angles=solution.angles,
         solution=solution.solution,
@@ -144,9 +145,12 @@ def _input_dumper(solution_input):
     )
 
 
-@ds_registry.dumper(Run, "Run", version=5)
+@ds_registry.dumper(Run, "Run", version=6)
 def _run_dumper(run):
     return GroupContainer(
+        attrs={
+            "is_post_shock_only": run.is_post_shock_only,
+        },
         time=run.time,
         config_filename=run.config_filename,
         config_input=run.config_input,
@@ -156,6 +160,8 @@ def _run_dumper(run):
         disc_solver_version=run.disc_solver_version,
         sonic_method=run.sonic_method,
         use_E_r=run.use_E_r,
+        based_on_solution_filename=run.based_on_solution_filename,
+        based_on_solution_solution_name=run.based_on_solution_solution_name,
     )
 
 

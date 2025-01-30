@@ -85,6 +85,7 @@ class Solution:
     sonic_point = attr.ib()
     sonic_point_values = attr.ib()
     derivatives = attr.ib(default=None)
+    is_post_shock_only = attr.ib(default=False)
 
 
 @attr.s
@@ -610,6 +611,9 @@ class Run:
     use_E_r = attr.ib(default=False)
     _final_solution = attr.ib(default=attr.Factory(DelayedContainer))
     solutions = attr.ib(default=attr.Factory(Solutions))
+    is_post_shock_only = attr.ib(default=False)
+    based_on_solution_filename = attr.ib(default=None)
+    based_on_solution_solution_name = attr.ib(default=None)
 
     @property
     def final_solution(self):
@@ -634,6 +638,16 @@ class Run:
             soln = self.solutions.get_last_solution()
             self._final_solution.write_container(soln)
             self._final_solution = soln
+
+    def create_shock_run(self, *, filename, solution_name):
+        """
+        Copy the current run instance for creating a shock version.
+        """
+        return attr.evolve(
+            self, solutions=Solutions(), _final_solution=DelayedContainer(),
+            is_post_shock_only=True, based_on_solution_filename=filename,
+            based_on_solution_solution_name=solution_name,
+        )
 
 
 @attr.s(
