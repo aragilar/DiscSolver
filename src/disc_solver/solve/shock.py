@@ -14,7 +14,7 @@ from .utils import get_multiprocessing_filename
 from ..analyse.plot import plot as plot_solution
 from ..analyse.utils import analyse_main_wrapper, analysis_func_wrapper
 from ..file_format import registries
-from ..utils import ODEIndex, get_solutions, nicer_mp_pool
+from ..utils import ODEIndex, get_solutions, nicer_mp_pool, expanded_path
 
 log = logbook.Logger(__name__)
 
@@ -82,12 +82,12 @@ class ShockFinder:
     """
     def __init__(
         self, *, new_solution_input, initial_conditions, angles,
-        store_internal, plot_path="shock_plots", run,
+        store_internal, output_dir="shock_tests", run,
     ):
         self.new_solution_input = new_solution_input
         self.initial_conditions = initial_conditions
         self.angles = angles
-        self.plot_path = plot_path
+        self.output_dir = output_dir
         self.store_internal = store_internal
         self.run = run
 
@@ -118,7 +118,9 @@ class ShockFinder:
             return None, None
 
         try:
-            output_hdf5_filename = get_multiprocessing_filename(self.run)
+            output_hdf5_filename = expanded_path(
+                self.output_dir, get_multiprocessing_filename(self.run)
+            )
             with h5open(output_hdf5_filename, registries, mode='x') as f:
                 f["run"] = self.run
                 self.run.solutions.add_solution(shock_soln)

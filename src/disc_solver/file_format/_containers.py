@@ -644,7 +644,7 @@ class Run:
         Copy the current run instance for creating a shock version.
         """
         return attr.evolve(
-            self, solutions=Solutions(), _final_solution=DelayedContainer(),
+            self, solutions=Solutions(), final_solution=DelayedContainer(),
             is_post_shock_only=True, based_on_solution_filename=filename,
             based_on_solution_solution_name=solution_name,
         )
