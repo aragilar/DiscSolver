@@ -12,7 +12,7 @@ from numpy import (
 from h5preserve import open as h5open
 
 from .solution import solution
-from .utils import get_multiprocessing_filename
+from .utils import get_multiprocessing_filename, add_worker_arguments
 
 from ..analyse.plot import plot as plot_solution
 from ..analyse.utils import analyse_main_wrapper, analysis_func_wrapper
@@ -160,7 +160,7 @@ class ShockFinder:
 
 def compute_shock(
     soln, *, min_v_θ_pre=1.0, max_v_θ_pre=10, min_angle=40,
-    store_internal=True, run,
+    store_internal=True, run, nworkers,
 ):
     """
     Compute the shock at all possible angles that would make sense.
@@ -177,7 +177,7 @@ def compute_shock(
         jumpable_angles, jumpable_values
     ))
     print("possible values to check:", len(search_values))
-    with nicer_mp_pool() as pool:
+    with nicer_mp_pool(nworkers) as pool:
         for soln_filename, fig_filename in pool.imap(ShockFinder(
             new_solution_input=soln_input,
             initial_conditions=soln.initial_conditions,
@@ -202,6 +202,7 @@ def shock_parser(parser):
     """
     Parser for shock command
     """
+    add_worker_arguments(parser)
     return parser
 
 
@@ -209,19 +210,19 @@ def shock_parser(parser):
     "Continue with shock from DiscSolver",
     shock_parser,
     cmd_parser_splitters={
-        # "group": lambda args: args["group"]
+        "nworkers": lambda args: args["nworkers"]
     }
 )
-def shock_main(soln_file, *, soln_range):
+def shock_main(soln_file, *, soln_range, nworkers):
     """
     ds-shock entry point
     """
     # pylint: disable=missing-kwoa
-    return shock_from_file(soln_file, soln_range=soln_range)
+    return shock_from_file(soln_file, soln_range=soln_range, nworkers=nworkers)
 
 
 @analysis_func_wrapper
-def shock_from_file(run, *, soln_range, filename):
+def shock_from_file(run, *, soln_range, filename, nworkers):
     """
     Primary shock function
     """
@@ -231,4 +232,4 @@ def shock_from_file(run, *, soln_range, filename):
     shock_run = run.create_shock_run(
         filename=filename, solution_name=soln_range,
     )
-    compute_shock(soln, run=shock_run)
+    compute_shock(soln, run=shock_run, nworkers=nworkers)
