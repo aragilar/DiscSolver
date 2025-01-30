@@ -46,6 +46,9 @@ class SolutionFinder:
         if sonic_solver is None:
             raise SolverError("No method chosen to cross sonic point")
 
+        soln_filename = input_dict.pop("filename", None)
+        soln_range = input_dict.pop("solution_name", None)
+
         process_name = current_process().name
         config_input = add_overrides(
             config_input=ConfigInput(**input_dict), overrides=self.overrides
@@ -59,6 +62,8 @@ class SolutionFinder:
             float_type=str(float_type),
             sonic_method=self.sonic_method,
             use_E_r=soln_input.use_E_r,
+            based_on_solution_filename=soln_filename,
+            based_on_solution_solution_name=soln_range,
         )
 
         if self.output_file is None:
