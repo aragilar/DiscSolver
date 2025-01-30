@@ -23,7 +23,7 @@ from ..utils import (
 )
 
 log = logbook.Logger(__name__)
-SOLUTION_IDENTIFICATION_FIELDS = ["filename", "solution_name"]
+SOLUTION_IDENTIFICATION_FIELDS = ("filename", "solution_name")
 
 
 def error_handler(error_code, module, func, msg, user_data):
