@@ -1,6 +1,9 @@
 """
 Support for calculating shocks
 """
+from sys import stderr
+from traceback import format_exc
+
 import logbook
 from numpy import (
     degrees, radians, all as np_all,
@@ -74,6 +77,13 @@ def find_shock_test_values(
     return jumpable_angles, jumpable_values
 
 
+def print_err(desc, tb):
+    print(desc, "START TB", file=stderr)
+    print(tb, file=stderr)
+    print(desc, "END TB", file=stderr)
+
+
+
 # pylint: disable=too-few-public-methods
 class ShockFinder:
     """
@@ -99,8 +109,8 @@ class ShockFinder:
                 initial_conditions=self.initial_conditions, angles=self.angles,
                 jump_θ=jump_θ, pre_jump_values=pre_jump_values,
             )
-        except Exception as e:
-            print("initial conditions failed", e)
+        except Exception:
+            print_err("initial conditions failed", format_exc())
             return None, None
 
         try:
@@ -110,9 +120,10 @@ class ShockFinder:
                 modified_initial_conditions=shock_initial_conditions,
                 with_taylor=False, is_post_shock_only=True,
             )
-        except Exception as e:
-            print("solve failed", e)
+        except Exception:
+            print_err("solve failed", format_exc())
             return None, None
+
         if shock_soln.angles.shape[0] < 5:
             # Not worth looking at
             return None, None
@@ -125,8 +136,8 @@ class ShockFinder:
                 f["run"] = self.run
                 self.run.solutions.add_solution(shock_soln)
                 self.run.finalise()
-        except Exception as e:
-            print("save failed", e)
+        except Exception:
+            print_err("save failed", format_exc())
             return None, None
 
         plot_filename = output_hdf5_filename.with_suffix(".png")
@@ -136,8 +147,8 @@ class ShockFinder:
                 self.run, plot_filename=plot_filename,
                 output_hdf5_filename=output_hdf5_filename,
             )
-        except Exception as e:
-            print("plot failed", e)
+        except Exception:
+            print_err("plot failed", format_exc())
             return None, None
 
         if np_all(shock_soln.solution[:, ODEIndex.v_θ] < 1):

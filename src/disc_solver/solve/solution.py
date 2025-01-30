@@ -541,6 +541,11 @@ def main_solution(
             f"Insufficient angles to solve at - angles: {angles}"
         )
 
+    if extra_args.get("root_func") is not None:
+        log.warn("Root function specified")
+    else:
+        log.warn("Root function NOT specified")
+
     system, internal_data = ode_system(
         γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,
         init_con=system_initial_conditions, η_derivs=η_derivs,

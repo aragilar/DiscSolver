@@ -339,7 +339,7 @@ class SolutionInput:
         solution (e.g. for shocks).
         """
         return attr.evolve(
-            self, use_taylor_jump=False, jump_before_sonic=False,
+            self, use_taylor_jump=False, jump_before_sonic=None,
             v_θ_sonic_crit=None, after_sonic=None, interp_range=None,
             interp_slice=None, sonic_interp_size=None,
         )
