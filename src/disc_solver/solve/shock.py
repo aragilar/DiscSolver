@@ -78,10 +78,12 @@ def find_shock_test_values(
 
 
 def print_err(desc, tb):
+    """
+    Print the traceback with a comment to stderr
+    """
     print(desc, "START TB", file=stderr)
     print(tb, file=stderr)
     print(desc, "END TB", file=stderr)
-
 
 
 # pylint: disable=too-few-public-methods
