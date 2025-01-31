@@ -196,7 +196,7 @@ def plot_shock_solution(run, *, plot_filename, output_hdf5_filename):
     """
     return plot_solution.__wrapped__(
         run, soln_range="final", hide_roots=True, plot_filename=plot_filename,
-        filename=output_hdf5_filename, figargs={"figsize": (15, 20)},
+        filename=output_hdf5_filename, figargs={"figsize": (20, 15)},
     )
 
 
