@@ -6,7 +6,7 @@ from traceback import format_exc
 
 import logbook
 from numpy import (
-    degrees, radians, all as np_all,
+    degrees, radians, all as np_all, nanargmax,
 )
 
 from h5preserve import open as h5open
@@ -59,7 +59,7 @@ def get_shock_modified_initial_conditions(
 
 
 def find_shock_test_values(
-    soln, *, min_v_θ_pre=1, max_v_θ_pre=10, min_angle=40,
+    soln, *, min_v_θ_pre=1, max_v_θ_pre=10, min_angle=40, post_max=True,
 ):
     """
     Find possible angles at which to perform the shock.
@@ -67,10 +67,14 @@ def find_shock_test_values(
     values = soln.solution
     angles = soln.angles
     v_θ = values[:, ODEIndex.v_θ]
+    min_angle_rad = radians(min_angle)
+    if post_max:
+        max_v_θ_index = nanargmax(v_θ)
+        min_angle_rad = max(min_angle_rad, angles[max_v_θ_index])
     jumpable_slice = (
         (v_θ > min_v_θ_pre) &
         (v_θ < max_v_θ_pre) &
-        (angles > radians(min_angle))
+        (angles > min_angle_rad)
     )
     jumpable_angles = angles[jumpable_slice]
     jumpable_values = values[jumpable_slice]
