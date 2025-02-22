@@ -45,7 +45,9 @@ def resolve(
         disc_solver_version=ds_version,
         float_type=str(float_type),
         sonic_method=sonic_method,
-        use_E_r=new_soln_input.use_E_r
+        use_E_r=new_soln_input.use_E_r,
+        based_on_solution_filename=soln_filename,
+        based_on_solution_solution_name=soln_range,
     )
 
     if output_file is None:

@@ -67,7 +67,7 @@ def plot_main(soln, *, soln_range, common_plot_args, plot_args):
 
 @analysis_func_wrapper
 def plot(
-    soln, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
+    run, *, soln_range=None, plot_filename=None, show=False, linestyle='-',
     with_slow=False, with_alfven=False, with_fast=False, with_sonic=False,
     start=0, stop=90, figargs=None, v_θ_scale="linear", title=None, close=True,
     filename, mpl_style=DEFAULT_MPL_STYLE, with_version=True, portrait=False,
@@ -78,7 +78,7 @@ def plot(
     """
     # pylint: disable=too-many-function-args,unexpected-keyword-arg
     fig = generate_plot(
-        soln, soln_range, linestyle=linestyle, with_slow=with_slow,
+        run, soln_range, linestyle=linestyle, with_slow=with_slow,
         with_alfven=with_alfven, with_fast=with_fast, with_sonic=with_sonic,
         start=start, stop=stop, figargs=figargs, v_θ_scale=v_θ_scale,
         title=title, filename=filename, mpl_style=mpl_style,

@@ -50,6 +50,7 @@ setuptools.setup(
         'console_scripts': [
             "ds-soln = disc_solver.solve:main",
             "ds-resoln = disc_solver.solve.resolve:main",
+            "ds-shock = disc_solver.solve.shock:shock_main",
             "ds-info = disc_solver.analyse.info:info_main",
             "ds-plot = disc_solver.analyse.plot:plot_main",
             "ds-compare-plot = disc_solver.analyse.compare_plot:plot_main",

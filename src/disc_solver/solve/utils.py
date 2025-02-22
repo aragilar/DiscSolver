@@ -3,7 +3,10 @@
 Utility function and classes for solver associated code
 """
 from csv import DictReader, Sniffer, get_dialect
+from multiprocessing import current_process
+from pathlib import Path
 
+import arrow
 import attr
 import logbook
 
@@ -20,6 +23,7 @@ from ..utils import (
 )
 
 log = logbook.Logger(__name__)
+SOLUTION_IDENTIFICATION_FIELDS = ("filename", "solution_name")
 
 
 def error_handler(error_code, module, func, msg, user_data):
@@ -303,10 +307,22 @@ def get_csv_inputs(input_file, label=''):
         if helper.has_csv_header():
             inputs = filter_csv_columns(add_labels(
                 DictReader(helper, dialect="unix"), label=label
-            ), columns=CONFIG_FIELDS)
+            ), columns=CONFIG_FIELDS + SOLUTION_IDENTIFICATION_FIELDS)
         else:
             inputs = filter_csv_columns(add_labels(DictReader(
                 helper, fieldnames=SOLUTION_INPUT_FIELDS, dialect="unix",
-            ), label=label), columns=CONFIG_FIELDS)
+            ), label=label), columns=(
+                CONFIG_FIELDS + SOLUTION_IDENTIFICATION_FIELDS
+            ))
 
     return inputs
+
+
+def get_multiprocessing_filename(run):
+    """
+    Get a safe filename in a multiprocessing context.
+    """
+    return Path(
+        run.config_input.label + str(arrow.now()) +
+        str(current_process().name) + ".hdf5"
+    )

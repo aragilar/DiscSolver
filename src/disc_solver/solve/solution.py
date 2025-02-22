@@ -541,6 +541,11 @@ def main_solution(
             f"Insufficient angles to solve at - angles: {angles}"
         )
 
+    if extra_args.get("root_func") is not None:
+        log.warn("Root function specified")
+    else:
+        log.warn("Root function NOT specified")
+
     system, internal_data = ode_system(
         γ=γ, a_0=a_0, norm_kepler_sq=norm_kepler_sq,
         init_con=system_initial_conditions, η_derivs=η_derivs,
@@ -599,6 +604,7 @@ def solution(
     soln_input, initial_conditions, *, root_func=None, root_func_args=None,
     onroot_func=None, tstop=None, ontstop_func=None, store_internal=True,
     with_taylor=True, modified_initial_conditions=None, θ_scale=float_type(1),
+    is_post_shock_only=False,
 ):
     """
     Find solution
@@ -774,6 +780,7 @@ def solution(
             if soln.roots.t is not None else None
         ), y_roots=soln.roots.y, sonic_point=sonic_point,
         sonic_point_values=sonic_point_values,
+        is_post_shock_only=is_post_shock_only,
     )
 
 
