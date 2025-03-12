@@ -3,7 +3,7 @@
 Compute and plot field-lines/trajectories.
 """
 from numpy import (
-    array, sin, cos, arctan2, degrees, argmax, tan,
+    array, sin, cos, arctan2, degrees, tan,
 )
 from ..critical_points import get_all_sonic_points
 from ..utils import ODEIndex, get_closest_value_sorted
@@ -206,7 +206,9 @@ def generate_plot(
     v_max_steps=DEFAULT_V_MAX_STEPS, B_max_steps=DEFAULT_B_MAX_STEPS,
     v_step_scaling=DEFAULT_V_STEP_SCALING,
     B_step_scaling=DEFAULT_B_STEP_SCALING,
-    use_E_r=False,
+    use_E_r=False, with_slow=False, with_sonic=True, with_alfven=False,
+    with_fast=False, with_45_line=False, with_max_soln_angle=False,
+    with_max_v_angle=True,
 ):
     """
     Generate plot, with enough freedom to be able to format fig
@@ -239,61 +241,56 @@ def generate_plot(
     )
     print("v", len(v_values), len(v_positions))
     print("B", len(B_values), len(B_positions))
-    v_sonic_idx = argmax((v_values[:, 0] ** 2 + v_values[:, 1]**2) >= 1)
-    v_sonic_pos = v_positions[v_sonic_idx]
 
-    ax.plot(
-        v_sonic_pos[0], v_sonic_pos[1], label="sonic point", marker='x',
-        color="C3",
-    )
-
-    if slow_angle is not None:
+    if with_slow and slow_angle is not None:
         ax.axline(
             (0, 0), slope=tan(slow_angle),
             label=f"Slow point angle ({degrees(slow_angle)}°)",
             color="C2",
         )
 
-    if sonic_angle is not None:
+    if with_sonic and sonic_angle is not None:
         ax.axline(
             (0, 0), slope=tan(sonic_angle),
             label=f"Sonic point angle ({degrees(sonic_angle)}°)",
             color="C3",
         )
 
-    if alfven_angle is not None:
+    if with_alfven and alfven_angle is not None:
         ax.axline(
             (0, 0), slope=tan(alfven_angle),
             label=f"alfven point angle ({degrees(alfven_angle)}°)",
             color="C4",
         )
 
-    if fast_angle is not None:
+    if with_fast and fast_angle is not None:
         ax.axline(
             (0, 0), slope=tan(fast_angle),
             label=f"fast point angle ({degrees(fast_angle)}°)",
             color="C5",
         )
 
-    ax.axline(
-        (0, 0), slope=1,
-        label="45°",
-        color="C6",
-    )
+    if with_45_line:
+        ax.axline(
+            (0, 0), slope=1,
+            label="45°",
+            color="C6",
+        )
 
-    max_soln_angle = max(angles)
-    ax.axline(
-        (0, 0), slope=tan(max_soln_angle),
-        label=f"Max angle in solution {degrees(max_soln_angle)}°",
-        color="C7",
-    )
-
-    max_v_angle = max(arctan2(v_positions[:, 1], v_positions[:, 0]))
-    ax.axline(
-        (0, 0), slope=tan(max_v_angle),
-        label=f"Max angle in v streamline {degrees(max_v_angle)}°",
-        color="C8",
-    )
+    if with_max_soln_angle:
+        max_soln_angle = max(angles)
+        ax.axline(
+            (0, 0), slope=tan(max_soln_angle),
+            label=f"Max angle in solution {degrees(max_soln_angle)}°",
+            color="C7",
+        )
+    if with_max_v_angle:
+        max_v_angle = max(arctan2(v_positions[:, 1], v_positions[:, 0]))
+        ax.axline(
+            (0, 0), slope=tan(max_v_angle),
+            label=f"Max angle in v streamline {degrees(max_v_angle)}°",
+            color="C8",
+        )
 
     ax.plot(
         B_positions[:, 0], B_positions[:, 1], label="$B$ field line",
@@ -306,7 +303,7 @@ def generate_plot(
 
     ax.set_xlabel("Cylindrical radius (distance from origin, arb. units)")
     ax.set_ylabel("Cylindrical height (distance from origin, arb. units)")
-    ax.legend()
+    ax.legend(loc="upper left")
     ax.set_aspect('equal', adjustable='datalim')
 
     return fig
