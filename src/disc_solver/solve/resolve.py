@@ -2,6 +2,7 @@
 """
 reSolver component of Disc Solver
 """
+from os import fspath
 from pathlib import Path
 
 import arrow
@@ -46,7 +47,7 @@ def resolve(
         float_type=str(float_type),
         sonic_method=sonic_method,
         use_E_r=new_soln_input.use_E_r,
-        based_on_solution_filename=soln_filename,
+        based_on_solution_filename=fspath(soln_filename),
         based_on_solution_solution_name=soln_range,
     )
 
