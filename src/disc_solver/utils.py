@@ -168,6 +168,10 @@ def get_solutions(run, soln_range):
     """
     if soln_range is None:
         soln_range = "0"
+    elif soln_range == "latest":
+        if run.final_solution is not None:
+            return run.final_solution
+        soln_range = str(max(int(soln) for soln in run.solutions))
     elif soln_range == "final":
         return run.final_solution
     return run.solutions[soln_range]
