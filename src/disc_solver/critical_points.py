@@ -24,7 +24,9 @@ def mhd_wave_speeds(*, values, sound_speed=1):
     B_sq = B_r ** 2 + B_φ ** 2 + B_θ ** 2
     v_sq = v_r ** 2 + v_φ ** 2 + v_θ ** 2
 
-    cos_sq_psi = ((v_r * B_r + v_θ * B_θ) ** 2) / (v_sq * B_sq)
+    # v ⋅ B = v_θ * B_θ as the direction of propagation is along θ as per
+    # Blandford and Payne (see section 2.4 "Critical Points")
+    cos_sq_psi = ((v_θ * B_θ) ** 2) / (v_sq * B_sq)
 
     v_a_sq = B_sq / (4 * pi * ρ)
     slow = 1/2 * (
@@ -51,6 +53,8 @@ def get_mach_numbers(solution):
     soln = solution.solution
 
     v_θ = soln[..., ODEIndex.v_θ]
+    # v ⋅ B = v_θ * B_θ as the direction of propagation is along θ as per
+    # Blandford and Payne (see section 2.4 "Critical Points")
     v_sq = v_θ ** 2
 
     wave_speeds_sq = mhd_wave_speeds(values=soln)

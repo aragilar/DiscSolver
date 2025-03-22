@@ -9,7 +9,7 @@ from sys import stdin, exc_info
 import logbook
 from logbook.compat import redirected_warnings, redirected_logging
 
-from numpy import degrees, nanargmax, nanmax, sqrt
+from numpy import degrees, nanargmax, nanmax, sqrt, nan
 
 from h5preserve import open as h5open
 
@@ -123,7 +123,12 @@ def get_max_mach_numbers(solution):
         Find the angle for maximum value for the mach numbers associated with
         the all the sound speeds.
         """
-        return degrees(solution.angles[nanargmax(mach)])
+        try:
+            idx = nanargmax(mach)
+        except ValueError:
+            return nan
+        return degrees(solution.angles[idx])
+
     slow_mach, sonic_mach, alfven_mach, fast_mach = get_mach_numbers(solution)
 
     return {
