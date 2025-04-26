@@ -306,6 +306,7 @@ def generate_plot(
     ax.legend(loc="upper left")
     # Don't show anything below the midplane
     ax.set_ylim(bottom=0)
+    ax.set_xlim(left=0)
     ax.set_aspect('equal', adjustable='datalim')
 
     return fig
