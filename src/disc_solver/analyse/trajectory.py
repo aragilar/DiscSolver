@@ -304,6 +304,8 @@ def generate_plot(
     ax.set_xlabel("Cylindrical radius (distance from origin, arb. units)")
     ax.set_ylabel("Cylindrical height (distance from origin, arb. units)")
     ax.legend(loc="upper left")
+    # Don't show anything below the midplane
+    ax.set_ylim(bottom=0)
     ax.set_aspect('equal', adjustable='datalim')
 
     return fig
