@@ -570,7 +570,7 @@ class TestAnalysis:
         B_output_file = tmp_path / "B.csv"
         v_output_file = tmp_path / "v.csv"
         return save_trajectory(
-            solution, plot_filename=plot_file, v_start_position=(2, 0.00001),
+            solution, v_start_position=(2, 0.00001),
             stats_output_file=stats_output_file, B_output_file=B_output_file,
             v_output_file=v_output_file
         )

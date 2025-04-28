@@ -147,6 +147,9 @@ def plot_parser(parser):
 
 
 def trajectory_output_parser(parser):
+    """
+    Add arguments for trajectory command to parser
+    """
     trajectory_parser(parser)
     parser.add_argument("--stats-output-file", default="stats-out.csv")
     parser.add_argument("--B-output-file", default="B-out.csv")
@@ -212,7 +215,9 @@ def traj_main(soln, *, soln_range, out_args, traj_args):
     """
     Entry point for ds-traj
     """
-    return save_trajectory(soln, soln_range=soln_range, **out_args, **traj_args)
+    return save_trajectory(
+        soln, soln_range=soln_range, **out_args, **traj_args
+    )
 
 
 @analysis_func_wrapper
@@ -236,7 +241,6 @@ def save_trajectory(
     )
     max_soln_angle = max(angles)
 
-
     with open(stats_output_file, 'x') as f:
         helper = CSVWriterHelper(f)
         writer = DictWriter(helper, (
@@ -253,7 +257,6 @@ def save_trajectory(
             "max_soln_angle": max_soln_angle
         })
     print("Saved stats")
-
 
     with open(v_output_file, 'x') as f:
         helper = CSVWriterHelper(f)
@@ -284,7 +287,7 @@ def save_trajectory(
             filename=filename, soln_range=soln_range,
         ))
         writer.writeheader()
-        for vals, pos in  follow_trajectory(
+        for vals, pos in follow_trajectory(
             x_start=float(B_start_position[0]),
             y_start=float(B_start_position[1]),
             angles=angles,
