@@ -38,11 +38,13 @@ def compute_values(*, x, y, angles, r_vals, θ_vals, radial_power):
     r_val = rad_coef * get_closest_value_sorted(xs=angles, ys=r_vals, x=θ_pos)
     θ_val = rad_coef * get_closest_value_sorted(xs=angles, ys=θ_vals, x=θ_pos)
 
-    R_magnitude = r_val ** 2 + θ_val ** 2
+    # R_magnitude = r_val ** 2 + θ_val ** 2
     Θ_magnitude = arctan2(θ_val, r_val) + θ_pos
 
-    x_val = R_magnitude * cos(Θ_magnitude)
-    y_val = R_magnitude * sin(Θ_magnitude)
+    # x_val = R_magnitude * cos(Θ_magnitude)
+    # y_val = R_magnitude * sin(Θ_magnitude)
+    x_val = cos(Θ_magnitude)
+    y_val = sin(Θ_magnitude)
 
     return array([x_val, y_val])
 
