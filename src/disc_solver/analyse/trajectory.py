@@ -2,11 +2,14 @@
 """
 Compute and plot field-lines/trajectories.
 """
+from csv import DictWriter
+
 from numpy import (
     array, sin, cos, arctan2, degrees, tan,
 )
 from ..critical_points import get_all_sonic_points
-from ..utils import ODEIndex, get_closest_value_sorted
+from ..utils import ODEIndex, get_closest_value_sorted, get_solutions
+from ..solve.utils import CSVWriterHelper
 
 from .utils import (
     single_solution_plotter, analyse_main_wrapper, analysis_func_wrapper,
@@ -35,11 +38,13 @@ def compute_values(*, x, y, angles, r_vals, θ_vals, radial_power):
     r_val = rad_coef * get_closest_value_sorted(xs=angles, ys=r_vals, x=θ_pos)
     θ_val = rad_coef * get_closest_value_sorted(xs=angles, ys=θ_vals, x=θ_pos)
 
-    R_magnitude = r_val ** 2 + θ_val ** 2
+    # R_magnitude = r_val ** 2 + θ_val ** 2
     Θ_magnitude = arctan2(θ_val, r_val) + θ_pos
 
-    x_val = R_magnitude * cos(Θ_magnitude)
-    y_val = R_magnitude * sin(Θ_magnitude)
+    # x_val = R_magnitude * cos(Θ_magnitude)
+    # y_val = R_magnitude * sin(Θ_magnitude)
+    x_val = cos(Θ_magnitude)
+    y_val = sin(Θ_magnitude)
 
     return array([x_val, y_val])
 
@@ -114,12 +119,10 @@ def get_trajectory(
     return array(values), array(positions)
 
 
-def plot_parser(parser):
+def trajectory_parser(parser):
     """
-    Add arguments for plot command to parser
+    Add arguments for trajectory command to parser
     """
-    common_plot_appearence_options(parser)
-    common_output_plot_options(parser)
     parser.add_argument("--v-start-position", nargs=2)
     parser.add_argument("--v-max-steps", type=int, default=DEFAULT_V_MAX_STEPS)
     parser.add_argument(
@@ -133,7 +136,28 @@ def plot_parser(parser):
     return parser
 
 
-def get_plot_args(args):
+def plot_parser(parser):
+    """
+    Add arguments for plot command to parser
+    """
+    trajectory_parser(parser)
+    common_plot_appearence_options(parser)
+    common_output_plot_options(parser)
+    return parser
+
+
+def trajectory_output_parser(parser):
+    """
+    Add arguments for trajectory command to parser
+    """
+    trajectory_parser(parser)
+    parser.add_argument("--stats-output-file", default="stats-out.csv")
+    parser.add_argument("--B-output-file", default="B-out.csv")
+    parser.add_argument("--v-output-file", default="v-out.csv")
+    return parser
+
+
+def get_args(args):
     """
     Parse plot args
     """
@@ -168,13 +192,125 @@ def get_plot_args(args):
     }
 
 
+def get_trajectory_out_args(args):
+    """
+    Parse output arguments
+    """
+    return {
+        "stats_output_file": args["stats_output_file"],
+        "B_output_file": args["B_output_file"],
+        "v_output_file": args["v_output_file"],
+    }
+
+
+@analyse_main_wrapper(
+    "Main plotter for DiscSolver",
+    trajectory_output_parser,
+    cmd_parser_splitters={
+        "out_args": get_trajectory_out_args,
+        "traj_args": get_args,
+    }
+)
+def traj_main(soln, *, soln_range, out_args, traj_args):
+    """
+    Entry point for ds-traj
+    """
+    return save_trajectory(
+        soln, soln_range=soln_range, **out_args, **traj_args
+    )
+
+
+@analysis_func_wrapper
+def save_trajectory(
+    soln_file, *, soln_range=None, stats_output_file, B_output_file,
+    v_output_file, v_start_position=DEFAULT_V_START_POSITION,
+    B_start_position=DEFAULT_B_START_POSITION, v_max_steps=DEFAULT_V_MAX_STEPS,
+    B_max_steps=DEFAULT_B_MAX_STEPS, v_step_scaling=DEFAULT_V_STEP_SCALING,
+    B_step_scaling=DEFAULT_B_STEP_SCALING, filename
+):
+    """
+    Save trajectory to file
+    """
+    soln_instance = get_solutions(soln_file, soln_range)
+    solution = soln_instance.solution
+    angles = soln_instance.angles
+    soln_input = soln_instance.solution_input
+
+    slow_angle, sonic_angle, alfven_angle, fast_angle = get_all_sonic_points(
+        soln_instance
+    )
+    max_soln_angle = max(angles)
+
+    with open(stats_output_file, 'x') as f:
+        helper = CSVWriterHelper(f)
+        writer = DictWriter(helper, (
+            "slow_angle", "sonic_angle", "alfven_angle", "fast_angle",
+            "max_soln_angle"
+        ), dialect="unix")
+        helper.add_metadata(dict(
+            filename=filename, soln_range=soln_range,
+        ))
+        writer.writeheader()
+        writer.writerow({
+            "slow_angle": slow_angle, "sonic_angle": sonic_angle,
+            "alfven_angle": alfven_angle, "fast_angle": fast_angle,
+            "max_soln_angle": max_soln_angle
+        })
+    print("Saved stats")
+
+    with open(v_output_file, 'x') as f:
+        helper = CSVWriterHelper(f)
+        writer = DictWriter(helper, ("v_x", "v_y", "x", "y"), dialect="unix")
+        helper.add_metadata(dict(
+            filename=filename, soln_range=soln_range,
+        ))
+        writer.writeheader()
+        for vals, pos in follow_trajectory(
+            x_start=float(v_start_position[0]),
+            y_start=float(v_start_position[1]),
+            angles=angles,
+            r_vals=solution[:, ODEIndex.v_r],
+            θ_vals=solution[:, ODEIndex.v_θ],
+            radial_power=-1/2, max_steps=v_max_steps,
+            step_scaling=v_step_scaling,
+        ):
+            writer.writerow({
+                "v_x": vals[0], "v_y": vals[1], "x": pos[0], "y": pos[1]
+            })
+
+    print("Saved v")
+
+    with open(B_output_file, 'x') as f:
+        helper = CSVWriterHelper(f)
+        writer = DictWriter(helper, ("B_x", "B_y", "x", "y"), dialect="unix")
+        helper.add_metadata(dict(
+            filename=filename, soln_range=soln_range,
+        ))
+        writer.writeheader()
+        for vals, pos in follow_trajectory(
+            x_start=float(B_start_position[0]),
+            y_start=float(B_start_position[1]),
+            angles=angles,
+            r_vals=solution[:, ODEIndex.B_r],
+            θ_vals=solution[:, ODEIndex.B_θ],
+            radial_power=(soln_input.γ - (5/4)), max_steps=B_max_steps,
+            step_scaling=B_step_scaling,
+        ):
+            writer.writerow({
+                "B_x": vals[0], "B_y": vals[1], "x": pos[0], "y": pos[1]
+            })
+    print("Saved B")
+
+    print("Finished", filename)
+
+
 @analyse_main_wrapper(
     "Main plotter for DiscSolver",
     plot_parser,
     cmd_parser_splitters={
         "common_plot_output_args": get_common_plot_output_args,
         "common_plot_appearence_args": get_common_plot_appearence_args,
-        "plot_args": get_plot_args,
+        "plot_args": get_args,
     }
 )
 def plot_main(
