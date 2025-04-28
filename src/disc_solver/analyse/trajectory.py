@@ -56,9 +56,11 @@ def follow_trajectory(
     Each step is scaled by `step_scaling` and no more than `max_steps` steps
     are taken.
     """
-    values = []
-    positions = []
     pos = array([x_start, y_start])
+    # Using 0 means that no change will happen on the first scaling if there is
+    # an error
+    prev_vals = 0
+    prev_pos = 0
     for step in range(max_steps):
         try:
             vals = compute_values(
@@ -72,8 +74,6 @@ def follow_trajectory(
             print(
                 "Old scaling was", old_scaling, "new scaling is", step_scaling
             )
-            prev_vals = values[-1]
-            prev_pos = positions[-1]
             pos = prev_pos + step_scaling * prev_vals
             # We've run out of solution to show
             try:
@@ -84,13 +84,33 @@ def follow_trajectory(
             except IndexError:
                 print("Errored at step with new scaling, stopping", step, pos)
                 break
-            values.append(vals)
-            positions.append(pos)
+            prev_vals = vals
+            prev_pos = pos
+            yield vals, pos
         else:
-            values.append(vals)
-            positions.append(pos)
+            prev_vals = vals
+            prev_pos = pos
+            yield vals, pos
             # Add in scaling by r^2 to allow for bigger steps
             pos = pos + step_scaling * vals
+
+
+def get_trajectory(
+    *, x_start, y_start, angles, r_vals, θ_vals, radial_power, max_steps=1000,
+    step_scaling=1e-3
+):
+    """
+    Get the trajectory as a pair of arrays
+    """
+    values = []
+    positions = []
+    for vals, pos in follow_trajectory(
+        x_start=x_start, y_start=y_start, angles=angles, r_vals=r_vals,
+        θ_vals=θ_vals, radial_power=radial_power, max_steps=max_steps,
+        step_scaling=step_scaling,
+    ):
+        values.append(vals)
+        positions.append(pos)
     return array(values), array(positions)
 
 
@@ -223,7 +243,7 @@ def generate_plot(
     )
 
     ax = fig.subplots()
-    v_values, v_positions = follow_trajectory(
+    v_values, v_positions = get_trajectory(
         x_start=float(v_start_position[0]), y_start=float(v_start_position[1]),
         angles=angles,
         r_vals=solution[:, ODEIndex.v_r],
@@ -231,7 +251,7 @@ def generate_plot(
         radial_power=-1/2, max_steps=v_max_steps,
         step_scaling=v_step_scaling,
     )
-    B_values, B_positions = follow_trajectory(
+    B_values, B_positions = get_trajectory(
         x_start=float(B_start_position[0]), y_start=float(B_start_position[1]),
         angles=angles,
         r_vals=solution[:, ODEIndex.B_r],
