@@ -26,6 +26,7 @@ from disc_solver.analyse.sonic_ratio_plot import plot as sonic_ratio_plot
 from disc_solver.analyse.stats import stats_main, dump_csv_inputs_main
 from disc_solver.analyse.surface_density_plot import surface_density_plot
 from disc_solver.analyse.trajectory import plot as trajectory_plot
+from disc_solver.analyse.trajectory import save_trajectory
 from disc_solver.analyse.taylor_plot import taylor_plot
 from disc_solver.analyse.utils import AnalysisError
 from disc_solver.analyse.validate_plot import validate_plot
@@ -562,6 +563,16 @@ class TestAnalysis:
     def test_trajectory_plot_file(self, solution, plot_file):
         return trajectory_plot(
             solution, plot_filename=plot_file, v_start_position=(2, 0.00001),
+        )
+
+    def test_save_trajectory(self, solution, tmp_path):
+        stats_output_file = tmp_path / "stats.csv"
+        B_output_file = tmp_path / "B.csv"
+        v_output_file = tmp_path / "v.csv"
+        return save_trajectory(
+            solution, plot_filename=plot_file, v_start_position=(2, 0.00001),
+            stats_output_file=stats_output_file, B_output_file=B_output_file,
+            v_output_file=v_output_file
         )
 
 

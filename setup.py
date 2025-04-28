@@ -81,7 +81,8 @@ setuptools.setup(
             "ds-dumpcsv = disc_solver.analyse.stats:dump_csv_inputs_main",
             "ds-csvrunner = disc_solver.solve.csvrunner:main",
             "ds-hdf5runner = disc_solver.solve.hdf5runner:main",
-            "ds-flow-plot = disc_solver.analyse.trajectory:plot_main"
+            "ds-flow-plot = disc_solver.analyse.trajectory:plot_main",
+            "ds-flow-file = disc_solver.analyse.trajectory:traj_main",
         ],
     },
     cmdclass=versioneer.get_cmdclass(),
