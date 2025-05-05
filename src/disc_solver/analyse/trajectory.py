@@ -133,6 +133,10 @@ def trajectory_parser(parser):
     parser.add_argument(
         "--B-step-scaling", type=float, default=DEFAULT_B_STEP_SCALING,
     )
+    parser.add_argument(
+        "--no-max-v-angle", action='store_false', dest="with_max_v_angle",
+        default=True
+    )
     return parser
 
 
@@ -181,6 +185,7 @@ def get_args(args):
     v_step_scaling = args.get("v_step_scaling", DEFAULT_V_STEP_SCALING)
     B_max_steps = args.get("B_max_steps", DEFAULT_B_MAX_STEPS)
     B_step_scaling = args.get("B_step_scaling", DEFAULT_B_STEP_SCALING)
+    with_max_v_angle = args.get("with_max_v_angle")
 
     return {
         "v_start_position": v_start_position,
@@ -189,6 +194,7 @@ def get_args(args):
         "B_start_position": B_start_position,
         "B_max_steps": B_max_steps,
         "B_step_scaling": B_step_scaling,
+        "with_max_v_angle": with_max_v_angle,
     }
 
 
@@ -226,7 +232,7 @@ def save_trajectory(
     v_output_file, v_start_position=DEFAULT_V_START_POSITION,
     B_start_position=DEFAULT_B_START_POSITION, v_max_steps=DEFAULT_V_MAX_STEPS,
     B_max_steps=DEFAULT_B_MAX_STEPS, v_step_scaling=DEFAULT_V_STEP_SCALING,
-    B_step_scaling=DEFAULT_B_STEP_SCALING, filename
+    B_step_scaling=DEFAULT_B_STEP_SCALING, filename,
 ):
     """
     Save trajectory to file
@@ -334,7 +340,7 @@ def plot(
     v_start_position=DEFAULT_V_START_POSITION,
     B_start_position=DEFAULT_B_START_POSITION, v_max_steps=DEFAULT_V_MAX_STEPS,
     B_max_steps=DEFAULT_B_MAX_STEPS, v_step_scaling=DEFAULT_V_STEP_SCALING,
-    B_step_scaling=DEFAULT_B_STEP_SCALING,
+    B_step_scaling=DEFAULT_B_STEP_SCALING, with_max_v_angle=True,
 ):
     """
     Plot solution to file
@@ -346,7 +352,7 @@ def plot(
         v_start_position=v_start_position, v_max_steps=v_max_steps,
         v_step_scaling=v_step_scaling,
         B_start_position=B_start_position, B_max_steps=B_max_steps,
-        B_step_scaling=B_step_scaling,
+        B_step_scaling=B_step_scaling, with_max_v_angle=with_max_v_angle,
     )
 
     return plot_output_wrapper(
