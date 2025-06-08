@@ -622,7 +622,7 @@ def solution(
     jump_before_sonic = soln_input.jump_before_sonic
     v_θ_sonic_crit = soln_input.v_θ_sonic_crit
     after_sonic = soln_input.after_sonic
-    interp_slice = soln_input.interp_slice
+    interp_slice = soln_input.compute_interp_slice()
     sonic_interp_size = soln_input.sonic_interp_size
     use_E_r = soln_input.use_E_r
     taylor_internal = None
