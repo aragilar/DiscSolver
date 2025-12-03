@@ -19,6 +19,7 @@ from ..logging import log_handler
 from ..utils import (
     open_or_stream, main_entry_point_wrapper, ODEIndex, CylindricalODEIndex,
     convert_spherical_to_cylindrical, is_monotonically_increasing,
+    first_closest_index,
 )
 from .phys_ratio_plot import compute_M_dot_out_on_M_dot_in, compute_Σ
 from .validate_plot import (
@@ -60,7 +61,42 @@ FIELD_NAMES = list(SOLUTION_INPUT_FIELDS) + [
     "max_angle_reached_degrees",
     "v_θ_starts_monotonic",
     "v_θ_ends_low",
+    "κ",
+    "λ",
 ]
+
+
+def compute_bp_values(solution, v_θ_base=2):
+    """
+    Compute κ and λ defined by BP82.
+    """
+    soln = solution.solution
+    c_s_on_v_k = solution.solution_input.c_s_on_v_k
+    a_0 = solution.solution_input.v_a_on_c_s ** 2
+    index_base = first_closest_index(soln[:, ODEIndex.v_θ], v_θ_base)
+    if index_base is None:
+        return {
+            "κ": nan,
+            "λ": nan,
+        }
+
+    v_r = soln[index_base, ODEIndex.v_r]
+    v_θ = soln[index_base, ODEIndex.v_θ]
+    v_φ = soln[index_base, ODEIndex.v_φ]
+    B_r = soln[index_base, ODEIndex.B_r]
+    B_θ = soln[index_base, ODEIndex.B_θ]
+    B_φ = soln[index_base, ODEIndex.B_φ]
+    ρ = soln[index_base, ODEIndex.ρ]
+
+    v_p = sqrt(v_r ** 2 + v_θ ** 2)
+    B_p = sqrt(B_r ** 2 + B_θ ** 2)
+
+    κ = (ρ * v_p) / (c_s_on_v_k * a_0 * B_p)
+    λ = v_φ * c_s_on_v_k - B_φ / κ
+    return {
+        "κ": κ,
+        "λ": λ,
+    }
 
 
 def compute_max_difference_in_equations(solution):
@@ -206,6 +242,7 @@ def singluar_stats(solution):
 STATS_FUNCS = [
     get_max_mach_numbers, labelled_get_all_sonic_points, singluar_stats,
     compute_max_vert_jet_velocity, compute_max_difference_in_equations,
+    compute_bp_values,
 ]
 
 
