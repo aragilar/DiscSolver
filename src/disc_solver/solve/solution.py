@@ -137,11 +137,6 @@ def ode_system(
                 # pylint: disable=unsubscriptable-object
                 problems[θ].append("negative density")
             return 1
-        if not derivs_post_solution and v_θ < 0:
-            if store_internal:
-                # pylint: disable=unsubscriptable-object
-                problems[θ].append("negative velocity")
-            return -1
 
         B_mag = sqrt(B_r**2 + B_φ**2 + B_θ**2)
         b_r, b_φ, b_θ = B_r/B_mag, B_φ/B_mag, B_θ/B_mag
