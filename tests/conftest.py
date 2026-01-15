@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from logbook import StderrHandler
@@ -6,6 +7,7 @@ import pytest
 
 from disc_solver.solve import solve
 from disc_solver.float_handling import float_type as FLOAT_TYPE
+from disc_solver.utils import str_to_bool
 
 PLOT_FILE = "plot.png"
 
@@ -49,6 +51,7 @@ DERIV_NO_INTERNAL_SOLUTIONS = [
 USE_E_R_SOLUTIONS = [
     "mod_hydro_solution_use_E_r",
 ]
+
 NON_APPROX_SOLUTIONS = [
     "single_solution_default",
     "sonic_root_solution_default",
@@ -56,6 +59,25 @@ NON_APPROX_SOLUTIONS = [
     "single_solution_no_internal",
     "sonic_root_solution_no_internal",
 ]
+
+CAN_BE_SKIPPED = {
+    "hydrostatic_solution_default",
+    "hydrostatic_solution_no_internal",
+    "mcmc_solution_no_internal",
+    "mod_hydro_solution_default",
+    "mod_hydro_solution_no_internal",
+    "mod_hydro_solution_use_E_r",
+    "sonic_root_solution_default",
+    "sonic_root_solution_no_internal",
+}
+
+
+@pytest.fixture(scope="session")
+def skip_slow_tests():
+    dont_skip = os.environ.get("DS_RUN_SLOW_TESTS")
+    if dont_skip is None:
+        return True
+    return str_to_bool(dont_skip)
 
 
 @pytest.fixture(scope="session")
@@ -181,37 +203,65 @@ def mod_hydro_solution_use_E_r(tmpdir_factory):
 
 
 @pytest.fixture(scope="session", params=ALL_SOLUTIONS)
-def solution(request):
+def solution(request, skip_slow_tests):
+    if skip_slow_tests and request.param in CAN_BE_SKIPPED:
+        pytest.skip(
+            "Skipping as {} in skipable solutions".format(request.param)
+        )
     return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="session", params=DEFAULT_SOLUTIONS)
 def solution_default(request):
+    if skip_slow_tests and request.param in CAN_BE_SKIPPED:
+        pytest.skip(
+            "Skipping as {} in skipable solutions".format(request.param)
+        )
     return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="session", params=NO_INTERNAL_SOLUTIONS)
 def solution_no_internal(request):
+    if skip_slow_tests and request.param in CAN_BE_SKIPPED:
+        pytest.skip(
+            "Skipping as {} in skipable solutions".format(request.param)
+        )
     return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="session", params=MULTI_SOLUTIONS)
 def solutions_many(request):
+    if skip_slow_tests and request.param in CAN_BE_SKIPPED:
+        pytest.skip(
+            "Skipping as {} in skipable solutions".format(request.param)
+        )
     return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="session", params=TAYLOR_SOLUTIONS)
 def solution_taylor(request):
+    if skip_slow_tests and request.param in CAN_BE_SKIPPED:
+        pytest.skip(
+            "Skipping as {} in skipable solutions".format(request.param)
+        )
     return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="session", params=DERIV_SOLUTIONS)
 def solution_deriv(request):
+    if skip_slow_tests and request.param in CAN_BE_SKIPPED:
+        pytest.skip(
+            "Skipping as {} in skipable solutions".format(request.param)
+        )
     return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="session", params=DERIV_NO_INTERNAL_SOLUTIONS)
 def solution_deriv_no_internal(request):
+    if skip_slow_tests and request.param in CAN_BE_SKIPPED:
+        pytest.skip(
+            "Skipping as {} in skipable solutions".format(request.param)
+        )
     return request.getfixturevalue(request.param)
 
 
